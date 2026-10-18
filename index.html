@@ -68,6 +68,9 @@
 </head>
 <body class="w-screen h-screen flex flex-col justify-between relative overflow-hidden pb-14">
 
+  <!-- 3D WebGL Canvas Container -->
+  <div id="canvas-container" class="absolute inset-0 w-full h-full z-0 cursor-grab active:cursor-grabbing"></div>
+
   <!-- ========================================== -->
   <!-- 1. LOADING SPLASH SCREEN (Requirement 2)   -->
   <!-- ========================================== -->
@@ -192,7 +195,7 @@
   <!-- ========================================== -->
   <!-- 3. GAMEPLAY SCREEN & HUD (Req 1, 5, 6, 7)  -->
   <!-- ========================================== -->
-  <div id="screen-game" class="absolute inset-0 w-full h-full pointer-events-none flex flex-col justify-between">
+  <div id="screen-game" class="absolute inset-0 w-full h-full pointer-events-none flex flex-col justify-between hidden">
     
     <!-- Top In-Game Header (Exact match to reference screenshot!) -->
     <header class="relative z-10 pt-3 px-4 flex flex-col items-center w-full max-w-md mx-auto pointer-events-none">
@@ -1647,37 +1650,55 @@
     // UI INITIALIZATION & EVENT LISTENERS
     // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
-      init3D();
+      try { init3D(); } catch(e) { console.error('3D Init Warning:', e); }
       AppState.syncUI();
 
       // 1. Splash Screen Auto-transition (Requirement 2)
-      setTimeout(() => {
-        document.getElementById('splash-progress').style.width = '100%';
-        document.getElementById('splash-status').textContent = 'Ready! Welcome to Sector 1.';
-      }, 700);
-
-      setTimeout(() => {
+      function dismissSplash() {
         const splash = document.getElementById('screen-splash');
-        splash.classList.add('opacity-0', 'pointer-events-none');
-        document.getElementById('screen-home').classList.remove('hidden');
-        setTimeout(() => splash.remove(), 500);
-      }, 1600);
+        if (splash) {
+          splash.classList.add('opacity-0', 'pointer-events-none');
+          setTimeout(() => { try { splash.remove(); } catch(e) {} }, 400);
+        }
+        const home = document.getElementById('screen-home');
+        if (home) home.classList.remove('hidden');
+      }
+
+      // Smooth progress bar fill
+      setTimeout(() => {
+        const p = document.getElementById('splash-progress');
+        if (p) p.style.width = '100%';
+        const s = document.getElementById('splash-status');
+        if (s) s.textContent = 'Ready! Entering Sector 1...';
+      }, 400);
+
+      // Auto dismiss after 1.2 seconds
+      setTimeout(dismissSplash, 1200);
+
+      // Tap-to-skip fallback
+      const splashElem = document.getElementById('screen-splash');
+      if (splashElem) {
+        splashElem.addEventListener('pointerdown', dismissSplash);
+      }
 
       // 2. Screen Switching (Home <-> Game)
       document.getElementById('btn-start-game').addEventListener('click', () => {
         initAudio();
         document.getElementById('screen-home').classList.add('hidden');
+        document.getElementById('screen-game').classList.remove('hidden');
         loadLevel(AppState.level);
       });
 
       document.getElementById('btn-game-settings').addEventListener('click', () => {
         initAudio();
+        document.getElementById('screen-game').classList.add('hidden');
         document.getElementById('screen-home').classList.remove('hidden');
         AppState.syncUI();
       });
 
       document.getElementById('btn-win-home').addEventListener('click', () => {
         document.getElementById('modal-level-win').classList.add('hidden');
+        document.getElementById('screen-game').classList.add('hidden');
         document.getElementById('screen-home').classList.remove('hidden');
         AppState.syncUI();
       });
