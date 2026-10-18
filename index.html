@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Arrow Cube 3D: 250 Levels Escape Puzzle</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      background: radial-gradient(circle at 50% 35%, #ffffff 0%, #e0f2fe 45%, #bae6fd 100%);
+      color: #0f172a;
+      overflow: hidden;
+    }
+    .fredoka {
+      font-family: 'Fredoka', 'Inter', sans-serif;
+    }
+    .mono-font {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.90);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
+    .heart-lost {
+      filter: grayscale(100%) opacity(35%);
+      transform: scale(0.85);
+      transition: all 0.3s ease;
+    }
+    .unity-badge {
+      background: linear-gradient(135deg, #000000 0%, #1e293b 100%);
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-between relative overflow-hidden pb-14">
+
+  <!-- 3D WebGL Canvas Container -->
+  <div id="canvas-container" class="absolute inset-0 w-full h-full z-0 cursor-grab active:cursor-grabbing"></div>
+
+  <!-- Top Header: Level Title & 3 Hearts (Exact match to reference screenshots) -->
+  <header class="relative z-10 pt-3 px-4 flex flex-col items-center justify-center w-full max-w-md mx-auto pointer-events-none">
+    <div class="pointer-events-auto flex flex-col items-center">
+      <div class="flex items-center gap-1.5 mb-1">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-sky-600 bg-sky-100/90 border border-sky-200 px-2.5 py-0.5 rounded-full mono-font">3D Cube Away</span>
+        <span id="badge-multi-face" class="text-[9px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full mono-font">2 Multi-Face Wraps</span>
+      </div>
+      
+      <!-- Bold Level Title (Level 1 to 250) -->
+      <h1 id="level-display" class="fredoka text-2xl sm:text-3xl font-bold tracking-tight text-slate-800 flex items-center gap-1.5 drop-shadow-sm">
+        Level 1
+      </h1>
+
+      <!-- 3 Hearts / Lives (Exact match to screenshot reference) -->
+      <div class="flex items-center gap-2 mt-1">
+        <div id="heart-1" class="text-rose-500 text-2xl transition-transform duration-300 transform hover:scale-110 drop-shadow-sm">❤️</div>
+        <div id="heart-2" class="text-rose-500 text-2xl transition-transform duration-300 transform hover:scale-110 drop-shadow-sm">❤️</div>
+        <div id="heart-3" class="text-rose-500 text-2xl transition-transform duration-300 transform hover:scale-110 drop-shadow-sm">❤️</div>
+      </div>
+    </div>
+
+    <!-- Quick Floating Action Controls -->
+    <div class="absolute top-3 right-4 flex items-center gap-2 pointer-events-auto">
+      <button id="btn-sound" class="w-9 h-9 rounded-2xl glass-card hover:bg-white active:scale-95 transition flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-sm" title="Toggle Sound">
+        <svg id="icon-sound-on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+        <svg id="icon-sound-off" class="w-4 h-4 hidden text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12-4l-6 6m0-6l6 6"></path></svg>
+      </button>
+      <button id="btn-reset" class="w-9 h-9 rounded-2xl glass-card hover:bg-white active:scale-95 transition flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-sm" title="Reset Level">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+      </button>
+      <button id="btn-story-log" class="w-9 h-9 rounded-2xl glass-card hover:bg-white active:scale-95 transition flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-sm" title="Story Codex">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Interactive Center Warning Toast -->
+  <div id="toast-message" class="pointer-events-none fixed top-24 left-1/2 -translate-x-1/2 z-20 transition-all duration-300 opacity-0 transform -translate-y-2">
+    <div class="px-4 py-2 rounded-2xl bg-slate-900/90 backdrop-blur-md text-xs font-semibold text-rose-300 border border-rose-500/30 flex items-center gap-2 shadow-xl">
+      <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+      <span id="toast-text">Collision! Another arrow blocks the exit path.</span>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation & Mobile Interaction Bar -->
+  <footer class="relative z-10 p-3 sm:p-4 w-full max-w-lg mx-auto pointer-events-none flex items-center justify-between gap-2 sm:gap-3">
+    <!-- Remaining Arrows Counter -->
+    <div class="pointer-events-auto glass-card px-3 py-1.5 rounded-2xl flex items-center gap-1.5 text-xs font-bold text-slate-700">
+      <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+      <span>Arrows:</span>
+      <span id="remaining-arrows" class="text-sky-600 mono-font text-sm">10</span>
+    </div>
+
+    <!-- Rotate Hint & Level Jump Controls (1 to 250) -->
+    <div class="pointer-events-auto flex items-center gap-2">
+      <button id="btn-hint" class="px-3 py-1.5 rounded-2xl glass-card hover:bg-white active:scale-95 transition text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-sm">
+        <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+        <span>Hint</span>
+      </button>
+
+      <!-- Level Jump Selector with 250-level presets -->
+      <div class="relative">
+        <select id="select-level" class="appearance-none glass-card pl-3 pr-8 py-1.5 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400 cursor-pointer shadow-sm">
+          <option value="1">Level 1 (Intro)</option>
+          <option value="5">Level 5 (18 Arrows)</option>
+          <option value="20">Level 20 (33 Arrows)</option>
+          <option value="50">Level 50 (36 Arrows)</option>
+          <option value="100">Level 100 (47 Arrows)</option>
+          <option value="120">Level 120 (53 Arrows)</option>
+          <option value="180">Level 180 (60 Arrows)</option>
+          <option value="250">Level 250 (72 Arrows)</option>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Unity Ads: Simulated Bottom Banner Ad (320x50 standard mobile banner) -->
+  <div id="unity-banner-ad" class="fixed bottom-0 inset-x-0 z-20 flex items-center justify-center bg-slate-900 border-t border-slate-800 shadow-2xl py-1 px-3">
+    <div class="w-full max-w-sm flex items-center justify-between text-white text-xs gap-2">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg unity-badge flex items-center justify-center font-black text-[10px] tracking-tighter border border-slate-700">
+          U
+        </div>
+        <div>
+          <div class="flex items-center gap-1">
+            <span class="text-[9px] font-bold text-amber-400 uppercase tracking-widest mono-font">Ad</span>
+            <span class="text-xs font-semibold text-slate-200">Play 3D Games Free!</span>
+          </div>
+          <div class="text-[10px] text-slate-400">Unity Mobile Ad Network (Test)</div>
+        </div>
+      </div>
+      <button id="btn-banner-install" class="px-3 py-1 rounded-lg bg-sky-500 hover:bg-sky-400 active:scale-95 text-white font-bold text-[11px] shadow-sm transition">
+        Install
+      </button>
+    </div>
+  </div>
+
+  <!-- Unity Ads: Fullscreen Interstitial Ad Modal (triggers every 3 levels) -->
+  <div id="modal-unity-interstitial" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="w-full max-w-md bg-slate-900 rounded-3xl border border-slate-700 p-5 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden h-[75vh] max-h-[520px]">
+      
+      <!-- Ad Top Bar with Unity Logo and Countdown Skip -->
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded bg-white text-slate-950 font-black flex items-center justify-center text-xs">U</div>
+          <span class="text-xs font-bold text-slate-300 tracking-wider uppercase mono-font">Unity Ads Video</span>
+        </div>
+        <div id="interstitial-timer" class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 mono-font">
+          Reward in 5s...
+        </div>
+        <button id="btn-close-interstitial" class="px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white mono-font hidden">
+          Skip Ad ✕
+        </button>
+      </div>
+
+      <!-- Ad Creative Video Placeholder / Interactive Preview -->
+      <div class="my-auto text-center space-y-3 py-6">
+        <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-3xl shadow-xl shadow-sky-500/20 animate-pulse">
+          🎮
+        </div>
+        <h3 class="text-lg font-black fredoka text-white">Cube Escape: Arrow Master 3D</h3>
+        <p class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+          Over 500+ mind-bending 3D spatial puzzles! Can you beat Level 250 without losing all 3 hearts?
+        </p>
+        <div class="flex justify-center gap-1 text-amber-400 text-sm">
+          ★★★★★ <span class="text-xs text-slate-400 ml-1">(4.9/5 • 10M+ Downloads)</span>
+        </div>
+      </div>
+
+      <!-- Ad Footer CTA -->
+      <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
+        <div class="text-[10px] text-slate-500 mono-font">Interstitial Placement: video_reward_android</div>
+        <button id="btn-interstitial-install" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-95 font-bold text-xs text-white shadow-lg transition">
+          Play Now ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Out of Lives (Game Over) -->
+  <div id="modal-game-over" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-rose-200 text-center relative overflow-hidden shadow-2xl">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-500 text-2xl font-bold">
+        💔
+      </div>
+      <h2 class="text-xl font-black text-slate-900 mb-1 fredoka">Out of Hearts!</h2>
+      <p class="text-xs text-slate-600 mb-5 leading-relaxed">
+        An arrow collided with another vector. Inspect all 6 faces of the cube to find an arrow with an open escape path.
+      </p>
+      <button id="btn-try-again" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 transition text-xs font-bold text-white shadow-md">
+        Try Level Again ↺
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Level Completed & Story Fragment -->
+  <div id="modal-level-win" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="glass-card w-full max-w-md p-6 rounded-3xl border border-sky-200 text-center relative overflow-hidden shadow-2xl">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-600 shadow-sm">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+      </div>
+
+      <div class="text-[11px] uppercase font-bold tracking-widest text-sky-600 mono-font mb-0.5" id="win-subtitle">Cube Cleared</div>
+      <h2 class="text-xl sm:text-2xl font-black text-slate-900 mb-2 fredoka" id="win-title">Vectors Untangled!</h2>
+
+      <div class="p-4 rounded-2xl bg-sky-50/80 border border-sky-100 text-left mb-5">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-sky-700 mono-font mb-1 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span> Decrypted Monolith Record
+        </div>
+        <p id="win-story" class="text-xs sm:text-sm text-slate-700 leading-relaxed italic"></p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="btn-replay-level" class="flex-1 py-3 px-4 rounded-2xl border border-slate-200 hover:bg-slate-100 active:scale-95 transition text-xs font-bold text-slate-700">
+          Replay
+        </button>
+        <button id="btn-next-level" class="flex-2 py-3 px-6 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 transition text-xs font-bold text-white shadow-md">
+          Next Level →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Grand Finale Story Reveal (Upon beating Level 250) -->
+  <div id="modal-grand-finale" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-lg hidden transition-opacity duration-500">
+    <div class="glass-card w-full max-w-lg p-6 sm:p-8 rounded-3xl border border-amber-300 text-center relative overflow-hidden shadow-2xl">
+      <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-500 text-2xl font-black shadow-sm">
+        🏆
+      </div>
+
+      <div class="text-xs uppercase font-extrabold tracking-widest text-amber-600 mono-font mb-1">Final Level 250 Conquered</div>
+      <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mb-2 fredoka">The Star-Vault is Fully Unlocked</h2>
+      <p class="text-xs text-slate-600 mb-4">You have mastered all 250 labyrinth levels across the cosmos!</p>
+
+      <div class="p-4 sm:p-5 rounded-2xl bg-amber-50/80 border border-amber-200 text-left mb-6 space-y-2">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-800 mono-font flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Complete 250-Level Chronicle
+        </div>
+        <p class="text-xs sm:text-sm text-slate-800 leading-relaxed">
+          "From the simplest outer vectors of Level 1 to the supreme 72-arrow labyrinth of Level 250, you have methodically restored the cosmic core. The ancient starfarers' knowledge now shines freely across the galaxy. You have achieved true studio mastery!"
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="btn-restart-game" class="w-1/2 py-3 px-4 rounded-2xl border border-slate-200 hover:bg-slate-100 active:scale-95 transition text-xs font-bold text-slate-700">
+          Play from Level 1
+        </button>
+        <button id="btn-close-finale" class="w-1/2 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-95 transition text-xs font-bold text-white shadow-md">
+          Endless Mode
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Story Codex (Organized into 5 Sagas for 250 Levels) -->
+  <div id="modal-story-codex" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="glass-card w-full max-w-lg max-h-[85vh] p-6 rounded-3xl text-left flex flex-col shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 fredoka">Story Codex & Lore (250 Levels)</h3>
+          <p class="text-xs text-slate-500">Unlocked chronicles from each completed saga</p>
+        </div>
+        <button id="btn-close-codex" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600">✕</button>
+      </div>
+      <div id="codex-list" class="space-y-2.5 overflow-y-auto pr-1 text-xs"></div>
+      <div class="pt-3 border-t border-slate-200 mt-3 text-center">
+        <button id="btn-close-codex-bottom" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">Close Codex</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Procedural Level Generator & Three.js Engine -->
+  <script>
+    // Game State
+    let currentLevel = 1;
+    let hearts = 3;
+    let activeArrows = [];
+    let initialCount = 0;
+    let isMuted = false;
+    let audioCtx = null;
+    let animatingArrows = new Set();
+    let maxUnlockedLevel = 1;
+
+    try {
+      const saved = localStorage.getItem('arrow_cube_max_level');
+      if (saved) maxUnlockedLevel = parseInt(saved) || 1;
+      const m = localStorage.getItem('arrow_cube_muted');
+      if (m !== null) isMuted = m === 'true';
+    } catch(e) {}
+
+    // Three.js Scene Variables
+    let scene, camera, renderer, raycaster, mouse;
+    let mainCubeGroup, whiteCubeMesh;
+    let arrowMeshMap = new Map(); // id -> THREE.Group
+
+    // Infinite Free 360-Degree Trackball Orbit Controls
+    let isPointerDown = false;
+    let startX = 0, startY = 0;
+    let prevX = 0, prevY = 0;
+    let hasMoved = false;
+    let rotVelX = 0, rotVelY = 0;
+    const CAMERA_DIST = 9.0;
+    const CUBE_SIZE = 3.8;
+    const H = CUBE_SIZE / 2;
+
+    function applyRotation(deltaPitch, deltaYaw) {
+      const qPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), deltaPitch);
+      const qYaw = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), deltaYaw);
+      mainCubeGroup.quaternion.premultiply(qPitch);
+      mainCubeGroup.quaternion.premultiply(qYaw);
+    }
+
+    // Web Audio Engine
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioClass) audioCtx = new AudioClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSound(freq, duration = 0.12, type = 'sine', gainVal = 0.15) {
+      if (isMuted || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+
+    function playLaunchChime(idx) {
+      const notes = [440, 523.25, 659.25, 783.99, 880, 1046.5];
+      const note = notes[idx % notes.length];
+      playSound(note, 0.45, 'triangle', 0.2);
+    }
+
+    function playCollisionBuzz() {
+      playSound(120, 0.18, 'sawtooth', 0.25);
+    }
+
+    function playFanfare() {
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+        setTimeout(() => playSound(f, 0.4, 'sine', 0.25), i * 110);
+      });
+    }
+
+    function triggerHaptic(type = 'light') {
+      try {
+        if (navigator.vibrate) {
+          if (type === 'light') navigator.vibrate(30);
+          else if (type === 'error') navigator.vibrate([40, 50, 40]);
+          else if (type === 'win') navigator.vibrate([60, 40, 80, 40, 100]);
+        }
+      } catch(e) {}
+    }
+
+    function showToast(text) {
+      const t = document.getElementById('toast-message');
+      document.getElementById('toast-text').textContent = text;
+      t.classList.remove('opacity-0', '-translate-y-2');
+      t.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        t.classList.add('opacity-0', '-translate-y-2');
+        t.classList.remove('opacity-100', 'translate-y-0');
+      }, 2000);
+    }
+
+    // 3D Math & Edge Connections
+    function faceGridTo3D(face, r, c, gridN, surfOffset = 0.02) {
+      const step = (CUBE_SIZE * 0.82) / (gridN - 1);
+      const offset = (CUBE_SIZE * 0.82) / 2.0;
+      const u = c * step - offset;
+      const v = -(r * step - offset);
+      const surf = H + surfOffset;
+
+      if (face === 'front')  return [u, v, surf];
+      if (face === 'back')   return [-u, v, -surf];
+      if (face === 'right')  return [surf, v, -u];
+      if (face === 'left')   return [-surf, v, u];
+      if (face === 'top')    return [u, surf, -v];
+      if (face === 'bottom') return [u, -surf, v];
+      return [u, v, surf];
+    }
+
+    function getFaceNormalAxis(face) {
+      const SURF = H + 0.02;
+      if (face === 'front')  return [2, SURF];
+      if (face === 'back')   return [2, -SURF];
+      if (face === 'right')  return [0, SURF];
+      if (face === 'left')   return [0, -SURF];
+      if (face === 'top')    return [1, SURF];
+      if (face === 'bottom') return [1, -SURF];
+      return [2, SURF];
+    }
+
+    function computeEdgePoint(face1, p1, face2, p2) {
+      const [ax1, val1] = getFaceNormalAxis(face1);
+      const [ax2, val2] = getFaceNormalAxis(face2);
+      const remAxis = [0, 1, 2].find(a => a !== ax1 && a !== ax2);
+      const edgePt = [0, 0, 0];
+      edgePt[ax1] = val1;
+      edgePt[ax2] = val2;
+      edgePt[remAxis] = p1[remAxis];
+      return edgePt;
+    }
+
+    function distPointToRay(pt, rayOrigin, rayDir) {
+      const vx = pt[0] - rayOrigin[0];
+      const vy = pt[1] - rayOrigin[1];
+      const vz = pt[2] - rayOrigin[2];
+      const proj = vx * rayDir[0] + vy * rayDir[1] + vz * rayDir[2];
+      if (proj <= 0.04) return 999.0;
+      const cx = rayOrigin[0] + proj * rayDir[0];
+      const cy = rayOrigin[1] + proj * rayDir[1];
+      const cz = rayOrigin[2] + proj * rayDir[2];
+      return Math.sqrt((pt[0]-cx)**2 + (pt[1]-cy)**2 + (pt[2]-cz)**2);
+    }
+
+    // Seeded PRNG for deterministic level generation across all 250 levels!
+    function createPrng(seed) {
+      let s = seed % 2147483647;
+      if (s <= 0) s += 2147483646;
+      return function() {
+        s = (s * 16807) % 2147483647;
+        return (s - 1) / 2147483646;
+      };
+    }
+
+    // PROCEDURAL LEVEL GENERATOR FOR LEVELS 1 TO 250!
+    function generateLevel(levelNum) {
+      const prng = createPrng(levelNum * 9973 + 12345);
+      
+      // Determine Grid Size & Arrow Count scaling smoothly up to Level 250
+      let gridN, targetArrows, multiCount;
+      if (levelNum <= 5) {
+        gridN = 5;
+        targetArrows = 8 + levelNum * 2; // 10 to 18
+        multiCount = 2;
+      } else if (levelNum <= 20) {
+        gridN = 5;
+        targetArrows = 18 + Math.floor((levelNum - 5) * 0.9); // 19 to 32
+        multiCount = 3;
+      } else if (levelNum <= 60) {
+        gridN = 6;
+        targetArrows = 24 + Math.floor((levelNum - 20) * 0.4); // 24 to 40
+        multiCount = 4 + Math.floor(levelNum / 15);
+      } else if (levelNum <= 120) {
+        gridN = levelNum < 80 ? 6 : 7;
+        targetArrows = 36 + Math.floor((levelNum - 60) * 0.28); // 36 to 53 (Level 120 has 53 arrows!)
+        multiCount = 6 + Math.floor(levelNum / 20);
+      } else {
+        gridN = 7;
+        targetArrows = 52 + Math.floor((levelNum - 120) * 0.16); // 52 to 73 (Level 250 has 73 arrows!)
+        multiCount = 10 + Math.floor(levelNum / 30);
+      }
+
+      const faces = ['front', 'back', 'right', 'left', 'top', 'bottom'];
+      const occupied = new Set();
+      const arrows = [];
+
+      function addArrowFromSpecs(aid, specs) {
+        for (let [f, r, c] of specs) {
+          if (occupied.has(`${f}_${r}_${c}`)) return false;
+        }
+        for (let [f, r, c] of specs) {
+          occupied.add(`${f}_${r}_${c}`);
+        }
+        const rawPts = specs.map(([f, r, c]) => faceGridTo3D(f, r, c, gridN));
+        const finalPts = [rawPts[0]];
+        for (let i = 0; i < specs.length - 1; i++) {
+          const f1 = specs[i][0];
+          const f2 = specs[i+1][0];
+          if (f1 !== f2) {
+            finalPts.push(computeEdgePoint(f1, rawPts[i], f2, rawPts[i+1]));
+          }
+          finalPts.push(rawPts[i+1]);
+        }
+        const pLast = finalPts[finalPts.length - 1];
+        const pPrev = finalPts[finalPts.length - 2];
+        const vx = pLast[0] - pPrev[0], vy = pLast[1] - pPrev[1], vz = pLast[2] - pPrev[2];
+        const len = Math.sqrt(vx*vx + vy*vy + vz*vz);
+        const fDir = len > 0 ? [vx/len, vy/len, vz/len] : [0, 0, 1];
+
+        arrows.push({
+          id: aid,
+          points: finalPts,
+          forwardDir: fDir,
+          isMultiFace: new Set(specs.map(s => s[0])).size > 1
+        });
+        return true;
+      }
+
+      // Generate multi-face wrapping candidates
+      const multiCands = [];
+      for (let c = 1; c < gridN - 1; c++) {
+        multiCands.push([ ['top', gridN - 2, c], ['top', gridN - 1, c], ['front', 0, c], ['front', 1, c] ]);
+        multiCands.push([ ['front', gridN - 2, c], ['front', gridN - 1, c], ['bottom', 0, c], ['bottom', 1, c] ]);
+        multiCands.push([ ['top', 1, c], ['top', 0, c], ['back', 0, gridN - 1 - c], ['back', 1, gridN - 1 - c] ]);
+      }
+      for (let r = 1; r < gridN - 1; r++) {
+        multiCands.push([ ['left', r, gridN - 2], ['left', r, gridN - 1], ['front', r, 0], ['front', r, 1] ]);
+        multiCands.push([ ['right', r, gridN - 2], ['right', r, gridN - 1], ['back', r, 0], ['back', r, 1] ]);
+        multiCands.push([ ['front', r, gridN - 2], ['front', r, gridN - 1], ['right', r, 0], ['right', r, 1] ]);
+      }
+      // Shuffle with prng
+      for (let i = multiCands.length - 1; i > 0; i--) {
+        const j = Math.floor(prng() * (i + 1));
+        [multiCands[i], multiCands[j]] = [multiCands[j], multiCands[i]];
+      }
+
+      let mAdded = 0;
+      for (let cand of multiCands) {
+        if (mAdded >= multiCount) break;
+        if (addArrowFromSpecs(`m_${mAdded+1}`, cand)) mAdded++;
+      }
+
+      // Generate single-face candidates (L-shapes, U-turns, straight lines)
+      const singleCands = [];
+      for (let f of faces) {
+        for (let r = 0; r < gridN - 1; r++) {
+          for (let c = 0; c < gridN - 1; c++) {
+            singleCands.push([ [f, r, c], [f, r + 1, c], [f, r + 1, c + 1] ]);
+            singleCands.push([ [f, r, c], [f, r, c + 1], [f, r + 1, c + 1] ]);
+            singleCands.push([ [f, r + 1, c + 1], [f, r, c + 1], [f, r, c] ]);
+            singleCands.push([ [f, r + 1, c + 1], [f, r + 1, c], [f, r, c] ]);
+            // U-turn
+            singleCands.push([ [f, r, c], [f, r + 1, c], [f, r + 1, c + 1], [f, r, c + 1] ]);
+          }
+        }
+        for (let c = 0; c < gridN; c++) {
+          for (let r = 1; r < gridN; r++) singleCands.push([ [f, r, c], [f, r - 1, c] ]);
+          for (let r = 0; r < gridN - 1; r++) singleCands.push([ [f, r, c], [f, r + 1, c] ]);
+        }
+        for (let r = 0; r < gridN; r++) {
+          for (let c = 1; c < gridN; c++) singleCands.push([ [f, r, c], [f, r, c - 1] ]);
+          for (let c = 0; c < gridN - 1; c++) singleCands.push([ [f, r, c], [f, r, c + 1] ]);
+        }
+      }
+      for (let i = singleCands.length - 1; i > 0; i--) {
+        const j = Math.floor(prng() * (i + 1));
+        [singleCands[i], singleCands[j]] = [singleCands[j], singleCands[i]];
+      }
+
+      let sAdded = 0;
+      for (let cand of singleCands) {
+        if (arrows.length >= targetArrows) break;
+        if (addArrowFromSpecs(`s_${sAdded+1}`, cand)) sAdded++;
+      }
+
+      return {
+        level: levelNum,
+        title: `Sector ${levelNum}: ${targetArrows} Vectors`,
+        story: `Sector ${levelNum} decrypted. ${mAdded} multi-face wrapping vectors have stabilized the harmonic manifold.`,
+        arrows: arrows,
+        multiCount: mAdded
+      };
+    }
+
+    // Dynamic Snake Unbending Path Engine
+    class ArrowPath {
+      constructor(points, forwardDir) {
+        this.points = points.map(p => new THREE.Vector3(p[0], p[1], p[2]));
+        this.forwardDir = new THREE.Vector3(forwardDir[0], forwardDir[1], forwardDir[2]).normalize();
+        this.cumLens = [0];
+        let total = 0;
+        for (let i = 0; i < this.points.length - 1; i++) {
+          const d = this.points[i].distanceTo(this.points[i + 1]);
+          total += d;
+          this.cumLens.push(total);
+        }
+        this.totalLen = Math.max(total, 0.001);
+      }
+
+      evaluate(s) {
+        if (s <= 0) return this.points[0].clone();
+        if (s >= this.totalLen) {
+          const extra = s - this.totalLen;
+          return this.points[this.points.length - 1].clone().add(this.forwardDir.clone().multiplyScalar(extra));
+        }
+        for (let i = 0; i < this.points.length - 1; i++) {
+          if (s <= this.cumLens[i + 1]) {
+            const segDist = this.cumLens[i + 1] - this.cumLens[i];
+            const frac = segDist > 0 ? (s - this.cumLens[i]) / segDist : 0;
+            return new THREE.Vector3().lerpVectors(this.points[i], this.points[i + 1], frac);
+          }
+        }
+        return this.points[this.points.length - 1].clone();
+      }
+
+      getActivePolyline(sTail, sHead) {
+        const raw = [this.evaluate(sTail)];
+        for (let i = 0; i < this.points.length; i++) {
+          const sl = this.cumLens[i];
+          if (sTail + 0.0001 < sl && sl < sHead - 0.0001) {
+            raw.push(this.points[i].clone());
+          }
+        }
+        raw.push(this.evaluate(sHead));
+
+        // Simplify collinear points along straight rays
+        if (raw.length <= 2) return raw;
+        const simplified = [raw[0]];
+        for (let i = 1; i < raw.length - 1; i++) {
+          const pPrev = simplified[simplified.length - 1];
+          const pCurr = raw[i];
+          const pNext = raw[i + 1];
+          const v1 = pCurr.clone().sub(pPrev);
+          const v2 = pNext.clone().sub(pCurr);
+          if (v1.length() < 0.0001 || v2.length() < 0.0001) continue;
+          v1.normalize();
+          v2.normalize();
+          if (v1.dot(v2) < 0.9995) {
+            simplified.push(pCurr);
+          }
+        }
+        simplified.push(raw[raw.length - 1]);
+        return simplified;
+      }
+    }
+
+    // Dynamic mesh builder for curved, multi-face, and straightened vectors
+    function updateArrowGroupMeshes(group, pts, defaultMat, scale = 1.0) {
+      while (group.children.length > 0) {
+        const c = group.children[group.children.length - 1];
+        if (c.geometry) c.geometry.dispose();
+        group.remove(c);
+      }
+
+      if (!pts || pts.length < 2) return;
+
+      const TUBE_RADIUS = 0.024 * scale;
+      const CORNER_RADIUS = 0.028 * scale;
+      const CONE_RADIUS = 0.082 * scale;
+      const CONE_HEIGHT = 0.165 * scale;
+
+      const pHead = pts[pts.length - 1];
+      const scaledPts = (scale >= 0.999) ? pts : pts.map(p => {
+        return pHead.clone().add(p.clone().sub(pHead).multiplyScalar(scale));
+      });
+
+      // 1. Draw connecting cylindrical shafts and smooth corner joints
+      for (let i = 0; i < scaledPts.length - 1; i++) {
+        const p1 = scaledPts[i];
+        const p2 = scaledPts[i + 1];
+        const dist = p1.distanceTo(p2);
+        if (dist < 0.001) continue;
+
+        const cylGeo = new THREE.CylinderGeometry(TUBE_RADIUS, TUBE_RADIUS, dist, 12);
+        cylGeo.translate(0, dist / 2, 0);
+
+        const cyl = new THREE.Mesh(cylGeo, defaultMat);
+        cyl.position.copy(p1);
+        const segDir = p2.clone().sub(p1).normalize();
+        cyl.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), segDir);
+        group.add(cyl);
+
+        // Smooth joint at corner and tail
+        const jointGeo = new THREE.SphereGeometry(CORNER_RADIUS, 10, 10);
+        const joint = new THREE.Mesh(jointGeo, defaultMat);
+        joint.position.copy(p1);
+        group.add(joint);
+      }
+
+      // 2. Sharp arrowhead strictly at terminal tip pointing outward in forward exit direction!
+      const lastP1 = scaledPts[scaledPts.length - 2];
+      const lastP2 = scaledPts[scaledPts.length - 1];
+      const forwardDir = lastP2.clone().sub(lastP1).normalize();
+
+      const coneGeo = new THREE.ConeGeometry(CONE_RADIUS, CONE_HEIGHT, 16);
+      coneGeo.translate(0, CONE_HEIGHT / 2, 0);
+
+      const headMesh = new THREE.Mesh(coneGeo, defaultMat);
+      headMesh.position.copy(lastP2);
+      headMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), forwardDir);
+      group.add(headMesh);
+    }
+
+    // Construct Sleek, Thin 3D Arrow (Arrowhead strictly at terminal edge!)
+    function createArrowGroup(arrow) {
+      const group = new THREE.Group();
+
+      const defaultMat = new THREE.MeshStandardMaterial({
+        color: 0x111827,
+        roughness: 0.25,
+        metalness: 0.15
+      });
+
+      const pts = arrow.points.map(p => new THREE.Vector3(p[0], p[1], p[2]));
+      updateArrowGroupMeshes(group, pts, defaultMat, 1.0);
+
+      group.userData = {
+        arrowId: arrow.id,
+        arrow: arrow,
+        defaultMat: defaultMat,
+        basePos: group.position.clone()
+      };
+
+      return group;
+    }
+
+    // Check if arrow has open escape path using 3D raycast
+    function checkIsArrowBlocked(arrow) {
+      const pHead = arrow.points[arrow.points.length - 1];
+      const fDir = arrow.forwardDir;
+      const COLLISION_RADIUS = 0.28;
+
+      for (let other of activeArrows) {
+        if (other.id === arrow.id) continue;
+        for (let pt of other.points) {
+          const d = distPointToRay(pt, pHead, fDir);
+          if (d < COLLISION_RADIUS) {
+            return other;
+          }
+        }
+      }
+      return null;
+    }
+
+    // SLOWER, SATISFYING ARROW ESCAPE ANIMATION (Dynamic Straightening on Exit!)
+    function handleArrowTap(arrowId) {
+      if (animatingArrows.has(arrowId)) return;
+      initAudio();
+
+      const arrow = activeArrows.find(a => a.id === arrowId);
+      if (!arrow) return;
+
+      const group = arrowMeshMap.get(arrowId);
+      if (!group) return;
+
+      const blocker = checkIsArrowBlocked(arrow);
+
+      if (blocker) {
+        // COLLISION!
+        triggerHaptic('error');
+        playCollisionBuzz();
+        showToast('Blocked! Another vector sits directly along this exit line.');
+
+        animatingArrows.add(arrowId);
+
+        group.traverse(child => {
+          if (child.isMesh && child.material) child.material.color.setHex(0xef4444);
+        });
+
+        hearts--;
+        updateHeartsUI();
+
+        const fDir = new THREE.Vector3(arrow.forwardDir[0], arrow.forwardDir[1], arrow.forwardDir[2]);
+        const originalPos = group.position.clone();
+        let startTime = performance.now();
+        const duration = 260;
+
+        function animateBump(now) {
+          const elapsed = now - startTime;
+          const t = Math.min(1, elapsed / duration);
+          const bumpOffset = Math.sin(t * Math.PI) * 0.18;
+          group.position.copy(originalPos).add(fDir.clone().multiplyScalar(bumpOffset));
+
+          if (t < 1) {
+            requestAnimationFrame(animateBump);
+          } else {
+            group.position.copy(originalPos);
+            group.traverse(child => {
+              if (child.isMesh && child.material) child.material.color.setHex(0x111827);
+            });
+            animatingArrows.delete(arrowId);
+
+            if (hearts <= 0) {
+              setTimeout(() => {
+                document.getElementById('modal-game-over').classList.remove('hidden');
+              }, 200);
+            }
+          }
+        }
+        requestAnimationFrame(animateBump);
+
+      } else {
+        // UNBENDING ARROW ESCAPE ANIMATION
+        // Arrow snakes forward through its bends and straightens into a single straight line!
+        animatingArrows.add(arrowId);
+        triggerHaptic('light');
+        const clearIndex = initialCount - activeArrows.length;
+        playLaunchChime(clearIndex);
+
+        activeArrows = activeArrows.filter(a => a.id !== arrowId);
+        updateUI();
+
+        const arrowPath = new ArrowPath(arrow.points, arrow.forwardDir);
+        const totalLen = arrowPath.totalLen;
+        const launchDist = 9.8; // Graceful exit distance into space
+
+        let startTime = performance.now();
+        const duration = 920; // 920ms for clear, delightful observation
+
+        function animateEscape(now) {
+          const elapsed = now - startTime;
+          const t = Math.min(1, elapsed / duration);
+
+          // Easing: gradual acceleration so player clearly watches the arrow slide and straighten
+          const easeProgress = t < 0.4 ? (t / 0.4) * 0.25 : 0.25 + Math.pow((t - 0.4) / 0.6, 2) * 0.75;
+          const currentD = launchDist * easeProgress;
+
+          // Retain full scale while clearing faces and unbending, then gracefully shrink into space
+          const scale = t < 0.45 ? 1.0 : Math.max(0.01, 1.0 - Math.pow((t - 0.45) / 0.55, 1.8));
+
+          // Compute dynamically straightened active polyline
+          const activePoly = arrowPath.getActivePolyline(currentD, currentD + totalLen);
+          updateArrowGroupMeshes(group, activePoly, group.userData.defaultMat, scale);
+
+          if (t < 1) {
+            requestAnimationFrame(animateEscape);
+          } else {
+            mainCubeGroup.remove(group);
+            arrowMeshMap.delete(arrowId);
+            animatingArrows.delete(arrowId);
+
+            if (activeArrows.length === 0) {
+              setTimeout(handleLevelWin, 250);
+            }
+          }
+        }
+        requestAnimationFrame(animateEscape);
+      }
+    }
+
+    function updateHeartsUI() {
+      for (let i = 1; i <= 3; i++) {
+        const el = document.getElementById(`heart-${i}`);
+        if (i > hearts) {
+          el.classList.add('heart-lost');
+        } else {
+          el.classList.remove('heart-lost');
+        }
+      }
+    }
+
+    function updateUI() {
+      document.getElementById('remaining-arrows').textContent = activeArrows.length;
+    }
+
+    // UNITY ADS INTERSTITIAL LOGIC (Triggers every 3 levels)
+    let interstitialTimerInterval = null;
+    function triggerUnityInterstitial(onComplete) {
+      const modal = document.getElementById('modal-unity-interstitial');
+      const timerBadge = document.getElementById('interstitial-timer');
+      const closeBtn = document.getElementById('btn-close-interstitial');
+
+      modal.classList.remove('hidden');
+      closeBtn.classList.add('hidden');
+      timerBadge.classList.remove('hidden');
+
+      let timeLeft = 5;
+      timerBadge.textContent = `Skip in ${timeLeft}s...`;
+
+      clearInterval(interstitialTimerInterval);
+      interstitialTimerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft > 0) {
+          timerBadge.textContent = `Skip in ${timeLeft}s...`;
+        } else {
+          clearInterval(interstitialTimerInterval);
+          timerBadge.classList.add('hidden');
+          closeBtn.classList.remove('hidden');
+        }
+      }, 1000);
+
+      function closeAd() {
+        modal.classList.add('hidden');
+        clearInterval(interstitialTimerInterval);
+        closeBtn.removeEventListener('click', closeAd);
+        if (onComplete) onComplete();
+      }
+      closeBtn.addEventListener('click', closeAd);
+    }
+
+    function handleLevelWin() {
+      triggerHaptic('win');
+      playFanfare();
+
+      if (currentLevel >= maxUnlockedLevel) {
+        maxUnlockedLevel = currentLevel + 1;
+        try { localStorage.setItem('arrow_cube_max_level', maxUnlockedLevel); } catch(e) {}
+      }
+
+      // Check if interstitial ad should trigger (every 3 levels!)
+      const shouldShowAd = (currentLevel % 3 === 0);
+
+      function showWinModal() {
+        if (currentLevel >= 250) {
+          document.getElementById('modal-grand-finale').classList.remove('hidden');
+        } else {
+          document.getElementById('win-subtitle').textContent = `Level ${currentLevel} Cleared!`;
+          document.getElementById('win-title').textContent = `Sector ${currentLevel} Complete`;
+          document.getElementById('win-story').textContent = `"All vectors across the cube facets released cleanly without breaking harmonic containment."`;
+          document.getElementById('modal-level-win').classList.remove('hidden');
+        }
+      }
+
+      if (shouldShowAd) {
+        triggerUnityInterstitial(() => {
+          showWinModal();
+        });
+      } else {
+        showWinModal();
+      }
+    }
+
+    function giveHint() {
+      initAudio();
+      const freeArrows = activeArrows.filter(a => !checkIsArrowBlocked(a));
+      if (freeArrows.length === 0) {
+        showToast('No arrows clear on this view. Rotate the cube to check other sides!');
+        return;
+      }
+      const target = freeArrows[0];
+      const group = arrowMeshMap.get(target.id);
+      if (group) {
+        showToast('Radar Lock: Unblocked arrow highlighted in green!');
+        playSound(880, 0.25, 'triangle', 0.2);
+        group.traverse(child => {
+          if (child.isMesh && child.material) child.material.color.setHex(0x10b981);
+        });
+        setTimeout(() => {
+          group.traverse(child => {
+            if (child.isMesh && child.material) child.material.color.setHex(0x111827);
+          });
+        }, 900);
+      }
+    }
+
+    // LOAD LEVEL (Supports 1 to 250!)
+    function loadLevel(lvlNum) {
+      currentLevel = Math.max(1, Math.min(250, lvlNum));
+      hearts = 3;
+      updateHeartsUI();
+
+      const lvlData = generateLevel(currentLevel);
+
+      document.getElementById('level-display').textContent = `Level ${currentLevel}`;
+      document.getElementById('badge-multi-face').textContent = `${lvlData.multiCount} Multi-Face Wraps`;
+
+      // Clear previous arrows
+      arrowMeshMap.forEach(mesh => mainCubeGroup.remove(mesh));
+      arrowMeshMap.clear();
+      animatingArrows.clear();
+
+      activeArrows = JSON.parse(JSON.stringify(lvlData.arrows));
+      initialCount = activeArrows.length;
+
+      // Build 3D arrows on cube
+      activeArrows.forEach(arrow => {
+        const mesh = createArrowGroup(arrow);
+        mainCubeGroup.add(mesh);
+        arrowMeshMap.set(arrow.id, mesh);
+      });
+
+      rotVelX = 0;
+      rotVelY = 0;
+      mainCubeGroup.quaternion.set(0, 0, 0, 1);
+      applyRotation(0.38, 0.52);
+      updateUI();
+    }
+
+    // Three.js Setup
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+      camera.position.set(0, 0, CAMERA_DIST);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
+      scene.add(ambLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      dirLight.position.set(6, 10, 8);
+      scene.add(dirLight);
+
+      const fillLight = new THREE.DirectionalLight(0xe0f2fe, 0.4);
+      fillLight.position.set(-6, -8, -6);
+      scene.add(fillLight);
+
+      mainCubeGroup = new THREE.Group();
+      scene.add(mainCubeGroup);
+
+      const cubeGeo = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
+      const cubeMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.15,
+        metalness: 0.05
+      });
+      whiteCubeMesh = new THREE.Mesh(cubeGeo, cubeMat);
+      mainCubeGroup.add(whiteCubeMesh);
+
+      const edges = new THREE.EdgesGeometry(cubeGeo);
+      const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.35 }));
+      mainCubeGroup.add(edgeLines);
+
+      loadLevel(1);
+
+      window.addEventListener('resize', onResize);
+      const dom = renderer.domElement;
+      dom.addEventListener('pointerdown', onPointerDown);
+      dom.addEventListener('pointermove', onPointerMove);
+      dom.addEventListener('pointerup', onPointerUp);
+      dom.addEventListener('pointercancel', onPointerUp);
+
+      animate();
+    }
+
+    function onResize() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+
+    function onPointerDown(e) {
+      isPointerDown = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      prevX = e.clientX;
+      prevY = e.clientY;
+      hasMoved = false;
+    }
+
+    function onPointerMove(e) {
+      if (!isPointerDown) return;
+      const dx = e.clientX - prevX;
+      const dy = e.clientY - prevY;
+
+      if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
+        hasMoved = true;
+      }
+
+      rotVelY = dx * 0.0075;
+      rotVelX = dy * 0.0075;
+      applyRotation(rotVelX, rotVelY);
+
+      prevX = e.clientX;
+      prevY = e.clientY;
+    }
+
+    function onPointerUp(e) {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+
+      if (!hasMoved) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+
+        const meshes = [];
+        arrowMeshMap.forEach(group => {
+          group.traverse(c => {
+            if (c.isMesh) meshes.push(c);
+          });
+        });
+
+        const intersects = raycaster.intersectObjects(meshes, false);
+        if (intersects.length > 0) {
+          let cur = intersects[0].object;
+          while (cur && !cur.userData?.arrowId && cur.parent) {
+            cur = cur.parent;
+          }
+          if (cur && cur.userData?.arrowId) {
+            handleArrowTap(cur.userData.arrowId);
+          }
+        }
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (!isPointerDown) {
+        if (Math.abs(rotVelX) > 0.00004 || Math.abs(rotVelY) > 0.00004) {
+          applyRotation(rotVelX, rotVelY);
+          rotVelX *= 0.92;
+          rotVelY *= 0.92;
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // Setup UI Controls & Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      init3D();
+
+      const btnSound = document.getElementById('btn-sound');
+      const iconSoundOn = document.getElementById('icon-sound-on');
+      const iconSoundOff = document.getElementById('icon-sound-off');
+
+      function syncSoundUI() {
+        if (isMuted) {
+          iconSoundOn.classList.add('hidden');
+          iconSoundOff.classList.remove('hidden');
+        } else {
+          iconSoundOn.classList.remove('hidden');
+          iconSoundOff.classList.add('hidden');
+        }
+      }
+      syncSoundUI();
+
+      btnSound.addEventListener('click', () => {
+        initAudio();
+        isMuted = !isMuted;
+        try { localStorage.setItem('arrow_cube_muted', isMuted); } catch(e) {}
+        syncSoundUI();
+        if (!isMuted) playSound(520, 0.1);
+      });
+
+      document.getElementById('btn-reset').addEventListener('click', () => {
+        initAudio();
+        loadLevel(currentLevel);
+        showToast('Level reset. Observe vector exits!');
+      });
+
+      document.getElementById('btn-hint').addEventListener('click', giveHint);
+
+      document.getElementById('select-level').addEventListener('change', (e) => {
+        initAudio();
+        loadLevel(parseInt(e.target.value));
+      });
+
+      document.getElementById('btn-try-again').addEventListener('click', () => {
+        document.getElementById('modal-game-over').classList.add('hidden');
+        loadLevel(currentLevel);
+      });
+
+      // Next level: loads currentLevel + 1 (never empty!)
+      document.getElementById('btn-next-level').addEventListener('click', () => {
+        document.getElementById('modal-level-win').classList.add('hidden');
+        loadLevel(currentLevel + 1);
+      });
+
+      document.getElementById('btn-replay-level').addEventListener('click', () => {
+        document.getElementById('modal-level-win').classList.add('hidden');
+        loadLevel(currentLevel);
+      });
+
+      document.getElementById('btn-restart-game').addEventListener('click', () => {
+        document.getElementById('modal-grand-finale').classList.add('hidden');
+        loadLevel(1);
+      });
+
+      document.getElementById('btn-close-finale').addEventListener('click', () => {
+        document.getElementById('modal-grand-finale').classList.add('hidden');
+        loadLevel(currentLevel + 1);
+      });
+
+      // Story Codex Modal (Organized into 5 Sagas for 250 Levels)
+      const modalCodex = document.getElementById('modal-story-codex');
+      const codexList = document.getElementById('codex-list');
+
+      const SAGAS = [
+        { name: "Saga I: The Awakening (Levels 1–50)", min: 1, max: 50, desc: "The ancient monolithic cube awakens, presenting its initial spatial calibration tests." },
+        { name: "Saga II: The Harmonic Lattice (Levels 51–100)", min: 51, max: 100, desc: "Multi-face wrapping vectors synchronize across the six facets of the star-vault." },
+        { name: "Saga III: The Sovereign Nexus (Levels 101–150)", min: 101, max: 150, desc: "Featuring the landmark Level 120 Master Labyrinth with 53 entangled vectors." },
+        { name: "Saga IV: The Astral Conduits (Levels 151–200)", min: 151, max: 200, desc: "High-density interlocking mazes testing spatial deduction under pressure." },
+        { name: "Saga V: The Grand Core Liberation (Levels 201–250)", min: 201, max: 250, desc: "The climax of the journey, unlocking the lost creators' galactic charts." }
+      ];
+
+      function renderCodex() {
+        codexList.innerHTML = '';
+        SAGAS.forEach((saga) => {
+          const isUnlocked = maxUnlockedLevel >= saga.min;
+          const card = document.createElement('div');
+          card.className = `p-3 rounded-2xl border ${isUnlocked ? 'bg-white border-sky-100 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-400'}`;
+          card.innerHTML = `
+            <div class="flex items-center justify-between font-bold text-xs mb-1">
+              <span class="${isUnlocked ? 'text-sky-700' : 'text-slate-400'}">${saga.name}</span>
+              <span class="mono-font text-[10px] ${isUnlocked ? 'text-emerald-600 font-bold' : 'text-slate-400'}">${isUnlocked ? '✓ Active' : '🔒 Locked'}</span>
+            </div>
+            <p class="text-[11px] leading-relaxed ${isUnlocked ? 'text-slate-600 italic' : 'text-slate-400'}">
+              ${isUnlocked ? saga.desc : `Reach Level ${saga.min} to unlock this saga.`}
+            </p>
+          `;
+          codexList.appendChild(card);
+        });
+      }
+
+      document.getElementById('btn-story-log').addEventListener('click', () => {
+        renderCodex();
+        modalCodex.classList.remove('hidden');
+      });
+
+      document.getElementById('btn-close-codex').addEventListener('click', () => {
+        modalCodex.classList.add('hidden');
+      });
+      document.getElementById('btn-close-codex-bottom').addEventListener('click', () => {
+        modalCodex.classList.add('hidden');
+      });
+
+      // Ad install buttons feedback
+      document.getElementById('btn-banner-install').addEventListener('click', () => {
+        showToast('Unity Ads: Redirecting to Google Play store (Simulation)');
+      });
+      document.getElementById('btn-interstitial-install').addEventListener('click', () => {
+        showToast('Unity Ads: Game install link opened (Simulation)');
+      });
+    });
+  </script>
+</body>
+</html>

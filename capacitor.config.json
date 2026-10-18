@@ -1,0 +1,6 @@
+{
+  "appId": "com.studiogames.nebulacore",
+  "appName": "Nebula Core",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
