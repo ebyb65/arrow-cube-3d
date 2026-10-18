@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Arrow Cube 3D: 250 Levels Escape Puzzle</title>
+  <title>Arrow Cube 3D: Multi-Block Escape Puzzle</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
@@ -13,7 +13,7 @@
       touch-action: none;
       user-select: none;
       -webkit-user-select: none;
-      background: radial-gradient(circle at 50% 38%, #ffffff 0%, #e0f2fe 48%, #bae6fd 100%);
+      background: radial-gradient(circle at 50% 36%, #ffffff 0%, #e0f2fe 48%, #bae6fd 100%);
       color: #0f172a;
       overflow: hidden;
     }
@@ -39,87 +39,425 @@
       background: linear-gradient(135deg, #000000 0%, #1e293b 100%);
       color: #ffffff;
     }
+    /* Profile Frame Styles */
+    .frame-silver {
+      border: 3px solid #94a3b8;
+      box-shadow: 0 0 10px rgba(148, 163, 184, 0.5);
+    }
+    .frame-gold {
+      border: 3px solid #f59e0b;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+    }
+    .frame-neon {
+      border: 3px solid #06b6d4;
+      box-shadow: 0 0 14px rgba(6, 182, 212, 0.8), inset 0 0 8px rgba(6, 182, 212, 0.5);
+    }
+    .frame-amethyst {
+      border: 3px solid #a855f7;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.7);
+    }
+    .frame-emerald {
+      border: 3px solid #10b981;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.7);
+    }
+    /* Powerup Button Glow */
+    .powerup-glow {
+      box-shadow: 0 8px 20px -3px rgba(56, 189, 248, 0.45);
+    }
   </style>
 </head>
 <body class="w-screen h-screen flex flex-col justify-between relative overflow-hidden pb-14">
 
-  <!-- 3D WebGL Canvas Container -->
-  <div id="canvas-container" class="absolute inset-0 w-full h-full z-0 cursor-grab active:cursor-grabbing"></div>
-
-  <!-- Top Header: Symmetrically Organized Controls (NO OVERLAP) -->
-  <header class="relative z-10 pt-3 px-4 flex items-center justify-between w-full max-w-md mx-auto pointer-events-none">
-    
-    <!-- Left Controls: Sound Toggle & Story Codex -->
-    <div class="pointer-events-auto flex items-center gap-2">
-      <button id="btn-sound" class="w-9 h-9 rounded-2xl glass-card hover:bg-white active:scale-95 transition flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-sm" title="Toggle Sound">
-        <svg id="icon-sound-on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-        <svg id="icon-sound-off" class="w-4 h-4 hidden text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12-4l-6 6m0-6l6 6"></path></svg>
-      </button>
-      <button id="btn-story-log" class="w-9 h-9 rounded-2xl glass-card hover:bg-white active:scale-95 transition flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-sm" title="Story Codex">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-      </button>
-    </div>
-
-    <!-- Center: Level Title & 3 Hearts (Strict vertical layout with clean gaps) -->
-    <div class="pointer-events-auto flex flex-col items-center">
-      <div class="flex items-center gap-1.5 mb-0.5">
-        <span class="text-[9px] font-bold uppercase tracking-wider text-sky-600 bg-sky-100/90 border border-sky-200 px-2 py-0.5 rounded-full mono-font">3D Cube Away</span>
-        <span id="badge-multi-face" class="text-[9px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full mono-font">1 Multi-Face</span>
+  <!-- ========================================== -->
+  <!-- 1. LOADING SPLASH SCREEN (Requirement 2)   -->
+  <!-- ========================================== -->
+  <div id="screen-splash" class="fixed inset-0 z-50 flex flex-col items-center justify-between p-8 bg-gradient-to-b from-sky-50 via-sky-100 to-indigo-100 transition-opacity duration-500">
+    <div class="my-auto flex flex-col items-center text-center">
+      <!-- 3D Glowing App Icon -->
+      <div class="relative w-28 h-28 mb-5 flex items-center justify-center">
+        <div class="absolute inset-0 rounded-3xl bg-gradient-to-tr from-sky-400 to-indigo-600 blur-xl opacity-60 animate-pulse"></div>
+        <div class="relative w-24 h-24 rounded-3xl bg-gradient-to-tr from-sky-500 via-indigo-600 to-purple-600 flex items-center justify-center text-5xl shadow-2xl border-2 border-white/40 transform hover:scale-105 transition">
+          🧊
+        </div>
       </div>
       
-      <h1 id="level-display" class="fredoka text-xl sm:text-2xl font-bold tracking-tight text-slate-800 drop-shadow-sm leading-tight">
-        Level 1
+      <h1 class="fredoka text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight drop-shadow-sm">
+        Arrow Cube 3D
       </h1>
+      <p class="text-xs text-indigo-700 font-bold uppercase tracking-widest mono-font mt-1.5 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-full">
+        Multi-Block Spatial Labyrinth
+      </p>
 
-      <div class="flex items-center gap-1.5 mt-0.5">
-        <div id="heart-1" class="text-rose-500 text-lg transition-transform duration-300 drop-shadow-sm">❤️</div>
-        <div id="heart-2" class="text-rose-500 text-lg transition-transform duration-300 drop-shadow-sm">❤️</div>
-        <div id="heart-3" class="text-rose-500 text-lg transition-transform duration-300 drop-shadow-sm">❤️</div>
+      <!-- Animated Progress Bar -->
+      <div class="w-56 h-2.5 bg-slate-200/80 rounded-full mt-10 overflow-hidden p-0.5 border border-slate-300">
+        <div id="splash-progress" class="h-full bg-gradient-to-r from-sky-500 via-indigo-500 to-teal-400 rounded-full transition-all duration-700 w-12"></div>
       </div>
+      <p id="splash-status" class="text-[11px] text-slate-500 mono-font mt-2.5">Loading 3D Meshes & Shaders...</p>
     </div>
 
-    <!-- Right Controls: Reset Level -->
-    <div class="pointer-events-auto flex items-center gap-2">
-      <button id="btn-reset" class="w-9 h-9 rounded-2xl glass-card hover:bg-white active:scale-95 transition flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-sm" title="Reset Level">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-      </button>
-    </div>
-  </header>
-
-  <!-- Interactive Center Warning Toast -->
-  <div id="toast-message" class="pointer-events-none fixed top-24 left-1/2 -translate-x-1/2 z-20 transition-all duration-300 opacity-0 transform -translate-y-2">
-    <div class="px-4 py-2 rounded-2xl bg-slate-900/90 backdrop-blur-md text-xs font-semibold text-rose-300 border border-rose-500/30 flex items-center gap-2 shadow-xl">
-      <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-      <span id="toast-text">Collision! Another arrow blocks the exit path.</span>
+    <!-- App Version at bottom -->
+    <div class="text-center">
+      <div class="text-xs font-semibold text-slate-600">Studio Games 2026</div>
+      <div class="text-[10px] text-slate-400 mono-font font-bold mt-0.5">Version 1.0.4 • Android Build</div>
     </div>
   </div>
 
-  <!-- Bottom Navigation & Mobile Interaction Bar (Clean, no debug dropdown) -->
-  <footer class="relative z-10 p-3 sm:p-4 w-full max-w-md mx-auto pointer-events-none flex items-center justify-between gap-2">
-    <!-- Remaining Arrows Counter -->
-    <div class="pointer-events-auto glass-card px-3.5 py-1.5 rounded-2xl flex items-center gap-1.5 text-xs font-bold text-slate-700 shadow-sm">
-      <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
-      <span>Arrows:</span>
-      <span id="remaining-arrows" class="text-sky-600 mono-font text-sm">8</span>
+
+  <!-- ========================================== -->
+  <!-- 2. HOME SCREEN & DASHBOARD (Req 3 & 4)     -->
+  <!-- ========================================== -->
+  <div id="screen-home" class="fixed inset-0 z-40 flex flex-col justify-between p-4 bg-gradient-to-b from-sky-50 via-sky-100/60 to-indigo-50 hidden transition-opacity duration-300">
+    
+    <!-- Top Bar: Profile & Stats (Coins & Lives) -->
+    <header class="flex items-center justify-between w-full max-w-md mx-auto pt-2">
+      <!-- Player Profile Pill (Clickable) -->
+      <button id="btn-open-profile" class="glass-card px-3 py-1.5 rounded-2xl flex items-center gap-2 hover:bg-white active:scale-95 transition shadow-sm border border-slate-200/80">
+        <div id="home-profile-avatar-frame" class="w-9 h-9 rounded-xl flex items-center justify-center text-xl bg-white frame-gold transition">
+          <span id="home-profile-emoji">🦊</span>
+        </div>
+        <div class="text-left pr-1">
+          <div id="home-player-name" class="text-xs font-bold text-slate-800 fredoka leading-tight">Player 1</div>
+          <div class="text-[9px] font-extrabold text-sky-600 mono-font uppercase">Edit Profile</div>
+        </div>
+      </button>
+
+      <!-- Currency & Lives Counter -->
+      <div class="flex items-center gap-2">
+        <!-- Lives / Hearts -->
+        <div class="glass-card px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-sm">
+          <span class="text-rose-500 text-sm animate-pulse">❤️</span>
+          <span id="home-lives-count" class="text-xs font-extrabold text-slate-800 mono-font">5/5</span>
+        </div>
+
+        <!-- Coins -->
+        <div class="glass-card px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-sm bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200">
+          <span class="text-amber-500 text-sm">🪙</span>
+          <span id="home-coins-count" class="text-xs font-black text-amber-700 mono-font">1,200</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Center Hero Card: Visual Cube Preview & Play Button -->
+    <div class="my-auto text-center w-full max-w-md mx-auto px-4 py-2">
+      <div class="glass-card p-6 rounded-3xl border border-sky-200 shadow-xl relative overflow-hidden">
+        <!-- Background subtle glow -->
+        <div class="absolute -top-12 -right-12 w-36 h-36 bg-sky-300/30 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="w-20 h-20 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-sky-400 to-indigo-600 flex items-center justify-center text-4xl shadow-lg border-2 border-white/50 animate-bounce" style="animation-duration: 2.8s;">
+          🧊
+        </div>
+
+        <div class="text-xs uppercase font-extrabold tracking-widest text-indigo-700 mono-font mb-1">
+          Sector <span id="home-level-title-num">1</span>
+        </div>
+        <h2 class="text-2xl font-black text-slate-900 fredoka mb-1">
+          Arrow Cube 3D
+        </h2>
+        <p class="text-xs text-slate-500 max-w-xs mx-auto mb-6 leading-relaxed">
+          Untangle complex 3D arrows across interlocking solid and translucent crystal cubes!
+        </p>
+
+        <!-- Big Play Button -->
+        <button id="btn-start-game" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-600 to-purple-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 text-white font-extrabold text-base tracking-wide shadow-xl shadow-indigo-500/25 transition flex items-center justify-center gap-2">
+          <span>▶</span>
+          <span>PLAY LEVEL</span>
+          <span id="home-play-level-btn" class="mono-font bg-white/20 px-2 py-0.5 rounded-lg text-sm">1</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Center Hint Button -->
-    <div class="pointer-events-auto flex items-center gap-2">
-      <button id="btn-hint" class="px-3.5 py-1.5 rounded-2xl glass-card hover:bg-white active:scale-95 transition text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-sm">
-        <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
-        <span>Hint</span>
+    <!-- Bottom Navigation Bar (3 Sub-Sections: Store, Home, Events) -->
+    <nav class="w-full max-w-md mx-auto glass-card rounded-3xl p-1.5 flex items-center justify-between border border-slate-200/90 shadow-xl mb-14">
+      <!-- Left Tab: Store -->
+      <button id="nav-btn-store" class="flex-1 py-2 rounded-2xl flex flex-col items-center justify-center text-slate-500 hover:text-indigo-600 active:scale-95 transition">
+        <span class="text-xl">🛍️</span>
+        <span class="text-[10px] font-bold fredoka mt-0.5">Store</span>
+      </button>
+
+      <!-- Center Tab: Home (Active) -->
+      <button id="nav-btn-home" class="flex-1 py-2 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex flex-col items-center justify-center shadow-md active:scale-95 transition">
+        <span class="text-xl">🏠</span>
+        <span class="text-[10px] font-bold fredoka mt-0.5">Home</span>
+      </button>
+
+      <!-- Right Tab: Events -->
+      <button id="nav-btn-events" class="flex-1 py-2 rounded-2xl flex flex-col items-center justify-center text-slate-500 hover:text-indigo-600 active:scale-95 transition">
+        <span class="text-xl">🏆</span>
+        <span class="text-[10px] font-bold fredoka mt-0.5">Events</span>
+      </button>
+    </nav>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- 3. GAMEPLAY SCREEN & HUD (Req 1, 5, 6, 7)  -->
+  <!-- ========================================== -->
+  <div id="screen-game" class="absolute inset-0 w-full h-full pointer-events-none flex flex-col justify-between">
+    
+    <!-- Top In-Game Header (Exact match to reference screenshot!) -->
+    <header class="relative z-10 pt-3 px-4 flex flex-col items-center w-full max-w-md mx-auto pointer-events-none">
+      
+      <!-- Top Row: Settings Gear & Big Purple Level Banner & Quick Hint Button -->
+      <div class="w-full flex items-center justify-between pointer-events-auto gap-2">
+        
+        <!-- Left: Settings Gear (Returns to Home or toggles Sound) -->
+        <button id="btn-game-settings" class="w-10 h-10 rounded-2xl glass-card hover:bg-white active:scale-95 transition flex items-center justify-center text-slate-700 shadow-sm" title="Settings">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </button>
+
+        <!-- Center: Purple Styled Level Banner (Like Screenshot) -->
+        <div class="flex-1 py-1.5 px-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white flex items-center justify-between shadow-md border border-purple-400/30">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-black tracking-wider uppercase mono-font text-purple-200">LVL</span>
+            <span id="game-level-num" class="fredoka text-base font-bold">14</span>
+          </div>
+          <span id="game-difficulty-badge" class="text-[9px] font-black uppercase tracking-wider bg-purple-950/60 border border-purple-400/40 px-2 py-0.5 rounded-full text-amber-300 mono-font">
+            SUPER HARD
+          </span>
+        </div>
+
+        <!-- Right: Hint Button with Rewarded Ad Icon (Like Screenshot) -->
+        <button id="btn-top-hint" class="px-3 py-2 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 active:scale-95 transition text-white font-black text-xs flex items-center gap-1.5 shadow-md shadow-orange-500/20" title="Get Hint">
+          <span>💡 Hint</span>
+          <span class="text-[10px] bg-black/20 px-1 py-0.5 rounded mono-font">🎬</span>
+        </button>
+      </div>
+
+      <!-- Second Row: Moves / Remaining Arrows Counter Pill -->
+      <div class="mt-2 pointer-events-auto flex items-center gap-2">
+        <div class="glass-card px-3 py-0.5 rounded-full border border-purple-300/60 shadow-sm flex items-center gap-1.5 text-xs font-bold text-slate-700">
+          <span class="text-purple-600 mono-font font-black">Moves:</span>
+          <span id="game-moves-count" class="mono-font text-purple-700 font-extrabold text-sm">48</span>
+        </div>
+        <div class="glass-card px-2.5 py-0.5 rounded-full border border-slate-200 shadow-sm flex items-center gap-1 text-[11px] font-semibold text-slate-600">
+          <span class="text-rose-500">❤️</span>
+          <span id="game-hearts-display" class="font-bold text-slate-700">3/3</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Eraser Mode Active Floating Banner -->
+    <div id="eraser-active-banner" class="fixed top-24 inset-x-4 max-w-sm mx-auto z-20 pointer-events-auto bg-amber-500 text-white p-2.5 rounded-2xl shadow-xl flex items-center justify-between border-2 border-white hidden animate-pulse">
+      <div class="flex items-center gap-2 text-xs font-black fredoka">
+        <span class="text-lg">🧼</span>
+        <span>Eraser Active: Tap any arrow to delete!</span>
+      </div>
+      <button id="btn-cancel-eraser" class="px-2 py-1 rounded-xl bg-black/20 hover:bg-black/30 text-[10px] font-bold uppercase mono-font">Cancel</button>
+    </div>
+
+    <!-- Interactive Center Warning Toast -->
+    <div id="toast-message" class="pointer-events-none fixed top-24 left-1/2 -translate-x-1/2 z-20 transition-all duration-300 opacity-0 transform -translate-y-2">
+      <div class="px-4 py-2 rounded-2xl bg-slate-900/90 backdrop-blur-md text-xs font-semibold text-rose-300 border border-rose-500/30 flex items-center gap-2 shadow-xl">
+        <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+        <span id="toast-text">Collision! Arrow blocked.</span>
+      </div>
+    </div>
+
+    <!-- Bottom In-Game Powerups Bar (Exact match to reference screenshot!) -->
+    <footer class="relative z-10 pb-4 px-4 w-full max-w-xs mx-auto pointer-events-auto flex items-center justify-between gap-3">
+      
+      <!-- Powerup 1: Hint Bulb -->
+      <button id="powerup-btn-hint" class="relative group active:scale-95 transition flex flex-col items-center">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-b from-sky-400 to-blue-600 p-1 flex items-center justify-center shadow-lg powerup-glow border-2 border-white">
+          <div class="w-full h-full rounded-xl bg-gradient-to-b from-blue-500 to-sky-600 flex items-center justify-center text-2xl">
+            💡
+          </div>
+        </div>
+        <!-- Green '+' Badge -->
+        <div class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-white flex items-center justify-center font-black text-xs shadow">
+          +
+        </div>
+        <span class="text-[10px] font-bold text-slate-700 fredoka mt-1">Hint</span>
+      </button>
+
+      <!-- Powerup 2: Eraser (Single Arrow Delete) -->
+      <button id="powerup-btn-eraser" class="relative group active:scale-95 transition flex flex-col items-center">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-b from-blue-500 to-indigo-700 p-1 flex items-center justify-center shadow-lg powerup-glow border-2 border-white">
+          <div class="w-full h-full rounded-xl bg-gradient-to-b from-indigo-600 to-blue-700 flex items-center justify-center text-2xl">
+            🧼
+          </div>
+        </div>
+        <div class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-white flex items-center justify-center font-black text-xs shadow">
+          +
+        </div>
+        <span class="text-[10px] font-bold text-slate-700 fredoka mt-1">Eraser</span>
+      </button>
+
+      <!-- Powerup 3: Magic Wand (Multi Arrow Vaporizer) -->
+      <button id="powerup-btn-wand" class="relative group active:scale-95 transition flex flex-col items-center">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-b from-purple-500 to-indigo-700 p-1 flex items-center justify-center shadow-lg powerup-glow border-2 border-white">
+          <div class="w-full h-full rounded-xl bg-gradient-to-b from-purple-600 to-indigo-700 flex items-center justify-center text-2xl">
+            🪄
+          </div>
+        </div>
+        <div class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-white flex items-center justify-center font-black text-xs shadow">
+          +
+        </div>
+        <span class="text-[10px] font-bold text-slate-700 fredoka mt-1">Wand</span>
+      </button>
+    </footer>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- 4. MODALS & POPUPS                         -->
+  <!-- ========================================== -->
+
+  <!-- Modal: Profile Customizer (Req 4) -->
+  <div id="modal-profile" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-sky-200 text-left relative shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+        <h3 class="text-base font-bold text-slate-900 fredoka">Player Profile</h3>
+        <button id="btn-close-profile" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600">✕</button>
+      </div>
+
+      <!-- Player Name Input -->
+      <div class="mb-4">
+        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mono-font block mb-1">Player Name</label>
+        <input id="input-player-name" type="text" maxlength="15" value="Player 1" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-400 bg-white/80">
+      </div>
+
+      <!-- Emoji Avatar Selector -->
+      <div class="mb-4">
+        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mono-font block mb-1.5">Choose Avatar (Free)</label>
+        <div id="avatar-picker-grid" class="grid grid-cols-5 gap-2"></div>
+      </div>
+
+      <!-- Frame Selector -->
+      <div class="mb-5">
+        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mono-font block mb-1.5">Choose Frame (Free)</label>
+        <div id="frame-picker-grid" class="grid grid-cols-5 gap-2"></div>
+      </div>
+
+      <button id="btn-save-profile" class="w-full py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition">
+        Save Profile
       </button>
     </div>
+  </div>
 
-    <!-- Right: Level Progress Indicator -->
-    <div class="pointer-events-auto glass-card px-3.5 py-1.5 rounded-2xl flex items-center gap-1 text-xs font-bold text-slate-600 shadow-sm mono-font">
-      <span id="footer-level-indicator" class="text-sky-700 font-extrabold">1</span>
-      <span class="text-slate-400">/</span>
-      <span class="text-slate-400">250</span>
+
+  <!-- Modal: Powerup Activation Modal (Hint / Eraser / Wand) -->
+  <div id="modal-powerup" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-sky-200 text-center relative shadow-2xl">
+      <div id="powerup-modal-icon" class="w-16 h-16 mx-auto mb-2 rounded-2xl bg-sky-100 flex items-center justify-center text-3xl shadow-sm">
+        💡
+      </div>
+      <h3 id="powerup-modal-title" class="text-lg font-black text-slate-900 fredoka mb-1">Get Hint</h3>
+      <p id="powerup-modal-desc" class="text-xs text-slate-600 mb-5 leading-relaxed">
+        Reveals the next unblocked arrow with an open escape ray.
+      </p>
+
+      <div class="space-y-2.5">
+        <!-- Option A: Pay Coins -->
+        <button id="btn-powerup-buy-coins" class="w-full py-3 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-1.5">
+          <span>Pay</span>
+          <span id="powerup-modal-coin-cost" class="mono-font text-sm">500</span>
+          <span>Coins 🪙</span>
+        </button>
+
+        <!-- Option B: Watch Rewarded Ad -->
+        <button id="btn-powerup-watch-ad" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 active:scale-95 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-1.5">
+          <span>Watch Free Ad 🎬</span>
+          <span id="powerup-modal-ad-count" class="text-[10px] bg-black/20 px-1.5 py-0.5 rounded mono-font">(1 Ad)</span>
+        </button>
+      </div>
+
+      <button id="btn-close-powerup-modal" class="mt-4 text-xs font-bold text-slate-400 hover:text-slate-600">Close</button>
     </div>
-  </footer>
+  </div>
 
-  <!-- Unity Ads: Simulated Bottom Banner Ad (320x50 standard mobile banner) -->
+
+  <!-- Modal: Store Modal -->
+  <div id="modal-store" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-sky-200 text-left relative shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 fredoka">Cosmic Vault Store</h3>
+          <p class="text-[11px] text-slate-500">Collect coins and powerups</p>
+        </div>
+        <button id="btn-close-store" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600">✕</button>
+      </div>
+
+      <div class="space-y-3 mb-4">
+        <!-- Watch Ad for Coins -->
+        <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🪙</span>
+            <div>
+              <div class="text-xs font-bold text-slate-800">+250 Coins</div>
+              <div class="text-[10px] text-slate-500">Watch short video sponsor</div>
+            </div>
+          </div>
+          <button id="btn-store-ad-coins" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs active:scale-95 transition">
+            Watch 🎬
+          </button>
+        </div>
+
+        <!-- Daily Reward -->
+        <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🎁</span>
+            <div>
+              <div class="text-xs font-bold text-slate-800">+500 Studio Gift</div>
+              <div class="text-[10px] text-slate-500">Daily claim</div>
+            </div>
+          </div>
+          <button id="btn-store-claim-gift" class="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs active:scale-95 transition">
+            Claim
+          </button>
+        </div>
+
+        <!-- Powerup Bundle -->
+        <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">🪄</span>
+            <div>
+              <div class="text-xs font-bold text-slate-800">2x Wand + 2x Eraser</div>
+              <div class="text-[10px] text-slate-500">Special supply drop</div>
+            </div>
+          </div>
+          <button id="btn-store-claim-bundle" class="px-3 py-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs active:scale-95 transition">
+            Claim
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal: Events / Quests Modal -->
+  <div id="modal-events" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-sky-200 text-left relative shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 fredoka">Daily Spatial Quests</h3>
+          <p class="text-[11px] text-slate-500">Complete challenges to earn coins</p>
+        </div>
+        <button id="btn-close-events" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600">✕</button>
+      </div>
+
+      <div class="space-y-3 mb-2">
+        <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
+          <div>
+            <div class="text-xs font-bold text-slate-800">Untangle 3 Levels</div>
+            <div class="text-[10px] text-slate-500">Reward: +200 Coins</div>
+          </div>
+          <button id="btn-quest-1" class="px-3 py-1.5 rounded-xl bg-indigo-500 text-white font-bold text-xs active:scale-95 transition">Claim</button>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
+          <div>
+            <div class="text-xs font-bold text-slate-800">Clear a Multi-Cube Block</div>
+            <div class="text-[10px] text-slate-500">Reward: +350 Coins</div>
+          </div>
+          <button id="btn-quest-2" class="px-3 py-1.5 rounded-xl bg-indigo-500 text-white font-bold text-xs active:scale-95 transition">Claim</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Unity Ads: Simulated Bottom Banner Ad -->
   <div id="unity-banner-ad" class="fixed bottom-0 inset-x-0 z-20 flex items-center justify-center bg-slate-900 border-t border-slate-800 shadow-2xl py-1 px-3">
     <div class="w-full max-w-sm flex items-center justify-between text-white text-xs gap-2">
       <div class="flex items-center gap-2">
@@ -140,15 +478,15 @@
     </div>
   </div>
 
-  <!-- Unity Ads: Fullscreen Interstitial Ad Modal (triggers every 3 levels) -->
+
+  <!-- Unity Ads: Fullscreen Interstitial / Rewarded Ad Modal -->
   <div id="modal-unity-interstitial" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden transition-opacity duration-300">
     <div class="w-full max-w-md bg-slate-900 rounded-3xl border border-slate-700 p-5 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden h-[75vh] max-h-[520px]">
       
-      <!-- Ad Top Bar with Unity Logo and Countdown Skip -->
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div class="flex items-center gap-2">
           <div class="w-6 h-6 rounded bg-white text-slate-950 font-black flex items-center justify-center text-xs">U</div>
-          <span class="text-xs font-bold text-slate-300 tracking-wider uppercase mono-font">Unity Ads Video</span>
+          <span id="ad-modal-type-title" class="text-xs font-bold text-slate-300 tracking-wider uppercase mono-font">Unity Video Ad</span>
         </div>
         <div id="interstitial-timer" class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 mono-font">
           Reward in 5s...
@@ -158,162 +496,180 @@
         </button>
       </div>
 
-      <!-- Ad Creative Video Placeholder / Interactive Preview -->
       <div class="my-auto text-center space-y-3 py-6">
         <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-3xl shadow-xl shadow-sky-500/20 animate-pulse">
           🎮
         </div>
         <h3 class="text-lg font-black fredoka text-white">Cube Escape: Arrow Master 3D</h3>
         <p class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
-          Over 250 mind-bending 3D spatial puzzles! Can you beat Level 250 without losing all 3 hearts?
+          Over 250+ mind-bending 3D spatial puzzles with transparent crystal voxels!
         </p>
         <div class="flex justify-center gap-1 text-amber-400 text-sm">
           ★★★★★ <span class="text-xs text-slate-400 ml-1">(4.9/5 • 10M+ Downloads)</span>
         </div>
       </div>
 
-      <!-- Ad Footer CTA -->
       <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
-        <div class="text-[10px] text-slate-500 mono-font">Placement: BP_Interstitial_Android • Game ID: 800403098</div>
-        <button id="btn-interstitial-install" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-95 font-bold text-xs text-white shadow-lg transition">
+        <div class="text-[10px] text-slate-500 mono-font">Placement: BP_Interstitial_Android • ID: 800403098</div>
+        <button id="btn-interstitial-install" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 active:scale-95 font-bold text-xs text-white shadow-lg transition">
           Play Now ➔
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Out of Lives (Game Over) -->
-  <div id="modal-game-over" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
-    <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-rose-200 text-center relative overflow-hidden shadow-2xl">
-      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-500 text-2xl font-bold">
-        💔
-      </div>
-      <h2 class="text-xl font-black text-slate-900 mb-1 fredoka">Out of Hearts!</h2>
-      <p class="text-xs text-slate-600 mb-5 leading-relaxed">
-        An arrow collided with another vector. Inspect all 6 faces of the cube to find an arrow with an open escape path.
-      </p>
-      <button id="btn-try-again" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 transition text-xs font-bold text-white shadow-md">
-        Try Level Again ↺
-      </button>
-    </div>
-  </div>
 
-  <!-- Modal: Level Completed & Story Fragment -->
-  <div id="modal-level-win" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
+  <!-- Modal: Level Completed / Victory -->
+  <div id="modal-level-win" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
     <div class="glass-card w-full max-w-md p-6 rounded-3xl border border-sky-200 text-center relative overflow-hidden shadow-2xl">
-      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-600 shadow-sm">
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-sky-100 flex items-center justify-center text-sky-600 shadow-sm text-2xl font-black">
+        🎉
       </div>
 
-      <div class="text-[11px] uppercase font-bold tracking-widest text-sky-600 mono-font mb-0.5" id="win-subtitle">Cube Cleared</div>
-      <h2 class="text-xl sm:text-2xl font-black text-slate-900 mb-2 fredoka" id="win-title">Vectors Untangled!</h2>
+      <div class="text-[11px] uppercase font-bold tracking-widest text-sky-600 mono-font mb-0.5" id="win-subtitle">Sector Cleared</div>
+      <h2 class="text-2xl font-black text-slate-900 mb-1 fredoka" id="win-title">Vectors Untangled!</h2>
+      <p class="text-xs text-slate-600 mb-3" id="win-story">All compound blocks liberated cleanly.</p>
 
-      <div class="p-4 rounded-2xl bg-sky-50/80 border border-sky-100 text-left mb-5">
-        <div class="text-[10px] font-bold uppercase tracking-wider text-sky-700 mono-font mb-1 flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span> Decrypted Monolith Record
-        </div>
-        <p id="win-story" class="text-xs sm:text-sm text-slate-700 leading-relaxed italic"></p>
+      <!-- Coins Reward Badge -->
+      <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-800 font-black text-xs mono-font mb-5">
+        <span>+100 Coins Earned! 🪙</span>
       </div>
 
       <div class="flex items-center gap-3">
-        <button id="btn-replay-level" class="flex-1 py-3 px-4 rounded-2xl border border-slate-200 hover:bg-slate-100 active:scale-95 transition text-xs font-bold text-slate-700">
-          Replay
+        <button id="btn-win-home" class="flex-1 py-3 px-4 rounded-2xl border border-slate-200 hover:bg-slate-100 active:scale-95 transition text-xs font-bold text-slate-700">
+          Home 🏠
         </button>
-        <button id="btn-next-level" class="flex-2 py-3 px-6 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 transition text-xs font-bold text-white shadow-md">
+        <button id="btn-next-level" class="flex-2 py-3 px-6 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 active:scale-95 transition text-xs font-bold text-white shadow-md">
           Next Level →
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal: Grand Finale Story Reveal (Upon beating Level 250) -->
-  <div id="modal-grand-finale" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-900/75 backdrop-blur-lg hidden transition-opacity duration-500">
-    <div class="glass-card w-full max-w-lg p-6 sm:p-8 rounded-3xl border border-amber-300 text-center relative overflow-hidden shadow-2xl">
-      <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-500 text-2xl font-black shadow-sm">
-        🏆
-      </div>
 
-      <div class="text-xs uppercase font-extrabold tracking-widest text-amber-600 mono-font mb-1">Final Level 250 Conquered</div>
-      <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mb-2 fredoka">The Star-Vault is Fully Unlocked</h2>
-      <p class="text-xs text-slate-600 mb-4">You have mastered all 250 labyrinth levels across the cosmos!</p>
-
-      <div class="p-4 sm:p-5 rounded-2xl bg-amber-50/80 border border-amber-200 text-left mb-6 space-y-2">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-amber-800 mono-font flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Complete 250-Level Chronicle
-        </div>
-        <p class="text-xs sm:text-sm text-slate-800 leading-relaxed">
-          "From the simplest vectors of Level 1 to the supreme 130+ arrow labyrinth of Level 250, you have methodically restored the cosmic core. The ancient starfarers' knowledge now shines freely across the galaxy. You have achieved true studio mastery!"
-        </p>
+  <!-- Modal: Out of Lives (Game Over) -->
+  <div id="modal-game-over" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-rose-200 text-center relative shadow-2xl">
+      <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-500 text-2xl font-bold">
+        💔
       </div>
-
-      <div class="flex items-center gap-3">
-        <button id="btn-restart-game" class="w-1/2 py-3 px-4 rounded-2xl border border-slate-200 hover:bg-slate-100 active:scale-95 transition text-xs font-bold text-slate-700">
-          Play from Level 1
-        </button>
-        <button id="btn-close-finale" class="w-1/2 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-95 transition text-xs font-bold text-white shadow-md">
-          Endless Mode
-        </button>
-      </div>
+      <h2 class="text-xl font-black text-slate-900 mb-1 fredoka">Out of Hearts!</h2>
+      <p class="text-xs text-slate-600 mb-5 leading-relaxed">
+        An arrow collided with another vector. Failed moves are marked in red to guide your next attempt!
+      </p>
+      <button id="btn-try-again" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 active:scale-95 transition text-xs font-bold text-white shadow-md">
+        Try Level Again ↺
+      </button>
     </div>
   </div>
 
-  <!-- Modal: Story Codex (Organized into 5 Sagas for 250 Levels) -->
-  <div id="modal-story-codex" class="fixed inset-0 z-30 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
-    <div class="glass-card w-full max-w-lg max-h-[85vh] p-6 rounded-3xl text-left flex flex-col shadow-2xl">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
-        <div>
-          <h3 class="text-base font-bold text-slate-900 fredoka">Story Codex & Lore (250 Levels)</h3>
-          <p class="text-xs text-slate-500">Unlocked chronicles from each completed saga</p>
-        </div>
-        <button id="btn-close-codex" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600">✕</button>
-      </div>
-      <div id="codex-list" class="space-y-2.5 overflow-y-auto pr-1 text-xs"></div>
-      <div class="pt-3 border-t border-slate-200 mt-3 text-center">
-        <button id="btn-close-codex-bottom" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">Close Codex</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- 3D Engine & Procedural Level Generator -->
+  <!-- ========================================== -->
+  <!-- 5. THREE.JS ENGINE & MULTI-CUBE LOGIC      -->
+  <!-- ========================================== -->
   <script>
-    // Game State
-    let currentLevel = 1;
+    // App State Management (Stored in localStorage)
+    const AppState = {
+      coins: 1200,
+      lives: 5,
+      maxLives: 5,
+      level: 1,
+      maxUnlockedLevel: 1,
+      playerName: "Player 1",
+      avatarEmoji: "🦊",
+      avatarFrame: "frame-gold",
+      isMuted: false,
+
+      load() {
+        try {
+          const c = localStorage.getItem('arrow_cube_coins');
+          if (c !== null) this.coins = parseInt(c) || 1200;
+          const ul = localStorage.getItem('arrow_cube_max_level');
+          if (ul !== null) this.maxUnlockedLevel = parseInt(ul) || 1;
+          const cl = localStorage.getItem('arrow_cube_current_level');
+          if (cl !== null) this.level = Math.min(this.maxUnlockedLevel, parseInt(cl) || 1);
+          const name = localStorage.getItem('arrow_cube_player_name');
+          if (name) this.playerName = name;
+          const emoji = localStorage.getItem('arrow_cube_avatar_emoji');
+          if (emoji) this.avatarEmoji = emoji;
+          const frame = localStorage.getItem('arrow_cube_avatar_frame');
+          if (frame) this.avatarFrame = frame;
+          const m = localStorage.getItem('arrow_cube_muted');
+          if (m !== null) this.isMuted = m === 'true';
+        } catch(e) {}
+      },
+
+      save() {
+        try {
+          localStorage.setItem('arrow_cube_coins', this.coins);
+          localStorage.setItem('arrow_cube_max_level', this.maxUnlockedLevel);
+          localStorage.setItem('arrow_cube_current_level', this.level);
+          localStorage.setItem('arrow_cube_player_name', this.playerName);
+          localStorage.setItem('arrow_cube_avatar_emoji', this.avatarEmoji);
+          localStorage.setItem('arrow_cube_avatar_frame', this.avatarFrame);
+          localStorage.setItem('arrow_cube_muted', this.isMuted);
+        } catch(e) {}
+      },
+
+      addCoins(amount) {
+        this.coins += amount;
+        this.save();
+        this.syncUI();
+      },
+
+      spendCoins(amount) {
+        if (this.coins >= amount) {
+          this.coins -= amount;
+          this.save();
+          this.syncUI();
+          return true;
+        }
+        return false;
+      },
+
+      syncUI() {
+        document.getElementById('home-coins-count').textContent = this.coins.toLocaleString();
+        document.getElementById('home-lives-count').textContent = `${this.lives}/${this.maxLives}`;
+        document.getElementById('home-player-name').textContent = this.playerName;
+        document.getElementById('home-profile-emoji').textContent = this.avatarEmoji;
+        
+        const frameEl = document.getElementById('home-profile-avatar-frame');
+        frameEl.className = `w-9 h-9 rounded-xl flex items-center justify-center text-xl bg-white ${this.avatarFrame} transition`;
+
+        document.getElementById('home-level-title-num').textContent = this.level;
+        document.getElementById('home-play-level-btn').textContent = this.level;
+        document.getElementById('game-level-num').textContent = this.level;
+      }
+    };
+
+    AppState.load();
+
+    // Game Variables
+    let currentLevel = AppState.level;
     let hearts = 3;
     let activeArrows = [];
     let initialCount = 0;
-    let isMuted = false;
-    let audioCtx = null;
     let animatingArrows = new Set();
-    let maxUnlockedLevel = 1;
-
-    try {
-      const savedUnlocked = localStorage.getItem('arrow_cube_max_level');
-      if (savedUnlocked) maxUnlockedLevel = parseInt(savedUnlocked) || 1;
-      const savedCurrent = localStorage.getItem('arrow_cube_current_level');
-      if (savedCurrent) currentLevel = Math.min(maxUnlockedLevel, parseInt(savedCurrent) || 1);
-      const m = localStorage.getItem('arrow_cube_muted');
-      if (m !== null) isMuted = m === 'true';
-    } catch(e) {}
+    let isEraserActive = false;
+    let gamesPlayedCounter = 0;
+    const AD_FREQUENCY = 4; // Interstitial ad triggers every 4 games played
 
     // Three.js Scene Variables
     let scene, camera, renderer, raycaster, mouse;
-    let mainCubeGroup, whiteCubeMesh;
+    let mainCubeGroup;
     let arrowMeshMap = new Map(); // id -> THREE.Group
-    let currentGridStep = 0.5;
-
-    // Trackball Orbit & Responsive Zoom Variables
-    let isPointerDown = false;
-    let activePointers = new Map(); // pointerId -> {x, y}
+    let activePointers = new Map();
     let prevPinchDist = 0;
-    let startX = 0, startY = 0;
-    let prevX = 0, prevY = 0;
+    let isPointerDown = false;
+    let startX = 0, startY = 0, prevX = 0, prevY = 0;
     let hasMoved = false;
     let rotVelX = 0, rotVelY = 0;
-    
-    const CUBE_SIZE = 3.8;
-    const H = CUBE_SIZE / 2;
     let baseCameraDistance = 13.5;
     let userZoomFactor = 1.0;
+    let audioCtx = null;
+
+    const CUBE_UNIT = 2.4;
+    const H = CUBE_UNIT / 2.0;
 
     function applyRotation(deltaPitch, deltaYaw) {
       const qPitch = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), deltaPitch);
@@ -325,14 +681,6 @@
     function updateCameraFrame() {
       if (!camera) return;
       const aspect = camera.aspect;
-      // On narrow mobile screens (aspect ~ 0.45), back up camera so the rotated cube has generous margin!
-      if (aspect < 0.6) {
-        baseCameraDistance = 13.5;
-      } else if (aspect < 1.0) {
-        baseCameraDistance = 11.5;
-      } else {
-        baseCameraDistance = 9.5;
-      }
       camera.position.z = baseCameraDistance * userZoomFactor;
       camera.updateProjectionMatrix();
     }
@@ -349,7 +697,7 @@
     }
 
     function playSound(freq, duration = 0.12, type = 'sine', gainVal = 0.15) {
-      if (isMuted || !audioCtx) return;
+      if (AppState.isMuted || !audioCtx) return;
       try {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -364,19 +712,17 @@
       } catch(e) {}
     }
 
-    function playLaunchChime(idx) {
-      const notes = [440, 523.25, 659.25, 783.99, 880, 1046.5];
-      const note = notes[idx % notes.length];
-      playSound(note, 0.45, 'triangle', 0.2);
+    function playChime() {
+      playSound(587.33, 0.35, 'triangle', 0.2);
     }
 
     function playCollisionBuzz() {
-      playSound(120, 0.18, 'sawtooth', 0.25);
+      playSound(120, 0.2, 'sawtooth', 0.25);
     }
 
-    function playFanfare() {
-      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
-        setTimeout(() => playSound(f, 0.4, 'sine', 0.25), i * 110);
+    function playMagicFanfare() {
+      [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
+        setTimeout(() => playSound(f, 0.3, 'triangle', 0.2), i * 80);
       });
     }
 
@@ -402,43 +748,83 @@
       }, 2000);
     }
 
-    // 3D Math & Edge Connections
-    function faceGridTo3D(face, r, c, gridN, surfOffset = 0.02) {
-      const step = (CUBE_SIZE * 0.84) / (gridN - 1);
-      const offset = (CUBE_SIZE * 0.84) / 2.0;
+    // ========================================================
+    // MULTI-CUBE SHAPE GENERATOR (Requirement 1)
+    // Generates clusters of adjacent Solid & Translucent Cubes
+    // ========================================================
+    const DIRECTIONS = {
+      'front':  [0, 0, 1],
+      'back':   [0, 0, -1],
+      'right':  [1, 0, 0],
+      'left':   [-1, 0, 0],
+      'top':    [0, 1, 0],
+      'bottom': [0, -1, 0]
+    };
+
+    function getClusterCubesForLevel(lvl) {
+      if (lvl <= 5) {
+        // 1 solid cube (Intro)
+        return [{ pos: [0, 0, 0], isGlass: false }];
+      } else if (lvl <= 10) {
+        // 1 translucent crystal glass cube!
+        return [{ pos: [0, 0, 0], isGlass: true }];
+      } else if (lvl <= 20) {
+        // 2 cubes: 1 solid white, 1 translucent glass
+        return [
+          { pos: [0, 0, 0], isGlass: false },
+          { pos: [1, 0, 0], isGlass: true }
+        ];
+      } else if (lvl <= 45) {
+        // 3 cubes L-shape (mixed solid and glass)
+        return [
+          { pos: [0, 0, 0], isGlass: false },
+          { pos: [1, 0, 0], isGlass: true },
+          { pos: [0, 1, 0], isGlass: false }
+        ];
+      } else if (lvl <= 90) {
+        // 3 cubes 3D Corner cluster (like the reference screenshot!)
+        return [
+          { pos: [0, 0, 0], isGlass: false },
+          { pos: [1, 0, 0], isGlass: true },
+          { pos: [0, 1, -1], isGlass: true }
+        ];
+      } else if (lvl <= 160) {
+        // 4 cubes Step / T-shape cluster
+        return [
+          { pos: [0, 0, 0], isGlass: false },
+          { pos: [1, 0, 0], isGlass: true },
+          { pos: [0, 1, 0], isGlass: false },
+          { pos: [0, 0, 1], isGlass: true }
+        ];
+      } else {
+        // 4 cubes 2x2 Master Architectural Labyrinth
+        return [
+          { pos: [0, 0, 0], isGlass: false },
+          { pos: [1, 0, 0], isGlass: true },
+          { pos: [0, 1, 0], isGlass: true },
+          { pos: [1, 1, 0], isGlass: false }
+        ];
+      }
+    }
+
+    function faceGridTo3D(f, r, c, gridN, cx, cy, cz, surfOffset = 0.02) {
+      const step = (CUBE_UNIT * 0.84) / (gridN - 1);
+      const offset = (CUBE_UNIT * 0.84) / 2.0;
       const u = c * step - offset;
       const v = -(r * step - offset);
       const surf = H + surfOffset;
 
-      if (face === 'front')  return [u, v, surf];
-      if (face === 'back')   return [-u, v, -surf];
-      if (face === 'right')  return [surf, v, -u];
-      if (face === 'left')   return [-surf, v, u];
-      if (face === 'top')    return [u, surf, -v];
-      if (face === 'bottom') return [u, -surf, v];
-      return [u, v, surf];
-    }
+      const bx = cx * CUBE_UNIT;
+      const by = cy * CUBE_UNIT;
+      const bz = cz * CUBE_UNIT;
 
-    function getFaceNormalAxis(face) {
-      const SURF = H + 0.02;
-      if (face === 'front')  return [2, SURF];
-      if (face === 'back')   return [2, -SURF];
-      if (face === 'right')  return [0, SURF];
-      if (face === 'left')   return [0, -SURF];
-      if (face === 'top')    return [1, SURF];
-      if (face === 'bottom') return [1, -SURF];
-      return [2, SURF];
-    }
-
-    function computeEdgePoint(face1, p1, face2, p2) {
-      const [ax1, val1] = getFaceNormalAxis(face1);
-      const [ax2, val2] = getFaceNormalAxis(face2);
-      const remAxis = [0, 1, 2].find(a => a !== ax1 && a !== ax2);
-      const edgePt = [0, 0, 0];
-      edgePt[ax1] = val1;
-      edgePt[ax2] = val2;
-      edgePt[remAxis] = p1[remAxis];
-      return edgePt;
+      if (f === 'front')  return [bx + u, by + v, bz + surf];
+      if (f === 'back')   return [bx - u, by + v, bz - surf];
+      if (f === 'right')  return [bx + surf, by + v, bz - u];
+      if (f === 'left')   return [bx - surf, by + v, bz + u];
+      if (f === 'top')    return [bx + u, by + surf, bz - v];
+      if (f === 'bottom') return [bx + u, by - surf, bz + v];
+      return [bx + u, by + v, bz + surf];
     }
 
     function distPointToRay(pt, rayOrigin, rayDir) {
@@ -453,7 +839,6 @@
       return Math.sqrt((pt[0]-cx)**2 + (pt[1]-cy)**2 + (pt[2]-cz)**2);
     }
 
-    // Seeded PRNG for deterministic level generation across all 250 levels!
     function createPrng(seed) {
       let s = seed % 2147483647;
       if (s <= 0) s += 2147483646;
@@ -463,189 +848,115 @@
       };
     }
 
-    // 5-TIER PROGRESSIVE LEVEL COMPLEXITY GENERATOR (Levels 1 to 250)
+    // Procedural Level Generator for Multi-Cube Clusters
     function generateLevel(levelNum) {
       const prng = createPrng(levelNum * 9973 + 12345);
-      
-      let gridN, targetArrows, multiCount;
-      if (levelNum <= 5) {
-        // Tier 1: Tutorial / Learning (4x4 grid, 8 to 16 arrows)
-        gridN = 4;
-        targetArrows = 6 + levelNum * 2;
-        multiCount = 1 + Math.floor(levelNum / 3);
-      } else if (levelNum <= 25) {
-        // Tier 2: Novice Entanglement (5x5 grid, 16 to 32 arrows)
-        gridN = 5;
-        targetArrows = 16 + Math.floor((levelNum - 5) * 0.8);
-        multiCount = 3 + Math.floor(levelNum / 8);
-      } else if (levelNum <= 75) {
-        // Tier 3: Intermediate Labyrinth (6x6 grid, 34 to 64 arrows)
-        gridN = 6;
-        targetArrows = 34 + Math.floor((levelNum - 25) * 0.6);
-        multiCount = 6 + Math.floor(levelNum / 12);
-      } else if (levelNum <= 150) {
-        // Tier 4: Master Spatial Matrix (7x7 grid, 65 to 102 arrows)
-        gridN = 7;
-        targetArrows = 65 + Math.floor((levelNum - 75) * 0.5);
-        multiCount = 12 + Math.floor(levelNum / 15);
-      } else {
-        // Tier 5: Supreme Grandmaster Nexus (8x8 grid, 105 to 145+ arrows, 90%+ surface density!)
-        gridN = 8;
-        targetArrows = 105 + Math.floor((levelNum - 150) * 0.42);
-        multiCount = 20 + Math.floor((levelNum - 150) * 0.12);
-      }
+      const cluster = getClusterCubesForLevel(levelNum);
+      const cubeSet = new Set(cluster.map(c => `${c.pos[0]}_${c.pos[1]}_${c.pos[2]}`));
 
-      currentGridStep = (CUBE_SIZE * 0.84) / (gridN - 1);
+      // Find all exterior faces across the cluster
+      const exteriorFaces = [];
+      cluster.forEach((cube, cIdx) => {
+        const [cx, cy, cz] = cube.pos;
+        for (let f in DIRECTIONS) {
+          const [dx, dy, dz] = DIRECTIONS[f];
+          const neighbor = `${cx + dx}_${cy + dy}_${cz + dz}`;
+          if (!cubeSet.has(neighbor)) {
+            exteriorFaces.push({ cIdx, f, cx, cy, cz, isGlass: cube.isGlass });
+          }
+        }
+      });
 
-      const faces = ['front', 'back', 'right', 'left', 'top', 'bottom'];
+      const gridN = levelNum <= 15 ? 4 : (levelNum <= 60 ? 5 : 6);
+      const targetArrows = Math.min(135, Math.floor(exteriorFaces.length * (gridN - 1) * 1.5));
       const occupied = new Set();
       const arrows = [];
 
       function addArrowFromSpecs(aid, specs) {
-        for (let [f, r, c] of specs) {
-          if (occupied.has(`${f}_${r}_${c}`)) return false;
+        for (let s of specs) {
+          const key = `${s.cx}_${s.cy}_${s.cz}_${s.f}_${s.r}_${s.c}`;
+          if (occupied.has(key)) return false;
         }
-        for (let [f, r, c] of specs) {
-          occupied.add(`${f}_${r}_${c}`);
+        for (let s of specs) {
+          occupied.add(`${s.cx}_${s.cy}_${s.cz}_${s.f}_${s.r}_${s.c}`);
         }
-        const rawPts = specs.map(([f, r, c]) => faceGridTo3D(f, r, c, gridN));
-        const finalPts = [rawPts[0]];
-        for (let i = 0; i < specs.length - 1; i++) {
-          const f1 = specs[i][0];
-          const f2 = specs[i+1][0];
-          if (f1 !== f2) {
-            finalPts.push(computeEdgePoint(f1, rawPts[i], f2, rawPts[i+1]));
-          }
-          finalPts.push(rawPts[i+1]);
-        }
-        const pLast = finalPts[finalPts.length - 1];
-        const pPrev = finalPts[finalPts.length - 2];
-        const vx = pLast[0] - pPrev[0], vy = pLast[1] - pPrev[1], vz = pLast[2] - pPrev[2];
+
+        const pts = specs.map(s => faceGridTo3D(s.f, s.r, s.c, gridN, s.cx, s.cy, s.cz));
+        const lastP = pts[pts.length - 1];
+        const prevP = pts[pts.length - 2];
+        const vx = lastP[0] - prevP[0], vy = lastP[1] - prevP[1], vz = lastP[2] - prevP[2];
         const len = Math.sqrt(vx*vx + vy*vy + vz*vz);
         const fDir = len > 0 ? [vx/len, vy/len, vz/len] : [0, 0, 1];
 
         arrows.push({
           id: aid,
-          points: finalPts,
+          points: pts,
           forwardDir: fDir,
-          isMultiFace: new Set(specs.map(s => s[0])).size > 1
+          isCollidedRed: false // Requirement 7: persistent red flag
         });
         return true;
       }
 
-      // 1. Multi-face wrapping vectors across all 12 cube edges
-      const multiCands = [];
-      for (let c = 1; c < gridN - 1; c++) {
-        multiCands.push([ ['top', gridN - 2, c], ['top', gridN - 1, c], ['front', 0, c], ['front', 1, c] ]);
-        multiCands.push([ ['front', 1, c], ['front', 0, c], ['top', gridN - 1, c], ['top', gridN - 2, c] ]);
-        multiCands.push([ ['front', gridN - 2, c], ['front', gridN - 1, c], ['bottom', 0, c], ['bottom', 1, c] ]);
-        multiCands.push([ ['bottom', 1, c], ['bottom', 0, c], ['front', gridN - 1, c], ['front', gridN - 2, c] ]);
-        multiCands.push([ ['top', 1, c], ['top', 0, c], ['back', 0, gridN - 1 - c], ['back', 1, gridN - 1 - c] ]);
-        multiCands.push([ ['back', 1, gridN - 1 - c], ['back', 0, gridN - 1 - c], ['top', 0, c], ['top', 1, c] ]);
-        multiCands.push([ ['bottom', gridN - 2, c], ['bottom', gridN - 1, c], ['back', gridN - 1, gridN - 1 - c], ['back', gridN - 2, gridN - 1 - c] ]);
-      }
-      for (let r = 1; r < gridN - 1; r++) {
-        multiCands.push([ ['left', r, gridN - 2], ['left', r, gridN - 1], ['front', r, 0], ['front', r, 1] ]);
-        multiCands.push([ ['front', r, 1], ['front', r, 0], ['left', r, gridN - 1], ['left', r, gridN - 2] ]);
-        multiCands.push([ ['front', r, gridN - 2], ['front', r, gridN - 1], ['right', r, 0], ['right', r, 1] ]);
-        multiCands.push([ ['right', r, 1], ['right', r, 0], ['front', r, gridN - 1], ['front', r, gridN - 2] ]);
-        multiCands.push([ ['right', r, gridN - 2], ['right', r, gridN - 1], ['back', r, 0], ['back', r, 1] ]);
-        multiCands.push([ ['back', r, 1], ['back', r, 0], ['right', r, gridN - 1], ['right', r, gridN - 2] ]);
-        multiCands.push([ ['back', r, gridN - 2], ['back', r, gridN - 1], ['left', r, 0], ['left', r, 1] ]);
-        multiCands.push([ ['left', r, 1], ['left', r, 0], ['back', r, gridN - 1], ['back', r, gridN - 2] ]);
-        multiCands.push([ ['left', 0, r], ['left', 1, r], ['top', r, 0], ['top', r, 1] ]);
-        multiCands.push([ ['right', 0, r], ['right', 1, r], ['top', r, gridN - 1], ['top', r, gridN - 2] ]);
-      }
-      // Shuffle multi-candidates
-      for (let i = multiCands.length - 1; i > 0; i--) {
-        const j = Math.floor(prng() * (i + 1));
-        [multiCands[i], multiCands[j]] = [multiCands[j], multiCands[i]];
-      }
-
-      let mAdded = 0;
-      for (let cand of multiCands) {
-        if (mAdded >= multiCount) break;
-        if (addArrowFromSpecs(`m_${mAdded+1}`, cand)) mAdded++;
-      }
-
-      // 2. High-density single-face shapes (Z-shapes, L-shapes, hooks, and straight lines)
-      const singleCands = [];
-      for (let f of faces) {
-        // 4-point Z / serpentine shapes (for higher complexity tiers)
-        if (gridN >= 6) {
-          for (let r = 0; r < gridN - 1; r++) {
-            for (let c = 0; c < gridN - 2; c++) {
-              singleCands.push([ [f, r, c], [f, r, c + 1], [f, r + 1, c + 1], [f, r + 1, c + 2] ]);
-              singleCands.push([ [f, r + 1, c + 2], [f, r + 1, c + 1], [f, r, c + 1], [f, r, c] ]);
-            }
-          }
-          for (let r = 0; r < gridN - 2; r++) {
-            for (let c = 0; c < gridN - 1; c++) {
-              singleCands.push([ [f, r, c], [f, r + 1, c], [f, r + 1, c + 1], [f, r + 2, c + 1] ]);
-              singleCands.push([ [f, r + 2, c + 1], [f, r + 1, c + 1], [f, r + 1, c], [f, r, c] ]);
-            }
-          }
-        }
-
-        // 3-point L-shapes
+      // Generate candidates on exterior faces
+      const candidates = [];
+      exteriorFaces.forEach(ef => {
+        // L-shapes
         for (let r = 0; r < gridN - 1; r++) {
           for (let c = 0; c < gridN - 1; c++) {
-            singleCands.push([ [f, r, c], [f, r + 1, c], [f, r + 1, c + 1] ]);
-            singleCands.push([ [f, r, c], [f, r, c + 1], [f, r + 1, c + 1] ]);
-            singleCands.push([ [f, r + 1, c + 1], [f, r, c + 1], [f, r, c] ]);
-            singleCands.push([ [f, r + 1, c + 1], [f, r + 1, c], [f, r, c] ]);
-            singleCands.push([ [f, r + 1, c], [f, r, c], [f, r, c + 1] ]);
-            singleCands.push([ [f, r, c + 1], [f, r, c], [f, r + 1, c] ]);
+            candidates.push([
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c },
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r + 1, c: c },
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r + 1, c: c + 1 }
+            ]);
+            candidates.push([
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r + 1, c: c + 1 },
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c + 1 },
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c }
+            ]);
           }
         }
-
-        // 3-point straight lines
-        for (let r = 0; r < gridN; r++) {
-          for (let c = 0; c < gridN - 2; c++) {
-            singleCands.push([ [f, r, c], [f, r, c + 1], [f, r, c + 2] ]);
-            singleCands.push([ [f, r, c + 2], [f, r, c + 1], [f, r, c] ]);
-          }
-        }
-        for (let c = 0; c < gridN; c++) {
-          for (let r = 0; r < gridN - 2; r++) {
-            singleCands.push([ [f, r, c], [f, r + 1, c], [f, r + 2, c] ]);
-            singleCands.push([ [f, r + 2, c], [f, r + 1, c], [f, r, c] ]);
-          }
-        }
-
-        // 2-point straight lines (to densely fill any remaining tight gaps)
+        // Straight lines
         for (let r = 0; r < gridN; r++) {
           for (let c = 0; c < gridN - 1; c++) {
-            singleCands.push([ [f, r, c], [f, r, c + 1] ]);
-            singleCands.push([ [f, r, c + 1], [f, r, c] ]);
+            candidates.push([
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c },
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c + 1 }
+            ]);
+            candidates.push([
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c + 1 },
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c }
+            ]);
           }
         }
         for (let c = 0; c < gridN; c++) {
           for (let r = 0; r < gridN - 1; r++) {
-            singleCands.push([ [f, r, c], [f, r + 1, c] ]);
-            singleCands.push([ [f, r + 1, c], [f, r, c] ]);
+            candidates.push([
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c },
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r + 1, c: c }
+            ]);
+            candidates.push([
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r + 1, c: c },
+              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c }
+            ]);
           }
         }
-      }
+      });
 
-      // Shuffle single candidates
-      for (let i = singleCands.length - 1; i > 0; i--) {
+      // Shuffle
+      for (let i = candidates.length - 1; i > 0; i--) {
         const j = Math.floor(prng() * (i + 1));
-        [singleCands[i], singleCands[j]] = [singleCands[j], singleCands[i]];
+        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
       }
 
-      let sAdded = 0;
-      for (let cand of singleCands) {
+      let aIdx = 0;
+      for (let cand of candidates) {
         if (arrows.length >= targetArrows) break;
-        if (addArrowFromSpecs(`s_${sAdded+1}`, cand)) sAdded++;
+        if (addArrowFromSpecs(`a_${aIdx + 1}`, cand)) aIdx++;
       }
 
       return {
-        level: levelNum,
-        title: `Sector ${levelNum}: ${arrows.length} Vectors`,
-        story: `Sector ${levelNum} decrypted. ${mAdded} multi-face wrapping vectors have stabilized the harmonic manifold.`,
+        cluster: cluster,
         arrows: arrows,
-        multiCount: mAdded,
         gridN: gridN
       };
     }
@@ -711,7 +1022,6 @@
       }
     }
 
-    // Dynamic mesh builder scaling proportionally with current grid step!
     function updateArrowGroupMeshes(group, pts, defaultMat, scale = 1.0) {
       while (group.children.length > 0) {
         const c = group.children[group.children.length - 1];
@@ -721,10 +1031,9 @@
 
       if (!pts || pts.length < 2) return;
 
-      // Scale tube and cone based on grid density
-      const tubeR = Math.max(0.016, Math.min(0.024, currentGridStep * 0.065)) * scale;
+      const tubeR = 0.022 * scale;
       const cornerR = tubeR * 1.25;
-      const coneR = Math.max(0.045, Math.min(0.075, currentGridStep * 0.19)) * scale;
+      const coneR = 0.068 * scale;
       const coneH = coneR * 2.1;
 
       const pHead = pts[pts.length - 1];
@@ -732,7 +1041,6 @@
         return pHead.clone().add(p.clone().sub(pHead).multiplyScalar(scale));
       });
 
-      // 1. Shaft cylinders and corner joints
       for (let i = 0; i < scaledPts.length - 1; i++) {
         const p1 = scaledPts[i];
         const p2 = scaledPts[i + 1];
@@ -754,7 +1062,6 @@
         group.add(joint);
       }
 
-      // 2. Sharp arrowhead at terminal edge pointing outward
       const lastP1 = scaledPts[scaledPts.length - 2];
       const lastP2 = scaledPts[scaledPts.length - 1];
       const forwardDir = lastP2.clone().sub(lastP1).normalize();
@@ -770,8 +1077,11 @@
 
     function createArrowGroup(arrow) {
       const group = new THREE.Group();
+      
+      // If arrow collided previously, keep it red (Requirement 7!)
+      const colorVal = arrow.isCollidedRed ? 0xef4444 : 0x0f172a;
       const defaultMat = new THREE.MeshStandardMaterial({
-        color: 0x0f172a,
+        color: colorVal,
         roughness: 0.22,
         metalness: 0.18
       });
@@ -789,11 +1099,10 @@
       return group;
     }
 
-    // Check collision along exit trajectory
     function checkIsArrowBlocked(arrow) {
       const pHead = arrow.points[arrow.points.length - 1];
       const fDir = arrow.forwardDir;
-      const COLLISION_RADIUS = Math.max(0.18, currentGridStep * 0.55);
+      const COLLISION_RADIUS = 0.26;
 
       for (let other of activeArrows) {
         if (other.id === arrow.id) continue;
@@ -807,7 +1116,7 @@
       return null;
     }
 
-    // Arrow Tap & Escape Animation with unbending
+    // Touch interaction & arrow tap handler
     function handleArrowTap(arrowId) {
       if (animatingArrows.has(arrowId)) return;
       initAudio();
@@ -818,30 +1127,62 @@
       const group = arrowMeshMap.get(arrowId);
       if (!group) return;
 
+      // ERASER POWERUP ACTIVE? Vaporize immediately! (Requirement 6)
+      if (isEraserActive) {
+        isEraserActive = false;
+        document.getElementById('eraser-active-banner').classList.add('hidden');
+        triggerHaptic('win');
+        playMagicFanfare();
+        showToast('Arrow erased successfully! 🧼');
+
+        animatingArrows.add(arrowId);
+        activeArrows = activeArrows.filter(a => a.id !== arrowId);
+        updateUI();
+
+        let startTime = performance.now();
+        function animateVaporize(now) {
+          const elapsed = now - startTime;
+          const t = Math.min(1, elapsed / 300);
+          group.scale.setScalar(1.0 - t);
+          if (t < 1) {
+            requestAnimationFrame(animateVaporize);
+          } else {
+            mainCubeGroup.remove(group);
+            arrowMeshMap.delete(arrowId);
+            animatingArrows.delete(arrowId);
+            if (activeArrows.length === 0) setTimeout(handleLevelWin, 250);
+          }
+        }
+        requestAnimationFrame(animateVaporize);
+        return;
+      }
+
       const blocker = checkIsArrowBlocked(arrow);
 
       if (blocker) {
-        // Collision!
+        // COLLISION! (Requirement 7: Marked RED persistently matching screenshot!)
         triggerHaptic('error');
         playCollisionBuzz();
-        showToast('Blocked! Another vector sits along this escape route.');
+        showToast('Blocked! Path collision marked in RED.');
 
-        animatingArrows.add(arrowId);
+        arrow.isCollidedRed = true;
         group.traverse(child => {
-          if (child.isMesh && child.material) child.material.color.setHex(0xef4444);
+          if (child.isMesh && child.material) {
+            child.material.color.setHex(0xef4444); // Stays Red!
+          }
         });
 
         hearts--;
         updateHeartsUI();
 
+        animatingArrows.add(arrowId);
         const fDir = new THREE.Vector3(arrow.forwardDir[0], arrow.forwardDir[1], arrow.forwardDir[2]);
         const originalPos = group.position.clone();
         let startTime = performance.now();
-        const duration = 240;
 
         function animateBump(now) {
           const elapsed = now - startTime;
-          const t = Math.min(1, elapsed / duration);
+          const t = Math.min(1, elapsed / 240);
           const bumpOffset = Math.sin(t * Math.PI) * 0.16;
           group.position.copy(originalPos).add(fDir.clone().multiplyScalar(bumpOffset));
 
@@ -849,9 +1190,6 @@
             requestAnimationFrame(animateBump);
           } else {
             group.position.copy(originalPos);
-            group.traverse(child => {
-              if (child.isMesh && child.material) child.material.color.setHex(0x0f172a);
-            });
             animatingArrows.delete(arrowId);
 
             if (hearts <= 0) {
@@ -864,25 +1202,22 @@
         requestAnimationFrame(animateBump);
 
       } else {
-        // Dynamic Unbending Escape
+        // SUCCESSFUL ESCAPE!
         animatingArrows.add(arrowId);
         triggerHaptic('light');
-        const clearIndex = initialCount - activeArrows.length;
-        playLaunchChime(clearIndex);
+        playChime();
 
         activeArrows = activeArrows.filter(a => a.id !== arrowId);
         updateUI();
 
         const arrowPath = new ArrowPath(arrow.points, arrow.forwardDir);
         const totalLen = arrowPath.totalLen;
-        const launchDist = 10.5;
-
+        const launchDist = 11.0;
         let startTime = performance.now();
-        const duration = 880;
 
         function animateEscape(now) {
           const elapsed = now - startTime;
-          const t = Math.min(1, elapsed / duration);
+          const t = Math.min(1, elapsed / 880);
 
           const easeProgress = t < 0.4 ? (t / 0.4) * 0.25 : 0.25 + Math.pow((t - 0.4) / 0.6, 2) * 0.75;
           const currentD = launchDist * easeProgress;
@@ -908,51 +1243,62 @@
     }
 
     function updateHeartsUI() {
-      for (let i = 1; i <= 3; i++) {
-        const el = document.getElementById(`heart-${i}`);
-        if (i > hearts) {
-          el.classList.add('heart-lost');
-        } else {
-          el.classList.remove('heart-lost');
-        }
-      }
+      document.getElementById('game-hearts-display').textContent = `${hearts}/3`;
     }
 
     function updateUI() {
-      document.getElementById('remaining-arrows').textContent = activeArrows.length;
+      document.getElementById('game-moves-count').textContent = activeArrows.length;
     }
 
-    // UNITY ADS OFFICIAL CLOUD CONFIGURATION
-    const UNITY_ADS_CONFIG = {
-      gameId: '800403098',
-      bannerPlacement: 'BP_Banner_Android',
-      interstitialPlacement: 'BP_Interstitial_Android',
-      rewardedPlacement: 'BP_Rewarded_Android',
-      testMode: true
-    };
+    // Level Win Handler
+    function handleLevelWin() {
+      triggerHaptic('win');
+      playMagicFanfare();
 
-    // AD FREQUENCY MANAGER: Shows ad every 4 to 5 games played (wins or retries)
-    let gamesPlayedCounter = 0;
-    const AD_FREQUENCY = 4; // Triggers interstitial ad every 4th game attempt
+      AppState.addCoins(100); // Reward 100 coins!
 
+      if (currentLevel >= AppState.maxUnlockedLevel) {
+        AppState.maxUnlockedLevel = currentLevel + 1;
+      }
+      AppState.save();
+
+      checkAndShowAd(() => {
+        document.getElementById('win-subtitle').textContent = `Sector ${currentLevel} Complete`;
+        document.getElementById('modal-level-win').classList.remove('hidden');
+      });
+    }
+
+    function checkAndShowAd(onFinished) {
+      gamesPlayedCounter++;
+      if (gamesPlayedCounter >= AD_FREQUENCY) {
+        gamesPlayedCounter = 0;
+        triggerUnityAd('interstitial', onFinished);
+      } else {
+        if (onFinished) onFinished();
+      }
+    }
+
+    // Unity Ads Video Simulation
     let interstitialTimerInterval = null;
-    function triggerUnityInterstitial(onComplete) {
+    function triggerUnityAd(type = 'interstitial', onComplete) {
       const modal = document.getElementById('modal-unity-interstitial');
       const timerBadge = document.getElementById('interstitial-timer');
       const closeBtn = document.getElementById('btn-close-interstitial');
+      const titleEl = document.getElementById('ad-modal-type-title');
 
+      titleEl.textContent = type === 'rewarded' ? 'Unity Rewarded Video' : 'Unity Interstitial Ad';
       modal.classList.remove('hidden');
       closeBtn.classList.add('hidden');
       timerBadge.classList.remove('hidden');
 
       let timeLeft = 5;
-      timerBadge.textContent = `Skip in ${timeLeft}s...`;
+      timerBadge.textContent = `Reward in ${timeLeft}s...`;
 
       clearInterval(interstitialTimerInterval);
       interstitialTimerInterval = setInterval(() => {
         timeLeft--;
         if (timeLeft > 0) {
-          timerBadge.textContent = `Skip in ${timeLeft}s...`;
+          timerBadge.textContent = `Reward in ${timeLeft}s...`;
         } else {
           clearInterval(interstitialTimerInterval);
           timerBadge.classList.add('hidden');
@@ -969,99 +1315,161 @@
       closeBtn.addEventListener('click', closeAd);
     }
 
-    function checkAndShowAd(onFinished) {
-      gamesPlayedCounter++;
-      if (gamesPlayedCounter >= AD_FREQUENCY) {
-        gamesPlayedCounter = 0;
-        triggerUnityInterstitial(onFinished);
-      } else {
-        if (onFinished) onFinished();
-      }
-    }
-
-    function handleLevelWin() {
-      triggerHaptic('win');
-      playFanfare();
-
-      if (currentLevel >= maxUnlockedLevel) {
-        maxUnlockedLevel = currentLevel + 1;
-        try { localStorage.setItem('arrow_cube_max_level', maxUnlockedLevel); } catch(e) {}
-      }
-
-      function showWinModal() {
-        if (currentLevel >= 250) {
-          document.getElementById('modal-grand-finale').classList.remove('hidden');
-        } else {
-          document.getElementById('win-subtitle').textContent = `Level ${currentLevel} Cleared!`;
-          document.getElementById('win-title').textContent = `Sector ${currentLevel} Complete`;
-          document.getElementById('win-story').textContent = `"All ${initialCount} vectors across the cube facets released cleanly without breaking harmonic containment."`;
-          document.getElementById('modal-level-win').classList.remove('hidden');
-        }
-      }
-
-      checkAndShowAd(() => {
-        showWinModal();
-      });
-    }
-
-    function giveHint() {
-      initAudio();
+    // POWERUP ACTIVATIONS (Requirements 5 & 6)
+    function activateHint() {
       const freeArrows = activeArrows.filter(a => !checkIsArrowBlocked(a));
       if (freeArrows.length === 0) {
-        showToast('No arrows clear on this view. Rotate the cube to inspect other sides!');
+        showToast('No free arrow on this face. Rotate to inspect other blocks!');
         return;
       }
       const target = freeArrows[0];
       const group = arrowMeshMap.get(target.id);
       if (group) {
-        showToast('Radar Lock: Unblocked arrow highlighted in green!');
-        playSound(880, 0.25, 'triangle', 0.2);
+        showToast('Radar Lock: Unblocked arrow glowing GREEN! 💡');
+        playSound(880, 0.35, 'triangle', 0.25);
         group.traverse(child => {
-          if (child.isMesh && child.material) child.material.color.setHex(0x10b981);
+          if (child.isMesh && child.material) {
+            child.material.color.setHex(0x10b981);
+            if (child.material.emissive) child.material.emissive.setHex(0x064e3b);
+          }
         });
-        setTimeout(() => {
-          group.traverse(child => {
-            if (child.isMesh && child.material) child.material.color.setHex(0x0f172a);
-          });
-        }, 900);
       }
     }
 
-    // Load Level with Automatic Solvability Verification
+    function activateMagicWand() {
+      const blockers = activeArrows.filter(a => checkIsArrowBlocked(a));
+      const targets = (blockers.length >= 2 ? blockers : activeArrows).slice(0, 3);
+      if (targets.length === 0) return;
+
+      showToast(`Magic Wand vaporized ${targets.length} blocking arrows! 🪄`);
+      playMagicFanfare();
+
+      targets.forEach(arrow => {
+        const group = arrowMeshMap.get(arrow.id);
+        if (group) {
+          activeArrows = activeArrows.filter(a => a.id !== arrow.id);
+          group.scale.setScalar(0.01);
+          mainCubeGroup.remove(group);
+          arrowMeshMap.delete(arrow.id);
+        }
+      });
+      updateUI();
+      if (activeArrows.length === 0) setTimeout(handleLevelWin, 250);
+    }
+
+    // Modal Powerup Trigger Helper
+    let currentPowerupType = 'hint';
+    function openPowerupModal(type) {
+      currentPowerupType = type;
+      const modal = document.getElementById('modal-powerup');
+      const icon = document.getElementById('powerup-modal-icon');
+      const title = document.getElementById('powerup-modal-title');
+      const desc = document.getElementById('powerup-modal-desc');
+      const coinCost = document.getElementById('powerup-modal-coin-cost');
+      const adCount = document.getElementById('powerup-modal-ad-count');
+
+      if (type === 'hint') {
+        icon.textContent = '💡';
+        title.textContent = 'Get Move Hint';
+        desc.textContent = 'Highlights the next safe unblocked arrow in glowing green.';
+        coinCost.textContent = '500';
+        adCount.textContent = '(1 Ad)';
+      } else if (type === 'eraser') {
+        icon.textContent = '🧼';
+        title.textContent = 'Eraser Tool';
+        desc.textContent = 'Vaporize any blocking arrow on the board with a single tap.';
+        coinCost.textContent = '500';
+        adCount.textContent = '(1 Ad)';
+      } else if (type === 'wand') {
+        icon.textContent = '🪄';
+        title.textContent = 'Magic Wand';
+        desc.textContent = 'Magically evaporates 2 to 3 blocking arrows simultaneously!';
+        coinCost.textContent = '1000';
+        adCount.textContent = '(2 Ads)';
+      }
+      modal.classList.remove('hidden');
+    }
+
+    // Load Level & Build Multi-Cube 3D Meshes
     function loadLevel(lvlNum) {
       currentLevel = Math.max(1, Math.min(250, lvlNum));
-      try { localStorage.setItem('arrow_cube_current_level', currentLevel); } catch(e) {}
+      AppState.level = currentLevel;
+      AppState.save();
+      AppState.syncUI();
 
       hearts = 3;
       updateHeartsUI();
 
-      const lvlData = generateLevel(currentLevel);
-
-      document.getElementById('level-display').textContent = `Level ${currentLevel}`;
-      document.getElementById('badge-multi-face').textContent = `${lvlData.multiCount} Multi-Face`;
-      document.getElementById('footer-level-indicator').textContent = currentLevel;
-
-      arrowMeshMap.forEach(mesh => mainCubeGroup.remove(mesh));
+      // Clear previous Three.js objects
+      while (mainCubeGroup.children.length > 0) {
+        const c = mainCubeGroup.children[mainCubeGroup.children.length - 1];
+        if (c.geometry) c.geometry.dispose();
+        mainCubeGroup.remove(c);
+      }
       arrowMeshMap.clear();
       animatingArrows.clear();
+      isEraserActive = false;
+      document.getElementById('eraser-active-banner').classList.add('hidden');
 
+      const lvlData = generateLevel(currentLevel);
+
+      // Build Multi-Cube Cluster with Solid & Translucent Glass Materials (Requirement 1!)
+      const boxGeo = new THREE.BoxGeometry(CUBE_UNIT, CUBE_UNIT, CUBE_UNIT);
+      const edgeGeo = new THREE.EdgesGeometry(boxGeo);
+
+      lvlData.cluster.forEach(cube => {
+        const [cx, cy, cz] = cube.pos;
+
+        let cubeMat;
+        if (cube.isGlass) {
+          // Translucent frosted crystal glass!
+          cubeMat = new THREE.MeshStandardMaterial({
+            color: 0xe0f2fe,
+            transparent: true,
+            opacity: 0.35,
+            roughness: 0.1,
+            metalness: 0.1
+          });
+        } else {
+          // Solid white ceramic cube
+          cubeMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            roughness: 0.15,
+            metalness: 0.05
+          });
+        }
+
+        const cubeMesh = new THREE.Mesh(boxGeo, cubeMat);
+        cubeMesh.position.set(cx * CUBE_UNIT, cy * CUBE_UNIT, cz * CUBE_UNIT);
+        mainCubeGroup.add(cubeMesh);
+
+        // Edge Lines
+        const edgeLine = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({
+          color: cube.isGlass ? 0x0284c7 : 0x94a3b8,
+          transparent: true,
+          opacity: 0.4
+        }));
+        edgeLine.position.copy(cubeMesh.position);
+        mainCubeGroup.add(edgeLine);
+      });
+
+      // Center the compound group at (0, 0, 0)
+      const bbox = new THREE.Box3().setFromObject(mainCubeGroup);
+      const center = new THREE.Vector3();
+      bbox.getCenter(center);
+      mainCubeGroup.position.sub(center);
+
+      // Calculate camera distance for compound shape
+      const size = new THREE.Vector3();
+      bbox.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z);
+      baseCameraDistance = Math.max(12.5, maxDim * 2.5);
+      updateCameraFrame();
+
+      // Build Arrows
       activeArrows = JSON.parse(JSON.stringify(lvlData.arrows));
       initialCount = activeArrows.length;
 
-      // Solvability check: Ensure at least 1-2 arrows have clear exit path
-      let freeCount = activeArrows.filter(a => !checkIsArrowBlocked(a)).length;
-      if (freeCount === 0 && activeArrows.length > 0) {
-        // Reverse direction of an outer arrow to guarantee an open exit
-        const candidate = activeArrows[activeArrows.length - 1];
-        candidate.points.reverse();
-        const pLast = candidate.points[candidate.points.length - 1];
-        const pPrev = candidate.points[candidate.points.length - 2];
-        const vx = pLast[0] - pPrev[0], vy = pLast[1] - pPrev[1], vz = pLast[2] - pPrev[2];
-        const len = Math.sqrt(vx*vx + vy*vy + vz*vz);
-        candidate.forwardDir = len > 0 ? [vx/len, vy/len, vz/len] : [0, 0, 1];
-      }
-
-      // Build 3D meshes
       activeArrows.forEach(arrow => {
         const mesh = createArrowGroup(arrow);
         mainCubeGroup.add(mesh);
@@ -1075,14 +1483,13 @@
       updateUI();
     }
 
-    // Three.js Scene Setup & Responsive Viewport
+    // Three.js Scene Setup
     function init3D() {
       const container = document.getElementById('canvas-container');
       const width = container.clientWidth;
       const height = container.clientHeight;
 
       scene = new THREE.Scene();
-
       camera = new THREE.PerspectiveCamera(46, width / height, 0.1, 100);
       updateCameraFrame();
 
@@ -1096,39 +1503,25 @@
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
 
-      const ambLight = new THREE.AmbientLight(0xffffff, 0.92);
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.94);
       scene.add(ambLight);
 
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.58);
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
       dirLight.position.set(6, 10, 8);
       scene.add(dirLight);
 
-      const fillLight = new THREE.DirectionalLight(0xe0f2fe, 0.42);
+      const fillLight = new THREE.DirectionalLight(0xe0f2fe, 0.45);
       fillLight.position.set(-6, -8, -6);
       scene.add(fillLight);
 
       mainCubeGroup = new THREE.Group();
       scene.add(mainCubeGroup);
 
-      const cubeGeo = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
-      const cubeMat = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.12,
-        metalness: 0.04
-      });
-      whiteCubeMesh = new THREE.Mesh(cubeGeo, cubeMat);
-      mainCubeGroup.add(whiteCubeMesh);
-
-      const edges = new THREE.EdgesGeometry(cubeGeo);
-      const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.35 }));
-      mainCubeGroup.add(edgeLines);
-
       loadLevel(currentLevel);
 
       window.addEventListener('resize', onResize);
       const dom = renderer.domElement;
 
-      // Pointer & Multi-Touch Controls (Rotation + Pinch-to-Zoom)
       dom.addEventListener('pointerdown', onPointerDown);
       dom.addEventListener('pointermove', onPointerMove);
       dom.addEventListener('pointerup', onPointerUp);
@@ -1163,7 +1556,6 @@
         prevY = e.clientY;
         hasMoved = false;
       } else if (activePointers.size === 2) {
-        // Pinch zoom starts
         const pts = Array.from(activePointers.values());
         prevPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
       }
@@ -1174,7 +1566,6 @@
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
       if (activePointers.size === 2) {
-        // Two fingers pinch to zoom!
         hasMoved = true;
         const pts = Array.from(activePointers.values());
         const currentDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
@@ -1191,7 +1582,7 @@
       const dx = e.clientX - prevX;
       const dy = e.clientY - prevY;
 
-      if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
+      if (Math.abs(e.clientX - startX) > 6 || Math.abs(e.clientY - startY) > 6) {
         hasMoved = true;
       }
 
@@ -1252,40 +1643,49 @@
       renderer.render(scene, camera);
     }
 
-    // Setup UI Controls & Listeners
+    // ==========================================
+    // UI INITIALIZATION & EVENT LISTENERS
+    // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
       init3D();
+      AppState.syncUI();
 
-      const btnSound = document.getElementById('btn-sound');
-      const iconSoundOn = document.getElementById('icon-sound-on');
-      const iconSoundOff = document.getElementById('icon-sound-off');
+      // 1. Splash Screen Auto-transition (Requirement 2)
+      setTimeout(() => {
+        document.getElementById('splash-progress').style.width = '100%';
+        document.getElementById('splash-status').textContent = 'Ready! Welcome to Sector 1.';
+      }, 700);
 
-      function syncSoundUI() {
-        if (isMuted) {
-          iconSoundOn.classList.add('hidden');
-          iconSoundOff.classList.remove('hidden');
-        } else {
-          iconSoundOn.classList.remove('hidden');
-          iconSoundOff.classList.add('hidden');
-        }
-      }
-      syncSoundUI();
+      setTimeout(() => {
+        const splash = document.getElementById('screen-splash');
+        splash.classList.add('opacity-0', 'pointer-events-none');
+        document.getElementById('screen-home').classList.remove('hidden');
+        setTimeout(() => splash.remove(), 500);
+      }, 1600);
 
-      btnSound.addEventListener('click', () => {
+      // 2. Screen Switching (Home <-> Game)
+      document.getElementById('btn-start-game').addEventListener('click', () => {
         initAudio();
-        isMuted = !isMuted;
-        try { localStorage.setItem('arrow_cube_muted', isMuted); } catch(e) {}
-        syncSoundUI();
-        if (!isMuted) playSound(520, 0.1);
+        document.getElementById('screen-home').classList.add('hidden');
+        loadLevel(AppState.level);
       });
 
-      document.getElementById('btn-reset').addEventListener('click', () => {
+      document.getElementById('btn-game-settings').addEventListener('click', () => {
         initAudio();
-        loadLevel(currentLevel);
-        showToast('Level reset. Observe vector exits!');
+        document.getElementById('screen-home').classList.remove('hidden');
+        AppState.syncUI();
       });
 
-      document.getElementById('btn-hint').addEventListener('click', giveHint);
+      document.getElementById('btn-win-home').addEventListener('click', () => {
+        document.getElementById('modal-level-win').classList.add('hidden');
+        document.getElementById('screen-home').classList.remove('hidden');
+        AppState.syncUI();
+      });
+
+      document.getElementById('btn-next-level').addEventListener('click', () => {
+        document.getElementById('modal-level-win').classList.add('hidden');
+        loadLevel(currentLevel + 1);
+      });
 
       document.getElementById('btn-try-again').addEventListener('click', () => {
         document.getElementById('modal-game-over').classList.add('hidden');
@@ -1294,68 +1694,141 @@
         });
       });
 
-      // Next level progress: moves to currentLevel + 1
-      document.getElementById('btn-next-level').addEventListener('click', () => {
-        document.getElementById('modal-level-win').classList.add('hidden');
-        loadLevel(currentLevel + 1);
+      // 3. Navigation Bar Tabs (Store, Home, Events)
+      document.getElementById('nav-btn-store').addEventListener('click', () => {
+        document.getElementById('modal-store').classList.remove('hidden');
+      });
+      document.getElementById('btn-close-store').addEventListener('click', () => {
+        document.getElementById('modal-store').classList.add('hidden');
       });
 
-      document.getElementById('btn-replay-level').addEventListener('click', () => {
-        document.getElementById('modal-level-win').classList.add('hidden');
-        loadLevel(currentLevel);
+      document.getElementById('nav-btn-events').addEventListener('click', () => {
+        document.getElementById('modal-events').classList.remove('hidden');
+      });
+      document.getElementById('btn-close-events').addEventListener('click', () => {
+        document.getElementById('modal-events').classList.add('hidden');
       });
 
-      document.getElementById('btn-restart-game').addEventListener('click', () => {
-        document.getElementById('modal-grand-finale').classList.add('hidden');
-        loadLevel(1);
+      // Store claims
+      document.getElementById('btn-store-ad-coins').addEventListener('click', () => {
+        triggerUnityAd('rewarded', () => {
+          AppState.addCoins(250);
+          showToast('+250 Coins added! 🪙');
+        });
+      });
+      document.getElementById('btn-store-claim-gift').addEventListener('click', () => {
+        AppState.addCoins(500);
+        showToast('+500 Daily Gift claimed! 🎁');
+      });
+      document.getElementById('btn-store-claim-bundle').addEventListener('click', () => {
+        showToast('Powerup Starter Pack Activated! 🪄');
       });
 
-      document.getElementById('btn-close-finale').addEventListener('click', () => {
-        document.getElementById('modal-grand-finale').classList.add('hidden');
-        loadLevel(currentLevel + 1);
+      // Events / Quests claims
+      document.getElementById('btn-quest-1').addEventListener('click', () => {
+        AppState.addCoins(200);
+        showToast('Quest complete: +200 Coins! 🏆');
+      });
+      document.getElementById('btn-quest-2').addEventListener('click', () => {
+        AppState.addCoins(350);
+        showToast('Quest complete: +350 Coins! 🏆');
       });
 
-      // Story Codex Modal (Organized into 5 Sagas for 250 Levels)
-      const modalCodex = document.getElementById('modal-story-codex');
-      const codexList = document.getElementById('codex-list');
-
-      const SAGAS = [
-        { name: "Saga I: The Awakening (Levels 1–25)", min: 1, max: 25, desc: "The ancient monolithic cube awakens, presenting its initial 4x4 & 5x5 calibration vectors." },
-        { name: "Saga II: The Harmonic Lattice (Levels 26–75)", min: 26, max: 75, desc: "6x6 grid with interwoven multi-face wrapping vectors synchronizing across the six facets." },
-        { name: "Saga III: The Sovereign Nexus (Levels 76–150)", min: 76, max: 150, desc: "7x7 labyrinth with up to 100 dense interlocking arrows and cross-face connections." },
-        { name: "Saga IV: The Astral Conduits (Levels 151–200)", min: 151, max: 200, desc: "8x8 high-density serpentine mazes testing spatial deduction under extreme congestion." },
-        { name: "Saga V: The Grand Core Liberation (Levels 201–250)", min: 201, max: 250, desc: "Supreme master labyrinth with 130+ interlocking vectors unlocking the starfarers' core." }
+      // 4. Profile Modal & Pickers (Requirement 4)
+      const AVATARS = ['🦊', '🦁', '🐯', '🐼', '🚀', '👑', '💎', '⚡', '🎯', '👾'];
+      const FRAMES = [
+        { id: 'frame-silver', name: 'Silver' },
+        { id: 'frame-gold', name: 'Gold' },
+        { id: 'frame-neon', name: 'Neon' },
+        { id: 'frame-amethyst', name: 'Amethyst' },
+        { id: 'frame-emerald', name: 'Emerald' }
       ];
 
-      function renderCodex() {
-        codexList.innerHTML = '';
-        SAGAS.forEach((saga) => {
-          const isUnlocked = maxUnlockedLevel >= saga.min;
-          const card = document.createElement('div');
-          card.className = `p-3 rounded-2xl border ${isUnlocked ? 'bg-white border-sky-100 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-400'}`;
-          card.innerHTML = `
-            <div class="flex items-center justify-between font-bold text-xs mb-1">
-              <span class="${isUnlocked ? 'text-sky-700' : 'text-slate-400'}">${saga.name}</span>
-              <span class="mono-font text-[10px] ${isUnlocked ? 'text-emerald-600 font-bold' : 'text-slate-400'}">${isUnlocked ? '✓ Active' : '🔒 Locked'}</span>
-            </div>
-            <p class="text-[11px] leading-relaxed ${isUnlocked ? 'text-slate-600 italic' : 'text-slate-400'}">
-              ${isUnlocked ? saga.desc : `Reach Level ${saga.min} to unlock this saga.`}
-            </p>
-          `;
-          codexList.appendChild(card);
+      const avatarGrid = document.getElementById('avatar-picker-grid');
+      AVATARS.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.className = 'w-10 h-10 rounded-xl bg-white border border-slate-200 text-xl flex items-center justify-center hover:bg-sky-50 active:scale-95 transition';
+        btn.textContent = emoji;
+        btn.onclick = () => {
+          AppState.avatarEmoji = emoji;
+          document.querySelectorAll('#avatar-picker-grid button').forEach(b => b.classList.remove('ring-2', 'ring-sky-500'));
+          btn.classList.add('ring-2', 'ring-sky-500');
+        };
+        avatarGrid.appendChild(btn);
+      });
+
+      const frameGrid = document.getElementById('frame-picker-grid');
+      FRAMES.forEach(f => {
+        const btn = document.createElement('button');
+        btn.className = `w-10 h-10 rounded-xl bg-white ${f.id} text-xs font-bold text-slate-700 flex items-center justify-center hover:scale-105 transition`;
+        btn.textContent = f.name[0];
+        btn.onclick = () => {
+          AppState.avatarFrame = f.id;
+          document.querySelectorAll('#frame-picker-grid button').forEach(b => b.classList.remove('ring-2', 'ring-sky-500'));
+          btn.classList.add('ring-2', 'ring-sky-500');
+        };
+        frameGrid.appendChild(btn);
+      });
+
+      document.getElementById('btn-open-profile').addEventListener('click', () => {
+        document.getElementById('input-player-name').value = AppState.playerName;
+        document.getElementById('modal-profile').classList.remove('hidden');
+      });
+      document.getElementById('btn-close-profile').addEventListener('click', () => {
+        document.getElementById('modal-profile').classList.add('hidden');
+      });
+      document.getElementById('btn-save-profile').addEventListener('click', () => {
+        const val = document.getElementById('input-player-name').value.trim();
+        if (val) AppState.playerName = val;
+        AppState.save();
+        AppState.syncUI();
+        document.getElementById('modal-profile').classList.add('hidden');
+        showToast('Profile updated! ✨');
+      });
+
+      // 5. In-Game Powerup Trigger Buttons (Requirement 5 & 6)
+      document.getElementById('btn-top-hint').addEventListener('click', () => openPowerupModal('hint'));
+      document.getElementById('powerup-btn-hint').addEventListener('click', () => openPowerupModal('hint'));
+      document.getElementById('powerup-btn-eraser').addEventListener('click', () => openPowerupModal('eraser'));
+      document.getElementById('powerup-btn-wand').addEventListener('click', () => openPowerupModal('wand'));
+
+      document.getElementById('btn-close-powerup-modal').addEventListener('click', () => {
+        document.getElementById('modal-powerup').classList.add('hidden');
+      });
+
+      // Buy with Coins
+      document.getElementById('btn-powerup-buy-coins').addEventListener('click', () => {
+        const cost = currentPowerupType === 'wand' ? 1000 : 500;
+        if (AppState.spendCoins(cost)) {
+          document.getElementById('modal-powerup').classList.add('hidden');
+          if (currentPowerupType === 'hint') activateHint();
+          else if (currentPowerupType === 'eraser') {
+            isEraserActive = true;
+            document.getElementById('eraser-active-banner').classList.remove('hidden');
+            showToast('Eraser Mode Active: Tap an arrow to delete! 🧼');
+          } else if (currentPowerupType === 'wand') activateMagicWand();
+        } else {
+          showToast('Not enough coins! Watch an ad or visit Store. 🪙');
+        }
+      });
+
+      // Watch Rewarded Ad
+      document.getElementById('btn-powerup-watch-ad').addEventListener('click', () => {
+        document.getElementById('modal-powerup').classList.add('hidden');
+        triggerUnityAd('rewarded', () => {
+          if (currentPowerupType === 'hint') activateHint();
+          else if (currentPowerupType === 'eraser') {
+            isEraserActive = true;
+            document.getElementById('eraser-active-banner').classList.remove('hidden');
+            showToast('Eraser Mode Active: Tap an arrow to delete! 🧼');
+          } else if (currentPowerupType === 'wand') activateMagicWand();
         });
-      }
-
-      document.getElementById('btn-story-log').addEventListener('click', () => {
-        renderCodex();
-        modalCodex.classList.remove('hidden');
       });
 
-      document.getElementById('btn-close-codex').addEventListener('click', () => {
-        modalCodex.classList.add('hidden');
-      });
-      document.getElementById('btn-close-codex-bottom').addEventListener('click', () => {
-        modalCodex.classList.add('hidden');
+      document.getElementById('btn-cancel-eraser').addEventListener('click', () => {
+        isEraserActive = false;
+        document.getElementById('eraser-active-banner').classList.add('hidden');
+        showToast('Eraser mode cancelled.');
       });
 
       // Ad install buttons feedback
