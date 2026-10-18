@@ -852,45 +852,45 @@
     function getClusterCubesForLevel(lvl) {
       if (lvl <= 5) {
         // 1 solid cube (Intro)
-        return [{ pos: [0, 0, 0], isGlass: false }];
+        return [{ pos: [0, 0, 0] }];
       } else if (lvl <= 10) {
-        // 1 translucent crystal glass cube!
-        return [{ pos: [0, 0, 0], isGlass: true }];
-      } else if (lvl <= 20) {
-        // 2 cubes: 1 solid white, 1 translucent glass
+        // 1 solid cube
+        return [{ pos: [0, 0, 0] }];
+      } else if (lvl <= 25) {
+        // 2 cubes side-by-side (Unified continuous figure)
         return [
-          { pos: [0, 0, 0], isGlass: false },
-          { pos: [1, 0, 0], isGlass: true }
+          { pos: [0, 0, 0] },
+          { pos: [1, 0, 0] }
         ];
-      } else if (lvl <= 45) {
-        // 3 cubes L-shape (mixed solid and glass)
+      } else if (lvl <= 55) {
+        // 3 cubes: L-shape / corner step
         return [
-          { pos: [0, 0, 0], isGlass: false },
-          { pos: [1, 0, 0], isGlass: true },
-          { pos: [0, 1, 0], isGlass: false }
+          { pos: [0, 0, 0] },
+          { pos: [1, 0, 0] },
+          { pos: [0, 1, 0] }
         ];
-      } else if (lvl <= 90) {
-        // 3 cubes 3D Corner cluster (like the reference screenshot!)
+      } else if (lvl <= 95) {
+        // 3 cubes: 3D Corner cluster
         return [
-          { pos: [0, 0, 0], isGlass: false },
-          { pos: [1, 0, 0], isGlass: true },
-          { pos: [0, 1, -1], isGlass: true }
+          { pos: [0, 0, 0] },
+          { pos: [1, 0, 0] },
+          { pos: [0, 1, -1] }
         ];
-      } else if (lvl <= 160) {
-        // 4 cubes Step / T-shape cluster
+      } else if (lvl <= 165) {
+        // 4 cubes: Step / T-shape cluster
         return [
-          { pos: [0, 0, 0], isGlass: false },
-          { pos: [1, 0, 0], isGlass: true },
-          { pos: [0, 1, 0], isGlass: false },
-          { pos: [0, 0, 1], isGlass: true }
+          { pos: [0, 0, 0] },
+          { pos: [1, 0, 0] },
+          { pos: [0, 1, 0] },
+          { pos: [0, 0, 1] }
         ];
       } else {
-        // 4 cubes 2x2 Master Architectural Labyrinth
+        // 4 cubes: 2x2 Master Architectural Labyrinth
         return [
-          { pos: [0, 0, 0], isGlass: false },
-          { pos: [1, 0, 0], isGlass: true },
-          { pos: [0, 1, 0], isGlass: true },
-          { pos: [1, 1, 0], isGlass: false }
+          { pos: [0, 0, 0] },
+          { pos: [1, 0, 0] },
+          { pos: [0, 1, 0] },
+          { pos: [1, 1, 0] }
         ];
       }
     }
@@ -950,7 +950,7 @@
           const [dx, dy, dz] = DIRECTIONS[f];
           const neighbor = `${cx + dx}_${cy + dy}_${cz + dz}`;
           if (!cubeSet.has(neighbor)) {
-            exteriorFaces.push({ cIdx, f, cx, cy, cz, isGlass: cube.isGlass });
+            exteriorFaces.push({ cIdx, f, cx, cy, cz });
           }
         }
       });
@@ -964,7 +964,7 @@
         targetArrows = 11 + Math.floor((levelNum - 5) * 1.1);
       } else if (levelNum <= 40) {
         gridN = 5;
-        targetArrows = 22 + Math.floor((levelNum - 15) * 0.8);
+        targetArrows = 20 + Math.floor((levelNum - 15) * 0.8);
       } else if (levelNum <= 90) {
         gridN = 5;
         targetArrows = 42 + Math.floor((levelNum - 40) * 0.6);
@@ -977,66 +977,43 @@
       const occupied = new Set();
       const arrows = [];
 
-      // Check if candidate would directly conflict head-on with an existing arrow
-      function checkHeadOnConflict(candSpecs, existingArrows) {
-        const cLast = candSpecs[candSpecs.length - 1];
-        const cPrev = candSpecs[candSpecs.length - 2];
-        const cDr = cLast.r - cPrev.r;
-        const cDc = cLast.c - cPrev.c;
-
-        let cr = cLast.r + cDr;
-        let cc = cLast.c + cDc;
-        while (cr >= 0 && cr < gridN && cc >= 0 && cc < gridN) {
-          for (let ex of existingArrows) {
-            for (let s of ex.specs) {
-              if (s.cx === cLast.cx && s.cy === cLast.cy && s.cz === cLast.cz && s.f === cLast.f) {
-                if (s.r === cr && s.c === cc) {
-                  // Ray hits an existing arrow! Check if that arrow points back towards candidate
-                  const eLast = ex.specs[ex.specs.length - 1];
-                  const ePrev = ex.specs[ex.specs.length - 2];
-                  const eDr = eLast.r - ePrev.r;
-                  const eDc = eLast.c - ePrev.c;
-                  let er = eLast.r + eDr;
-                  let ec = eLast.c + eDc;
-                  while (er >= 0 && er < gridN && ec >= 0 && ec < gridN) {
-                    for (let cs of candSpecs) {
-                      if (cs.r === er && cs.c === ec) {
-                        return true; // Direct head-on collision deadlock!
-                      }
-                    }
-                    er += eDr;
-                    ec += eDc;
-                  }
-                }
-              }
+      // True 3D cross-cube head-on conflict check
+      function checkHeadOnConflict(candPts, candFDir, existingArrows) {
+        const cHead = candPts[candPts.length - 1];
+        for (let ex of existingArrows) {
+          for (let pt of ex.points) {
+            const d = distPointToRay(pt, cHead, candFDir);
+            if (d < 0.18) {
+              const dot = ex.forwardDir[0] * candFDir[0] + ex.forwardDir[1] * candFDir[1] + ex.forwardDir[2] * candFDir[2];
+              if (dot < -0.7) return true; // Direct mutual head-on deadlock!
             }
           }
-          cr += cDr;
-          cc += cDc;
+          const exHead = ex.points[ex.points.length - 1];
+          for (let pt of candPts) {
+            const d = distPointToRay(pt, exHead, ex.forwardDir);
+            if (d < 0.18) {
+              const dot = ex.forwardDir[0] * candFDir[0] + ex.forwardDir[1] * candFDir[1] + ex.forwardDir[2] * candFDir[2];
+              if (dot < -0.7) return true;
+            }
+          }
         }
         return false;
       }
 
-      // Fast forward-peeling solvability validator
+      // Fast forward-peeling solvability validator (Works across adjacent cubes!)
       function isBlockedInList(arrow, list) {
-        const lastSpec = arrow.specs[arrow.specs.length - 1];
-        const prevSpec = arrow.specs[arrow.specs.length - 2];
-        const dr = lastSpec.r - prevSpec.r;
-        const dc = lastSpec.c - prevSpec.c;
+        const pHead = arrow.points[arrow.points.length - 1];
+        const fDir = arrow.forwardDir;
+        const COLLISION_RADIUS = 0.18;
 
-        let curR = lastSpec.r + dr;
-        let curC = lastSpec.c + dc;
-        while (curR >= 0 && curR < gridN && curC >= 0 && curC < gridN) {
-          for (let other of list) {
-            if (other.id === arrow.id) continue;
-            for (let s of other.specs) {
-              if (s.cx === lastSpec.cx && s.cy === lastSpec.cy && s.cz === lastSpec.cz && s.f === lastSpec.f) {
-                if (s.r === curR && s.c === curC) return other;
-              }
+        for (let other of list) {
+          if (other.id === arrow.id) continue;
+          for (let pt of other.points) {
+            const d = distPointToRay(pt, pHead, fDir);
+            if (d < COLLISION_RADIUS) {
+              return other; // Other sits directly in the 3D escape path!
             }
           }
-          curR += dr;
-          curC += dc;
         }
         return null;
       }
@@ -1123,10 +1100,6 @@
         }
         if (overlap) continue;
 
-        // 2. Prevent head-on direct opposing arrows on the same trajectory
-        if (checkHeadOnConflict(cand, arrows)) continue;
-
-        // 3. Mathematical Solvability Verification (Peel Simulation Check)
         const pts = cand.map(s => faceGridTo3D(s.f, s.r, s.c, gridN, s.cx, s.cy, s.cz));
         const lastP = pts[pts.length - 1];
         const prevP = pts[pts.length - 2];
@@ -1134,6 +1107,10 @@
         const len = Math.sqrt(vx * vx + vy * vy + vz * vz);
         const fDir = len > 0 ? [vx / len, vy / len, vz / len] : [0, 0, 1];
 
+        // 2. Prevent head-on direct opposing arrows across all faces and adjacent cubes
+        if (checkHeadOnConflict(pts, fDir, arrows)) continue;
+
+        // 3. Mathematical Solvability Verification (Peel Simulation Check across adjacent cubes)
         const testArrow = {
           id: `a_${aIdx + 1}`,
           points: pts,
@@ -1292,12 +1269,13 @@
     function createArrowGroup(arrow) {
       const group = new THREE.Group();
       
-      // If arrow collided previously, keep it red (Requirement 7!)
       const colorVal = arrow.isCollidedRed ? 0xef4444 : 0x0f172a;
       const defaultMat = new THREE.MeshStandardMaterial({
         color: colorVal,
         roughness: 0.22,
-        metalness: 0.18
+        metalness: 0.18,
+        transparent: true,
+        opacity: 1.0
       });
 
       const pts = arrow.points.map(p => new THREE.Vector3(p[0], p[1], p[2]));
@@ -1314,37 +1292,24 @@
     }
 
     function checkIsArrowBlocked(arrow) {
-      if (!arrow.specs || arrow.specs.length < 2) return null;
+      if (!arrow.points || arrow.points.length < 2) return null;
 
-      const lastSpec = arrow.specs[arrow.specs.length - 1];
-      const prevSpec = arrow.specs[arrow.specs.length - 2];
-      const dr = lastSpec.r - prevSpec.r;
-      const dc = lastSpec.c - prevSpec.c;
+      const pHead = arrow.points[arrow.points.length - 1];
+      const fDir = arrow.forwardDir;
+      const COLLISION_RADIUS = 0.18; // Precise collision cylinder along exit flight line
 
-      // 1. Same-face grid raycast:
-      // An arrow can ONLY be blocked by an arrow occupying a cell directly in front on the SAME face!
-      let curR = lastSpec.r + dr;
-      let curC = lastSpec.c + dc;
-
-      while (curR >= 0 && curR < currentGridN && curC >= 0 && curC < currentGridN) {
-        for (let other of activeArrows) {
-          if (other.id === arrow.id) continue;
-          if (!other.specs) continue;
-          for (let s of other.specs) {
-            if (s.cx === lastSpec.cx && s.cy === lastSpec.cy && s.cz === lastSpec.cz && s.f === lastSpec.f) {
-              if (s.r === curR && s.c === curC) {
-                return other; // Blocked by arrow on the same face!
-              }
-            }
+      for (let other of activeArrows) {
+        if (other.id === arrow.id) continue;
+        if (!other.points) continue;
+        for (let pt of other.points) {
+          const d = distPointToRay(pt, pHead, fDir);
+          if (d < COLLISION_RADIUS) {
+            return other; // Blocked by vector sitting in front (on same cube or adjacent cube!)
           }
         }
-        curR += dr;
-        curC += dc;
       }
 
-      // Reached the boundary of the face with NO arrow in front:
-      // Arrow launches freely into open space! Arrows on other faces NEVER falsely block.
-      return null;
+      return null; // Open escape vector into space!
     }
 
     // Touch interaction & arrow tap handler
@@ -1670,45 +1635,84 @@
         badgeEl.className = `text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full mono-font border ${diffBadgeClass}`;
       }
 
-      // Build Multi-Cube Cluster with Solid & Translucent Glass Materials (Requirement 1!)
+      // Build Multi-Cube Cluster as a SINGLE UNIFIED FIGURE (Requirement: unified color & seamless monolithic shape!)
       const boxGeo = new THREE.BoxGeometry(CUBE_UNIT, CUBE_UNIT, CUBE_UNIT);
-      const edgeGeo = new THREE.EdgesGeometry(boxGeo);
+      const unifiedCubeMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.15,
+        metalness: 0.05
+      });
 
       lvlData.cluster.forEach(cube => {
         const [cx, cy, cz] = cube.pos;
-
-        let cubeMat;
-        if (cube.isGlass) {
-          // Translucent frosted crystal glass!
-          cubeMat = new THREE.MeshStandardMaterial({
-            color: 0xe0f2fe,
-            transparent: true,
-            opacity: 0.35,
-            roughness: 0.1,
-            metalness: 0.1
-          });
-        } else {
-          // Solid white ceramic cube
-          cubeMat = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            roughness: 0.15,
-            metalness: 0.05
-          });
-        }
-
-        const cubeMesh = new THREE.Mesh(boxGeo, cubeMat);
+        const cubeMesh = new THREE.Mesh(boxGeo, unifiedCubeMat);
         cubeMesh.position.set(cx * CUBE_UNIT, cy * CUBE_UNIT, cz * CUBE_UNIT);
         mainCubeGroup.add(cubeMesh);
-
-        // Edge Lines
-        const edgeLine = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({
-          color: cube.isGlass ? 0x0284c7 : 0x94a3b8,
-          transparent: true,
-          opacity: 0.4
-        }));
-        edgeLine.position.copy(cubeMesh.position);
-        mainCubeGroup.add(edgeLine);
       });
+
+      // Unified Monolithic Outlines (Extract exterior silhouette edges only - removes internal divider seams!)
+      const cubeSet = new Set(lvlData.cluster.map(c => `${c.pos[0]}_${c.pos[1]}_${c.pos[2]}`));
+      const exteriorFaces = [];
+      lvlData.cluster.forEach(cube => {
+        const [cx, cy, cz] = cube.pos;
+        for (let f in DIRECTIONS) {
+          const [dx, dy, dz] = DIRECTIONS[f];
+          const neighbor = `${cx + dx}_${cy + dy}_${cz + dz}`;
+          if (!cubeSet.has(neighbor)) {
+            exteriorFaces.push({ cx, cy, cz, f });
+          }
+        }
+      });
+
+      function getFaceCorners(cx, cy, cz, f) {
+        const bx = cx * CUBE_UNIT;
+        const by = cy * CUBE_UNIT;
+        const bz = cz * CUBE_UNIT;
+        if (f === 'front')  return [[bx-H, by-H, bz+H], [bx+H, by-H, bz+H], [bx+H, by+H, bz+H], [bx-H, by+H, bz+H]];
+        if (f === 'back')   return [[bx+H, by-H, bz-H], [bx-H, by-H, bz-H], [bx-H, by+H, bz-H], [bx+H, by+H, bz-H]];
+        if (f === 'right')  return [[bx+H, by-H, bz+H], [bx+H, by-H, bz-H], [bx+H, by+H, bz-H], [bx+H, by+H, bz+H]];
+        if (f === 'left')   return [[bx-H, by-H, bz-H], [bx-H, by-H, bz+H], [bx-H, by+H, bz+H], [bx-H, by+H, bz-H]];
+        if (f === 'top')    return [[bx-H, by+H, bz+H], [bx+H, by+H, bz+H], [bx+H, by+H, bz-H], [bx-H, by+H, bz-H]];
+        if (f === 'bottom') return [[bx-H, by-H, bz-H], [bx+H, by-H, bz-H], [bx+H, by-H, bz+H], [bx-H, by-H, bz+H]];
+        return [];
+      }
+
+      function rKey(p) {
+        return `${Math.round(p[0]*100)/100}_${Math.round(p[1]*100)/100}_${Math.round(p[2]*100)/100}`;
+      }
+
+      const edgeMap = new Map();
+      exteriorFaces.forEach(ef => {
+        const corners = getFaceCorners(ef.cx, ef.cy, ef.cz, ef.f);
+        const norm = DIRECTIONS[ef.f];
+        for (let i = 0; i < 4; i++) {
+          const p1 = corners[i];
+          const p2 = corners[(i + 1) % 4];
+          const k1 = rKey(p1), k2 = rKey(p2);
+          const edgeKey = k1 < k2 ? `${k1}|${k2}` : `${k2}|${k1}`;
+          if (!edgeMap.has(edgeKey)) edgeMap.set(edgeKey, { p1, p2, norms: [] });
+          edgeMap.get(edgeKey).norms.push(norm);
+        }
+      });
+
+      const linePositions = [];
+      edgeMap.forEach(e => {
+        if (e.norms.length === 1) {
+          linePositions.push(e.p1[0], e.p1[1], e.p1[2], e.p2[0], e.p2[1], e.p2[2]);
+        } else if (e.norms.length === 2) {
+          const n1 = e.norms[0], n2 = e.norms[1];
+          const dot = n1[0]*n2[0] + n1[1]*n2[1] + n1[2]*n2[2];
+          if (Math.abs(dot) < 0.2) { // 90-degree outer corner only (omits flat coplanar seams!)
+            linePositions.push(e.p1[0], e.p1[1], e.p1[2], e.p2[0], e.p2[1], e.p2[2]);
+          }
+        }
+      });
+
+      const lineGeo = new THREE.BufferGeometry();
+      lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.45 });
+      const edgeLines = new THREE.LineSegments(lineGeo, lineMat);
+      mainCubeGroup.add(edgeLines);
 
       // Center the compound group at (0, 0, 0)
       const bbox = new THREE.Box3().setFromObject(mainCubeGroup);
@@ -1886,16 +1890,81 @@
 
           const intersects = raycaster.intersectObjects(meshes, false);
           if (intersects.length > 0) {
-            let cur = intersects[0].object;
-            while (cur && !cur.userData?.arrowId && cur.parent) {
-              cur = cur.parent;
+            const dirToCamera = new THREE.Vector3().subVectors(camera.position, mainCubeGroup.position).normalize();
+            let selectedArrowId = null;
+
+            // Only allow interaction with arrows on surfaces FACING THE PLAYER (dot > 0.15)!
+            // Completely blocks accidental mis-taps on the back or opposite sides through transparent blocks.
+            for (let hit of intersects) {
+              let cur = hit.object;
+              while (cur && !cur.userData?.arrowId && cur.parent) {
+                cur = cur.parent;
+              }
+              if (cur && cur.userData?.arrowId) {
+                const aid = cur.userData.arrowId;
+                const arrowObj = activeArrows.find(a => a.id === aid);
+                if (arrowObj && arrowObj.specs && arrowObj.specs.length > 0) {
+                  const f = arrowObj.specs[0].f;
+                  const localNorm = new THREE.Vector3(...DIRECTIONS[f]);
+                  const worldNorm = localNorm.clone().applyQuaternion(mainCubeGroup.quaternion);
+                  const dot = worldNorm.dot(dirToCamera);
+                  if (dot > 0.15) {
+                    selectedArrowId = aid;
+                    break; // Hit the closest arrow directly facing the player!
+                  }
+                }
+              }
             }
-            if (cur && cur.userData?.arrowId) {
-              handleArrowTap(cur.userData.arrowId);
+
+            if (selectedArrowId) {
+              handleArrowTap(selectedArrowId);
             }
           }
         }
       }
+    }
+
+    // Real-time orientation-based depth shading:
+    // Front-facing arrows = Solid Bold Black (0x0f172a, 100% opacity)
+    // Back / opposite-facing arrows = Light Grayish White (0x94a3b8, 38% opacity)
+    function updateArrowOrientationColors() {
+      if (!camera || !mainCubeGroup) return;
+      const dirToCamera = new THREE.Vector3().subVectors(camera.position, mainCubeGroup.position).normalize();
+
+      activeArrows.forEach(a => {
+        if (animatingArrows.has(a.id)) return;
+        const group = arrowMeshMap.get(a.id);
+        if (!group) return;
+
+        if (a.isCollidedRed) {
+          group.traverse(c => {
+            if (c.isMesh && c.material && c.material.color) {
+              c.material.color.setHex(0xef4444);
+              c.material.transparent = false;
+              c.material.opacity = 1.0;
+            }
+          });
+          return;
+        }
+
+        if (!a.specs || a.specs.length === 0) return;
+        const f = a.specs[0].f;
+        const localNorm = new THREE.Vector3(...DIRECTIONS[f]);
+        const worldNorm = localNorm.clone().applyQuaternion(mainCubeGroup.quaternion);
+        const dot = worldNorm.dot(dirToCamera);
+
+        const isFacing = dot > 0.18;
+        const targetColor = isFacing ? 0x0f172a : 0x94a3b8;
+        const targetOpacity = isFacing ? 1.0 : 0.38;
+
+        group.traverse(c => {
+          if (c.isMesh && c.material && c.material.color) {
+            c.material.color.setHex(targetColor);
+            c.material.transparent = true;
+            c.material.opacity = targetOpacity;
+          }
+        });
+      });
     }
 
     function animate() {
@@ -1908,6 +1977,8 @@
           rotVelY *= 0.92;
         }
       }
+
+      updateArrowOrientationColors();
 
       renderer.render(scene, camera);
     }
