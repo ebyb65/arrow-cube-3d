@@ -257,7 +257,7 @@
     </div>
 
     <!-- Bottom In-Game Powerups Bar (Exact match to reference screenshot!) -->
-    <footer class="relative z-10 pb-4 px-4 w-full max-w-xs mx-auto pointer-events-auto flex items-center justify-between gap-3">
+    <footer class="relative z-10 mb-20 pb-2 px-4 w-full max-w-xs mx-auto pointer-events-auto flex items-center justify-between gap-3">
       
       <!-- Powerup 1: Hint Bulb -->
       <button id="powerup-btn-hint" class="relative group active:scale-95 transition flex flex-col items-center">
@@ -649,6 +649,7 @@
 
     // Game Variables
     let currentLevel = AppState.level;
+    let currentGridN = 4;
     let hearts = 3;
     let activeArrows = [];
     let initialCount = 0;
@@ -870,8 +871,26 @@
         }
       });
 
-      const gridN = levelNum <= 15 ? 4 : (levelNum <= 60 ? 5 : 6);
-      const targetArrows = Math.min(135, Math.floor(exteriorFaces.length * (gridN - 1) * 1.5));
+      let gridN, targetArrows;
+      if (levelNum <= 5) {
+        // Levels 1-5: Introductory tutorial (4x4 grid, 6 to 10 arrows only!)
+        gridN = 4;
+        targetArrows = 6 + (levelNum - 1) * 1;
+      } else if (levelNum <= 15) {
+        gridN = 4;
+        targetArrows = 11 + Math.floor((levelNum - 5) * 1.1);
+      } else if (levelNum <= 40) {
+        gridN = 5;
+        targetArrows = 22 + Math.floor((levelNum - 15) * 0.8);
+      } else if (levelNum <= 90) {
+        gridN = 5;
+        targetArrows = 42 + Math.floor((levelNum - 40) * 0.6);
+      } else {
+        gridN = 6;
+        targetArrows = Math.min(125, 72 + Math.floor((levelNum - 90) * 0.35));
+      }
+      currentGridN = gridN;
+
       const occupied = new Set();
       const arrows = [];
 
@@ -895,7 +914,8 @@
           id: aid,
           points: pts,
           forwardDir: fDir,
-          isCollidedRed: false // Requirement 7: persistent red flag
+          isCollidedRed: false,
+          specs: specs // Preserves face & grid coordinates for exact collision checks
         });
         return true;
       }
@@ -1063,6 +1083,15 @@
         const joint = new THREE.Mesh(jointGeo, defaultMat);
         joint.position.copy(p1);
         group.add(joint);
+
+        // Invisible touch hitbox collider (0.24 radius: 10x thicker touch area for effortless mobile tapping!)
+        const hitGeo = new THREE.CylinderGeometry(0.24, 0.24, dist + 0.08, 8);
+        hitGeo.translate(0, dist / 2, 0);
+        const hitMesh = new THREE.Mesh(hitGeo, new THREE.MeshBasicMaterial({ visible: false }));
+        hitMesh.position.copy(p1);
+        hitMesh.quaternion.copy(cyl.quaternion);
+        hitMesh.userData = { arrowId: group.userData?.arrowId };
+        group.add(hitMesh);
       }
 
       const lastP1 = scaledPts[scaledPts.length - 2];
@@ -1076,6 +1105,11 @@
       headMesh.position.copy(lastP2);
       headMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), forwardDir);
       group.add(headMesh);
+
+      const headHit = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), new THREE.MeshBasicMaterial({ visible: false }));
+      headHit.position.copy(lastP2);
+      headHit.userData = { arrowId: group.userData?.arrowId };
+      group.add(headHit);
     }
 
     function createArrowGroup(arrow) {
@@ -1103,19 +1137,36 @@
     }
 
     function checkIsArrowBlocked(arrow) {
-      const pHead = arrow.points[arrow.points.length - 1];
-      const fDir = arrow.forwardDir;
-      const COLLISION_RADIUS = 0.26;
+      if (!arrow.specs || arrow.specs.length < 2) return null;
 
-      for (let other of activeArrows) {
-        if (other.id === arrow.id) continue;
-        for (let pt of other.points) {
-          const d = distPointToRay(pt, pHead, fDir);
-          if (d < COLLISION_RADIUS) {
-            return other;
+      const lastSpec = arrow.specs[arrow.specs.length - 1];
+      const prevSpec = arrow.specs[arrow.specs.length - 2];
+      const dr = lastSpec.r - prevSpec.r;
+      const dc = lastSpec.c - prevSpec.c;
+
+      // 1. Same-face grid raycast:
+      // An arrow can ONLY be blocked by an arrow occupying a cell directly in front on the SAME face!
+      let curR = lastSpec.r + dr;
+      let curC = lastSpec.c + dc;
+
+      while (curR >= 0 && curR < currentGridN && curC >= 0 && curC < currentGridN) {
+        for (let other of activeArrows) {
+          if (other.id === arrow.id) continue;
+          if (!other.specs) continue;
+          for (let s of other.specs) {
+            if (s.cx === lastSpec.cx && s.cy === lastSpec.cy && s.cz === lastSpec.cz && s.f === lastSpec.f) {
+              if (s.r === curR && s.c === curC) {
+                return other; // Blocked by arrow on the same face!
+              }
+            }
           }
         }
+        curR += dr;
+        curC += dc;
       }
+
+      // Reached the boundary of the face with NO arrow in front:
+      // Arrow launches freely into open space! Arrows on other faces NEVER falsely block.
       return null;
     }
 
@@ -1416,6 +1467,30 @@
 
       const lvlData = generateLevel(currentLevel);
 
+      let diffBadgeText = 'NORMAL';
+      let diffBadgeClass = 'text-sky-300 border-sky-400/40 bg-purple-950/60';
+      if (currentLevel <= 3) {
+        diffBadgeText = 'INTRO';
+        diffBadgeClass = 'text-emerald-300 border-emerald-400/40 bg-purple-950/60';
+      } else if (currentLevel <= 10) {
+        diffBadgeText = 'EASY';
+        diffBadgeClass = 'text-teal-300 border-teal-400/40 bg-purple-950/60';
+      } else if (currentLevel <= 30) {
+        diffBadgeText = 'NORMAL';
+        diffBadgeClass = 'text-sky-300 border-sky-400/40 bg-purple-950/60';
+      } else if (currentLevel <= 70) {
+        diffBadgeText = 'HARD';
+        diffBadgeClass = 'text-amber-300 border-amber-400/40 bg-purple-950/60';
+      } else {
+        diffBadgeText = 'SUPER HARD';
+        diffBadgeClass = 'text-rose-300 border-rose-400/40 bg-purple-950/60';
+      }
+      const badgeEl = document.getElementById('game-difficulty-badge');
+      if (badgeEl) {
+        badgeEl.textContent = diffBadgeText;
+        badgeEl.className = `text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full mono-font border ${diffBadgeClass}`;
+      }
+
       // Build Multi-Cube Cluster with Solid & Translucent Glass Materials (Requirement 1!)
       const boxGeo = new THREE.BoxGeometry(CUBE_UNIT, CUBE_UNIT, CUBE_UNIT);
       const edgeGeo = new THREE.EdgesGeometry(boxGeo);
@@ -1548,13 +1623,18 @@
       updateCameraFrame();
     }
 
+    let pointerDownTime = 0;
+    let pointerStartX = 0;
+    let pointerStartY = 0;
+
     function onPointerDown(e) {
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
       if (activePointers.size === 1) {
         isPointerDown = true;
-        startX = e.clientX;
-        startY = e.clientY;
+        pointerDownTime = performance.now();
+        pointerStartX = e.clientX;
+        pointerStartY = e.clientY;
         prevX = e.clientX;
         prevY = e.clientY;
         hasMoved = false;
@@ -1585,7 +1665,8 @@
       const dx = e.clientX - prevX;
       const dy = e.clientY - prevY;
 
-      if (Math.abs(e.clientX - startX) > 6 || Math.abs(e.clientY - startY) > 6) {
+      const totalShift = Math.hypot(e.clientX - pointerStartX, e.clientY - pointerStartY);
+      if (totalShift > 15) {
         hasMoved = true;
       }
 
@@ -1604,7 +1685,13 @@
         isPointerDown = false;
         prevPinchDist = 0;
 
-        if (!hasMoved) {
+        const elapsed = performance.now() - pointerDownTime;
+        const totalDist = Math.hypot(e.clientX - pointerStartX, e.clientY - pointerStartY);
+
+        // Highly forgiving mobile tap detection: tap under 380ms with thumb movement under 22px
+        const isTap = (elapsed < 380 && totalDist < 22) || !hasMoved;
+
+        if (isTap) {
           const rect = renderer.domElement.getBoundingClientRect();
           mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
           mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
