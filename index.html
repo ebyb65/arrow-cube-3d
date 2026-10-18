@@ -573,7 +573,7 @@
   <script>
     // App State Management (Stored in localStorage)
     const AppState = {
-      coins: 1200,
+      coins: 150,
       lives: 5,
       maxLives: 5,
       level: 1,
@@ -583,10 +583,24 @@
       avatarFrame: "frame-gold",
       isMuted: false,
 
+      // Economy & Quests Tracking
+      lastDailyGiftDate: "",
+      starterPackClaimed: false,
+      levelsClearedCount: 0,
+      quest1Claimed: false,
+      quest2Claimed: false,
+
       load() {
         try {
-          const c = localStorage.getItem('arrow_cube_coins');
-          if (c !== null) this.coins = parseInt(c) || 1200;
+          const c = localStorage.getItem('arrow_cube_coins_v3');
+          if (c !== null) {
+            this.coins = parseInt(c) || 150;
+          } else {
+            // First time or migrating from old bloated version: reset fairly to 150
+            this.coins = 150;
+            localStorage.setItem('arrow_cube_coins_v3', this.coins);
+          }
+
           const ul = localStorage.getItem('arrow_cube_max_level');
           if (ul !== null) this.maxUnlockedLevel = parseInt(ul) || 1;
           const cl = localStorage.getItem('arrow_cube_current_level');
@@ -599,18 +613,30 @@
           if (frame) this.avatarFrame = frame;
           const m = localStorage.getItem('arrow_cube_muted');
           if (m !== null) this.isMuted = m === 'true';
+
+          this.lastDailyGiftDate = localStorage.getItem('arrow_cube_daily_gift_date') || "";
+          this.starterPackClaimed = localStorage.getItem('arrow_cube_starter_pack_claimed') === 'true';
+          this.levelsClearedCount = parseInt(localStorage.getItem('arrow_cube_levels_cleared_count')) || 0;
+          this.quest1Claimed = localStorage.getItem('arrow_cube_quest1_claimed') === 'true';
+          this.quest2Claimed = localStorage.getItem('arrow_cube_quest2_claimed') === 'true';
         } catch(e) {}
       },
 
       save() {
         try {
-          localStorage.setItem('arrow_cube_coins', this.coins);
+          localStorage.setItem('arrow_cube_coins_v3', this.coins);
           localStorage.setItem('arrow_cube_max_level', this.maxUnlockedLevel);
           localStorage.setItem('arrow_cube_current_level', this.level);
           localStorage.setItem('arrow_cube_player_name', this.playerName);
           localStorage.setItem('arrow_cube_avatar_emoji', this.avatarEmoji);
           localStorage.setItem('arrow_cube_avatar_frame', this.avatarFrame);
           localStorage.setItem('arrow_cube_muted', this.isMuted);
+
+          localStorage.setItem('arrow_cube_daily_gift_date', this.lastDailyGiftDate);
+          localStorage.setItem('arrow_cube_starter_pack_claimed', this.starterPackClaimed);
+          localStorage.setItem('arrow_cube_levels_cleared_count', this.levelsClearedCount);
+          localStorage.setItem('arrow_cube_quest1_claimed', this.quest1Claimed);
+          localStorage.setItem('arrow_cube_quest2_claimed', this.quest2Claimed);
         } catch(e) {}
       },
 
@@ -637,11 +663,69 @@
         document.getElementById('home-profile-emoji').textContent = this.avatarEmoji;
         
         const frameEl = document.getElementById('home-profile-avatar-frame');
-        frameEl.className = `w-9 h-9 rounded-xl flex items-center justify-center text-xl bg-white ${this.avatarFrame} transition`;
+        if (frameEl) {
+          frameEl.className = `w-9 h-9 rounded-xl flex items-center justify-center text-xl bg-white ${this.avatarFrame} transition`;
+        }
 
-        document.getElementById('home-level-title-num').textContent = this.level;
-        document.getElementById('home-play-level-btn').textContent = this.level;
-        document.getElementById('game-level-num').textContent = this.level;
+        const hLvl = document.getElementById('home-level-title-num');
+        if (hLvl) hLvl.textContent = this.level;
+        const hBtn = document.getElementById('home-play-level-btn');
+        if (hBtn) hBtn.textContent = this.level;
+        const gLvl = document.getElementById('game-level-num');
+        if (gLvl) gLvl.textContent = this.level;
+
+        // Sync Store Claim States
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const btnGift = document.getElementById('btn-store-claim-gift');
+        if (btnGift) {
+          if (this.lastDailyGiftDate === todayStr) {
+            btnGift.textContent = '✓ Claimed';
+            btnGift.className = 'px-3 py-1.5 rounded-xl bg-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed';
+          } else {
+            btnGift.textContent = 'Claim';
+            btnGift.className = 'px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs active:scale-95 transition';
+          }
+        }
+
+        const btnBundle = document.getElementById('btn-store-claim-bundle');
+        if (btnBundle) {
+          if (this.starterPackClaimed) {
+            btnBundle.textContent = '✓ Claimed';
+            btnBundle.className = 'px-3 py-1.5 rounded-xl bg-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed';
+          } else {
+            btnBundle.textContent = 'Claim';
+            btnBundle.className = 'px-3 py-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs active:scale-95 transition';
+          }
+        }
+
+        // Sync Events / Quests States
+        const btnQuest1 = document.getElementById('btn-quest-1');
+        if (btnQuest1) {
+          if (this.quest1Claimed) {
+            btnQuest1.textContent = '✓ Claimed';
+            btnQuest1.className = 'px-3 py-1.5 rounded-xl bg-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed';
+          } else if (this.levelsClearedCount >= 3) {
+            btnQuest1.textContent = 'Claim';
+            btnQuest1.className = 'px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs active:scale-95 transition animate-pulse';
+          } else {
+            btnQuest1.textContent = `${this.levelsClearedCount}/3`;
+            btnQuest1.className = 'px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed';
+          }
+        }
+
+        const btnQuest2 = document.getElementById('btn-quest-2');
+        if (btnQuest2) {
+          if (this.quest2Claimed) {
+            btnQuest2.textContent = '✓ Claimed';
+            btnQuest2.className = 'px-3 py-1.5 rounded-xl bg-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed';
+          } else if (this.maxUnlockedLevel > 5) {
+            btnQuest2.textContent = 'Claim';
+            btnQuest2.className = 'px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs active:scale-95 transition animate-pulse';
+          } else {
+            btnQuest2.textContent = 'Reach Lvl 6';
+            btnQuest2.className = 'px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed';
+          }
+        }
       }
     };
 
@@ -873,7 +957,6 @@
 
       let gridN, targetArrows;
       if (levelNum <= 5) {
-        // Levels 1-5: Introductory tutorial (4x4 grid, 6 to 10 arrows only!)
         gridN = 4;
         targetArrows = 6 + (levelNum - 1) * 1;
       } else if (levelNum <= 15) {
@@ -894,29 +977,83 @@
       const occupied = new Set();
       const arrows = [];
 
-      function addArrowFromSpecs(aid, specs) {
-        for (let s of specs) {
-          const key = `${s.cx}_${s.cy}_${s.cz}_${s.f}_${s.r}_${s.c}`;
-          if (occupied.has(key)) return false;
-        }
-        for (let s of specs) {
-          occupied.add(`${s.cx}_${s.cy}_${s.cz}_${s.f}_${s.r}_${s.c}`);
-        }
+      // Check if candidate would directly conflict head-on with an existing arrow
+      function checkHeadOnConflict(candSpecs, existingArrows) {
+        const cLast = candSpecs[candSpecs.length - 1];
+        const cPrev = candSpecs[candSpecs.length - 2];
+        const cDr = cLast.r - cPrev.r;
+        const cDc = cLast.c - cPrev.c;
 
-        const pts = specs.map(s => faceGridTo3D(s.f, s.r, s.c, gridN, s.cx, s.cy, s.cz));
-        const lastP = pts[pts.length - 1];
-        const prevP = pts[pts.length - 2];
-        const vx = lastP[0] - prevP[0], vy = lastP[1] - prevP[1], vz = lastP[2] - prevP[2];
-        const len = Math.sqrt(vx*vx + vy*vy + vz*vz);
-        const fDir = len > 0 ? [vx/len, vy/len, vz/len] : [0, 0, 1];
+        let cr = cLast.r + cDr;
+        let cc = cLast.c + cDc;
+        while (cr >= 0 && cr < gridN && cc >= 0 && cc < gridN) {
+          for (let ex of existingArrows) {
+            for (let s of ex.specs) {
+              if (s.cx === cLast.cx && s.cy === cLast.cy && s.cz === cLast.cz && s.f === cLast.f) {
+                if (s.r === cr && s.c === cc) {
+                  // Ray hits an existing arrow! Check if that arrow points back towards candidate
+                  const eLast = ex.specs[ex.specs.length - 1];
+                  const ePrev = ex.specs[ex.specs.length - 2];
+                  const eDr = eLast.r - ePrev.r;
+                  const eDc = eLast.c - ePrev.c;
+                  let er = eLast.r + eDr;
+                  let ec = eLast.c + eDc;
+                  while (er >= 0 && er < gridN && ec >= 0 && ec < gridN) {
+                    for (let cs of candSpecs) {
+                      if (cs.r === er && cs.c === ec) {
+                        return true; // Direct head-on collision deadlock!
+                      }
+                    }
+                    er += eDr;
+                    ec += eDc;
+                  }
+                }
+              }
+            }
+          }
+          cr += cDr;
+          cc += cDc;
+        }
+        return false;
+      }
 
-        arrows.push({
-          id: aid,
-          points: pts,
-          forwardDir: fDir,
-          isCollidedRed: false,
-          specs: specs // Preserves face & grid coordinates for exact collision checks
-        });
+      // Fast forward-peeling solvability validator
+      function isBlockedInList(arrow, list) {
+        const lastSpec = arrow.specs[arrow.specs.length - 1];
+        const prevSpec = arrow.specs[arrow.specs.length - 2];
+        const dr = lastSpec.r - prevSpec.r;
+        const dc = lastSpec.c - prevSpec.c;
+
+        let curR = lastSpec.r + dr;
+        let curC = lastSpec.c + dc;
+        while (curR >= 0 && curR < gridN && curC >= 0 && curC < gridN) {
+          for (let other of list) {
+            if (other.id === arrow.id) continue;
+            for (let s of other.specs) {
+              if (s.cx === lastSpec.cx && s.cy === lastSpec.cy && s.cz === lastSpec.cz && s.f === lastSpec.f) {
+                if (s.r === curR && s.c === curC) return other;
+              }
+            }
+          }
+          curR += dr;
+          curC += dc;
+        }
+        return null;
+      }
+
+      function isLevelSolvable(arrowList) {
+        let rem = [...arrowList];
+        while (rem.length > 0) {
+          let freedIdx = -1;
+          for (let i = 0; i < rem.length; i++) {
+            if (!isBlockedInList(rem[i], rem)) {
+              freedIdx = i;
+              break;
+            }
+          }
+          if (freedIdx === -1) return false;
+          rem.splice(freedIdx, 1);
+        }
         return true;
       }
 
@@ -965,7 +1102,7 @@
         }
       });
 
-      // Shuffle
+      // Shuffle candidates
       for (let i = candidates.length - 1; i > 0; i--) {
         const j = Math.floor(prng() * (i + 1));
         [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
@@ -974,7 +1111,47 @@
       let aIdx = 0;
       for (let cand of candidates) {
         if (arrows.length >= targetArrows) break;
-        if (addArrowFromSpecs(`a_${aIdx + 1}`, cand)) aIdx++;
+
+        // 1. Check cell overlap
+        let overlap = false;
+        for (let s of cand) {
+          const key = `${s.cx}_${s.cy}_${s.cz}_${s.f}_${s.r}_${s.c}`;
+          if (occupied.has(key)) {
+            overlap = true;
+            break;
+          }
+        }
+        if (overlap) continue;
+
+        // 2. Prevent head-on direct opposing arrows on the same trajectory
+        if (checkHeadOnConflict(cand, arrows)) continue;
+
+        // 3. Mathematical Solvability Verification (Peel Simulation Check)
+        const pts = cand.map(s => faceGridTo3D(s.f, s.r, s.c, gridN, s.cx, s.cy, s.cz));
+        const lastP = pts[pts.length - 1];
+        const prevP = pts[pts.length - 2];
+        const vx = lastP[0] - prevP[0], vy = lastP[1] - prevP[1], vz = lastP[2] - prevP[2];
+        const len = Math.sqrt(vx * vx + vy * vy + vz * vz);
+        const fDir = len > 0 ? [vx / len, vy / len, vz / len] : [0, 0, 1];
+
+        const testArrow = {
+          id: `a_${aIdx + 1}`,
+          points: pts,
+          forwardDir: fDir,
+          isCollidedRed: false,
+          specs: cand
+        };
+
+        if (!isLevelSolvable([...arrows, testArrow])) {
+          continue; // Rejects any placement that causes an unresolvable cycle or deadlock!
+        }
+
+        // Candidate validated and accepted!
+        for (let s of cand) {
+          occupied.add(`${s.cx}_${s.cy}_${s.cz}_${s.f}_${s.r}_${s.c}`);
+        }
+        arrows.push(testArrow);
+        aIdx++;
       }
 
       return {
@@ -1309,12 +1486,14 @@
       triggerHaptic('win');
       playMagicFanfare();
 
-      AppState.addCoins(100); // Reward 100 coins!
+      AppState.addCoins(30); // Balanced reward: +30 Coins per victory!
+      AppState.levelsClearedCount++;
 
       if (currentLevel >= AppState.maxUnlockedLevel) {
         AppState.maxUnlockedLevel = currentLevel + 1;
       }
       AppState.save();
+      AppState.syncUI();
 
       checkAndShowAd(() => {
         document.getElementById('win-subtitle').textContent = `Sector ${currentLevel} Complete`;
@@ -1820,26 +1999,66 @@
       // Store claims
       document.getElementById('btn-store-ad-coins').addEventListener('click', () => {
         triggerUnityAd('rewarded', () => {
-          AppState.addCoins(250);
-          showToast('+250 Coins added! 🪙');
+          AppState.addCoins(150);
+          showToast('+150 Coins added! 🪙');
         });
       });
+
       document.getElementById('btn-store-claim-gift').addEventListener('click', () => {
-        AppState.addCoins(500);
-        showToast('+500 Daily Gift claimed! 🎁');
+        const todayStr = new Date().toISOString().slice(0, 10);
+        if (AppState.lastDailyGiftDate === todayStr) {
+          showToast('Already claimed today! Come back tomorrow. 🎁');
+          return;
+        }
+        AppState.lastDailyGiftDate = todayStr;
+        AppState.addCoins(200);
+        AppState.save();
+        AppState.syncUI();
+        showToast('+200 Daily Gift claimed! 🎁');
       });
+
       document.getElementById('btn-store-claim-bundle').addEventListener('click', () => {
+        if (AppState.starterPackClaimed) {
+          showToast('Starter Pack already claimed! 🪄');
+          return;
+        }
+        AppState.starterPackClaimed = true;
+        AppState.save();
+        AppState.syncUI();
         showToast('Powerup Starter Pack Activated! 🪄');
       });
 
       // Events / Quests claims
       document.getElementById('btn-quest-1').addEventListener('click', () => {
-        AppState.addCoins(200);
-        showToast('Quest complete: +200 Coins! 🏆');
+        if (AppState.quest1Claimed) {
+          showToast('Quest already claimed! 🏆');
+          return;
+        }
+        if (AppState.levelsClearedCount < 3) {
+          showToast(`Quest in progress: ${AppState.levelsClearedCount}/3 levels cleared.`);
+          return;
+        }
+        AppState.quest1Claimed = true;
+        AppState.addCoins(150);
+        AppState.save();
+        AppState.syncUI();
+        showToast('Quest complete: +150 Coins! 🏆');
       });
+
       document.getElementById('btn-quest-2').addEventListener('click', () => {
-        AppState.addCoins(350);
-        showToast('Quest complete: +350 Coins! 🏆');
+        if (AppState.quest2Claimed) {
+          showToast('Quest already claimed! 🏆');
+          return;
+        }
+        if (AppState.maxUnlockedLevel <= 5) {
+          showToast('Unlock Level 6 (Multi-Cube Block) to complete this quest! 🧊');
+          return;
+        }
+        AppState.quest2Claimed = true;
+        AppState.addCoins(250);
+        AppState.save();
+        AppState.syncUI();
+        showToast('Quest complete: +250 Coins! 🏆');
       });
 
       // 4. Profile Modal & Pickers (Requirement 4)
