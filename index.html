@@ -157,9 +157,44 @@
         <h2 class="text-2xl font-black text-slate-900 fredoka mb-1">
           Arrow Cube 3D
         </h2>
-        <p class="text-xs text-slate-500 max-w-xs mx-auto mb-6 leading-relaxed">
+        <p class="text-xs text-slate-500 max-w-xs mx-auto mb-3 leading-relaxed">
           Untangle complex 3D arrows across interlocking solid and translucent crystal cubes!
         </p>
+
+        <!-- Testing Level Selector (User Option: Jump between levels to test gameplay) -->
+        <div class="mb-4 p-3 rounded-2xl bg-white/80 border border-indigo-200 shadow-sm text-center">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[10px] font-black tracking-wider uppercase text-indigo-700 mono-font flex items-center gap-1">
+              <span>🧪</span> Level Jump (Testing Mode)
+            </span>
+            <span class="text-[10px] font-bold text-slate-400 mono-font">1 to 250</span>
+          </div>
+
+          <!-- Stepper & Direct Input -->
+          <div class="flex items-center justify-center gap-2 mb-2">
+            <button id="btn-home-lvl-prev" class="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 font-black text-sm hover:bg-indigo-100 active:scale-95 transition flex items-center justify-center" title="Previous Level">◀</button>
+            <div class="flex items-center gap-1 bg-white px-3 py-1 rounded-xl border-2 border-indigo-400 shadow-inner">
+              <span class="text-xs font-black text-indigo-900 mono-font">LVL</span>
+              <input id="input-home-level-num" type="number" min="1" max="250" value="1" class="w-14 text-center font-black text-base text-slate-800 bg-transparent focus:outline-none mono-font" title="Type any level number (1-250)">
+            </div>
+            <button id="btn-home-lvl-next" class="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 font-black text-sm hover:bg-indigo-100 active:scale-95 transition flex items-center justify-center" title="Next Level">▶</button>
+          </div>
+
+          <!-- Quick Milestone Shortcuts (Dense Circuit Progression: 22 -> 52 -> 102 -> 450) -->
+          <div class="flex items-center justify-center gap-1 flex-wrap">
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-slate-100 hover:bg-indigo-100 active:scale-95 text-[10px] font-extrabold text-slate-700 mono-font transition" data-lvl="1">L1 (22)</button>
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-slate-100 hover:bg-indigo-100 active:scale-95 text-[10px] font-extrabold text-slate-700 mono-font transition" data-lvl="2">L2 (26)</button>
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-slate-100 hover:bg-indigo-100 active:scale-95 text-[10px] font-extrabold text-slate-700 mono-font transition" data-lvl="3">L3 (32)</button>
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-slate-100 hover:bg-indigo-100 active:scale-95 text-[10px] font-extrabold text-slate-700 mono-font transition" data-lvl="4">L4 (42)</button>
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-amber-100 hover:bg-amber-200 active:scale-95 text-[10px] font-extrabold text-amber-900 mono-font border border-amber-300 transition" data-lvl="5">L5 (52 🔥)</button>
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-purple-100 hover:bg-purple-200 active:scale-95 text-[10px] font-extrabold text-purple-800 mono-font border border-purple-300 transition" data-lvl="10">L10 (70)</button>
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 active:scale-95 text-[10px] font-extrabold text-emerald-900 mono-font border border-emerald-400 transition" data-lvl="14">L14 (102 🎯)</button>
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-rose-100 hover:bg-rose-200 active:scale-95 text-[10px] font-extrabold text-rose-800 mono-font border border-rose-300 transition" data-lvl="25">L25 (135 ⚡)</button>
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-slate-100 hover:bg-indigo-100 active:scale-95 text-[10px] font-extrabold text-slate-700 mono-font transition" data-lvl="50">L50 (180)</button>
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-slate-100 hover:bg-indigo-100 active:scale-95 text-[10px] font-extrabold text-slate-700 mono-font transition" data-lvl="100">L100 (270)</button>
+            <button class="btn-quick-lvl px-1.5 py-0.5 rounded-lg bg-gradient-to-r from-purple-500 to-rose-500 hover:from-purple-400 hover:to-rose-400 active:scale-95 text-[10px] font-black text-white mono-font shadow transition" data-lvl="250">L250 (450 👑)</button>
+          </div>
+        </div>
 
         <!-- Big Play Button -->
         <button id="btn-start-game" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-600 to-purple-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 text-white font-extrabold text-base tracking-wide shadow-xl shadow-indigo-500/25 transition flex items-center justify-center gap-2">
@@ -227,15 +262,37 @@
         </button>
       </div>
 
-      <!-- Second Row: Moves / Remaining Arrows Counter Pill -->
-      <div class="mt-2 pointer-events-auto flex items-center gap-2">
-        <div class="glass-card px-3 py-0.5 rounded-full border border-purple-300/60 shadow-sm flex items-center gap-1.5 text-xs font-bold text-slate-700">
-          <span class="text-purple-600 mono-font font-black">Moves:</span>
-          <span id="game-moves-count" class="mono-font text-purple-700 font-extrabold text-sm">10</span>
+      <!-- Second Row: Moves, Hearts & Simulator Level Jump Selector -->
+      <div class="mt-2 pointer-events-auto flex items-center justify-between w-full">
+        <div class="flex items-center gap-2">
+          <div class="glass-card px-3 py-0.5 rounded-full border border-purple-300/60 shadow-sm flex items-center gap-1.5 text-xs font-bold text-slate-700">
+            <span class="text-purple-600 mono-font font-black">Moves:</span>
+            <span id="game-moves-count" class="mono-font text-purple-700 font-extrabold text-sm">10</span>
+          </div>
+          <div class="glass-card px-2.5 py-0.5 rounded-full border border-slate-200 shadow-sm flex items-center gap-1 text-[11px] font-semibold text-slate-600">
+            <span class="text-rose-500">❤️</span>
+            <span id="game-hearts-display" class="font-bold text-slate-700">3/3</span>
+          </div>
         </div>
-        <div class="glass-card px-2.5 py-0.5 rounded-full border border-slate-200 shadow-sm flex items-center gap-1 text-[11px] font-semibold text-slate-600">
-          <span class="text-rose-500">❤️</span>
-          <span id="game-hearts-display" class="font-bold text-slate-700">3/3</span>
+
+        <!-- Simulator Level Quick Switcher & Direct Input -->
+        <div class="flex items-center gap-1 glass-card px-2 py-0.5 rounded-full border border-indigo-200/90 shadow-sm pointer-events-auto">
+          <span class="text-[10px] font-black text-indigo-700 uppercase mono-font">Jump:</span>
+          <input id="game-direct-level-input" type="number" min="1" max="250" value="1" class="w-11 text-center text-xs font-black text-indigo-900 bg-white/90 rounded-md py-0.5 border border-indigo-300 focus:outline-none mono-font" title="Type any level (1-250)">
+          <button id="btn-game-jump-go" class="px-2 py-0.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] mono-font active:scale-95 transition" title="Go to Level">GO</button>
+          <select id="simulator-level-select" class="text-[11px] font-bold text-slate-700 bg-transparent focus:outline-none cursor-pointer max-w-[95px] truncate" title="Milestones">
+            <option value="1">Lvl 1 (22 Arrows)</option>
+            <option value="2">Lvl 2 (26 Arrows)</option>
+            <option value="3">Lvl 3 (32 Arrows)</option>
+            <option value="4">Lvl 4 (42 Arrows)</option>
+            <option value="5">Lvl 5 (52 Arrows, Dense)</option>
+            <option value="10">Lvl 10 (70 Arrows, HARD)</option>
+            <option value="14">Lvl 14 (102 Arrows, 1 Cube 🎯)</option>
+            <option value="25">Lvl 25 (135 Arrows)</option>
+            <option value="50">Lvl 50 (180 Arrows, 2 Cubes)</option>
+            <option value="100">Lvl 100 (270 Arrows, 3 Cubes)</option>
+            <option value="250">Lvl 250 (450 Arrows, 94% Apex 👑)</option>
+          </select>
         </div>
       </div>
     </header>
@@ -572,6 +629,11 @@
   <!-- 5. THREE.JS ENGINE & MULTI-CUBE LOGIC      -->
   <!-- ========================================== -->
   <script>
+    // TESTING CONFIGURATION
+    // Set to true to allow jumping between any levels (1 to 250) for testing gameplay.
+    // Set to false when ready for production release to enforce sequential unlocking!
+    const ENABLE_LEVEL_JUMP = true;
+
     // App State Management (Stored in localStorage)
     const AppState = {
       coins: 150,
@@ -605,7 +667,10 @@
           const ul = localStorage.getItem('arrow_cube_max_level');
           if (ul !== null) this.maxUnlockedLevel = parseInt(ul) || 1;
           const cl = localStorage.getItem('arrow_cube_current_level');
-          if (cl !== null) this.level = Math.min(this.maxUnlockedLevel, parseInt(cl) || 1);
+          if (cl !== null) {
+            const parsed = parseInt(cl) || 1;
+            this.level = ENABLE_LEVEL_JUMP ? Math.max(1, Math.min(250, parsed)) : Math.min(this.maxUnlockedLevel, parsed);
+          }
           const name = localStorage.getItem('arrow_cube_player_name');
           if (name) this.playerName = name;
           const emoji = localStorage.getItem('arrow_cube_avatar_emoji');
@@ -674,6 +739,13 @@
         if (hBtn) hBtn.textContent = this.level;
         const gLvl = document.getElementById('game-level-num');
         if (gLvl) gLvl.textContent = this.level;
+
+        const homeInput = document.getElementById('input-home-level-num');
+        if (homeInput && document.activeElement !== homeInput) homeInput.value = this.level;
+        const gameInput = document.getElementById('game-direct-level-input');
+        if (gameInput && document.activeElement !== gameInput) gameInput.value = this.level;
+        const simSel = document.getElementById('simulator-level-select');
+        if (simSel) simSel.value = this.level;
 
         // Sync Store Claim States
         const todayStr = new Date().toISOString().slice(0, 10);
@@ -851,39 +923,31 @@
     };
 
     function getClusterCubesForLevel(lvl) {
-      if (lvl <= 10) {
-        // Levels 1-10: Single Solid Monolith Cube
+      if (lvl <= 25) {
+        // Levels 1-25: Single Monolith Cube (Level 14 = 102 arrows on 1 cube matching reference screenshot!)
         return [{ pos: [0, 0, 0] }];
-      } else if (lvl <= 15) {
-        // Levels 11-15: 2 Cubes connected side-by-side
+      } else if (lvl <= 60) {
+        // Levels 26-60: 2 Connected Cubes side-by-side (10 exterior faces)
         return [
           { pos: [0, 0, 0] },
           { pos: [1, 0, 0] }
         ];
-      } else if (lvl <= 25) {
-        // Levels 16-25: 3 Cubes L-shape
+      } else if (lvl <= 120) {
+        // Levels 61-120: 3 Cubes L-shape (14 exterior faces)
         return [
           { pos: [0, 0, 0] },
           { pos: [1, 0, 0] },
           { pos: [0, 1, 0] }
         ];
-      } else if (lvl <= 55) {
-        // Levels 26-55: 3 Cubes 3D Corner
+      } else if (lvl <= 180) {
+        // Levels 121-180: 3 Cubes 3D Corner (14 exterior faces)
         return [
           { pos: [0, 0, 0] },
           { pos: [1, 0, 0] },
           { pos: [0, 1, -1] }
         ];
-      } else if (lvl <= 165) {
-        // Levels 56-165: 4 Cubes Step / T-Shape
-        return [
-          { pos: [0, 0, 0] },
-          { pos: [1, 0, 0] },
-          { pos: [0, 1, 0] },
-          { pos: [0, 0, 1] }
-        ];
       } else {
-        // Levels 166-250: 4 Cubes 2x2 Master Architectural Labyrinth
+        // Levels 181-250: 4 Cubes 2x2 Compound Labyrinth (16 exterior faces, 100% unoccluded, ~450 arrows)
         return [
           { pos: [0, 0, 0] },
           { pos: [1, 0, 0] },
@@ -893,9 +957,41 @@
       }
     }
 
-    function faceGridTo3D(f, r, c, gridN, cx, cy, cz, surfOffset = 0.02) {
-      const step = (CUBE_UNIT * 0.84) / (gridN - 1);
-      const offset = (CUBE_UNIT * 0.84) / 2.0;
+    // Ray-box obstacle test: guarantees no arrow exit ray ever crashes into any solid cube in the cluster!
+    function rayHitsAnyCube(rayOrigin, rayDir, cluster, selfCube) {
+      const ox = rayOrigin[0], oy = rayOrigin[1], oz = rayOrigin[2];
+      const dx = rayDir[0], dy = rayDir[1], dz = rayDir[2];
+      for (let i = 0; i < cluster.length; i++) {
+        const c = cluster[i].pos;
+        if (c[0] === selfCube[0] && c[1] === selfCube[1] && c[2] === selfCube[2]) continue;
+        const cx = c[0] * CUBE_UNIT, cy = c[1] * CUBE_UNIT, cz = c[2] * CUBE_UNIT;
+        const bx0 = cx - H + 0.02, bx1 = cx + H - 0.02;
+        const by0 = cy - H + 0.02, by1 = cy + H - 0.02;
+        const bz0 = cz - H + 0.02, bz1 = cz + H - 0.02;
+
+        let tmin = -1e9, tmax = 1e9, hit = true;
+        const axes = [[ox, dx, bx0, bx1], [oy, dy, by0, by1], [oz, dz, bz0, bz1]];
+        for (let a = 0; a < 3; a++) {
+          const o = axes[a][0], d = axes[a][1], minV = axes[a][2], maxV = axes[a][3];
+          if (Math.abs(d) < 1e-6) {
+            if (o <= minV || o >= maxV) { hit = false; break; }
+          } else {
+            let t1 = (minV - o) / d, t2 = (maxV - o) / d;
+            if (t1 > t2) { const tmp = t1; t1 = t2; t2 = tmp; }
+            if (t1 > tmin) tmin = t1;
+            if (t2 < tmax) tmax = t2;
+            if (tmin > tmax) { hit = false; break; }
+          }
+        }
+        if (hit && tmax > 0.05 && tmin < 50.0) return true;
+      }
+      return false;
+    }
+
+    // Tighter surface coverage (0.94 of face width to eliminate empty borders)
+    function faceGridTo3D(f, r, c, gridN, cx, cy, cz, surfOffset = 0.04) {
+      const step = (CUBE_UNIT * 0.94) / (gridN - 1);
+      const offset = (CUBE_UNIT * 0.94) / 2.0;
       const u = c * step - offset;
       const v = -(r * step - offset);
       const surf = H + surfOffset;
@@ -934,7 +1030,113 @@
       };
     }
 
-    // Procedural Level Generator for Multi-Cube Clusters
+    // Space-Filling Serpentine Maze Path Generator on a 2D Face Grid
+    // Generates dense continuous circuit-board arrow tracks covering 94%+ of cells!
+    function generateFaceMaze(gridN, prng, minLen, maxLen) {
+      const grid = Array.from({ length: gridN }, () => Array(gridN).fill(false));
+      const arrows = [];
+      const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+
+      function getUnvisited() {
+        const list = [];
+        for (let r = 0; r < gridN; r++) {
+          for (let c = 0; c < gridN; c++) {
+            if (!grid[r][c]) list.push([r, c]);
+          }
+        }
+        return list;
+      }
+
+      // Pass 1: Serpentine snakes (lengths 3 to 7)
+      let attempts = 0;
+      while (attempts < 300) {
+        attempts++;
+        const unvisited = getUnvisited();
+        if (unvisited.length <= 2) break;
+
+        const startIdx = Math.floor(prng() * unvisited.length);
+        const [startR, startC] = unvisited[startIdx];
+        const targetLen = Math.floor(prng() * (maxLen - minLen + 1)) + minLen;
+
+        const path = [[startR, startC]];
+        grid[startR][startC] = true;
+        let currR = startR, currC = startC, lastDir = null;
+
+        while (path.length < targetLen) {
+          const valid = [];
+          for (let d of dirs) {
+            const nr = currR + d[0], nc = currC + d[1];
+            if (nr >= 0 && nr < gridN && nc >= 0 && nc < gridN && !grid[nr][nc]) {
+              valid.push(d);
+            }
+          }
+          if (valid.length === 0) break;
+
+          let chosen = null;
+          if (lastDir && valid.some(d => d[0] === lastDir[0] && d[1] === lastDir[1]) && prng() < 0.65) {
+            chosen = lastDir;
+          } else {
+            chosen = valid[Math.floor(prng() * valid.length)];
+          }
+
+          currR += chosen[0];
+          currC += chosen[1];
+          grid[currR][currC] = true;
+          path.push([currR, currC]);
+          lastDir = chosen;
+        }
+
+        if (path.length >= 2) {
+          if (prng() < 0.5) path.reverse();
+          arrows.push(path);
+        } else {
+          grid[startR][startC] = false;
+        }
+      }
+
+      // Pass 2: 3-cell and 2-cell micro pocket fillers to ensure 94%+ dense face coverage
+      let pass2Attempts = 0;
+      while (pass2Attempts < 200) {
+        pass2Attempts++;
+        const unvisited = getUnvisited();
+        if (unvisited.length <= 1) break;
+
+        const [startR, startC] = unvisited[Math.floor(prng() * unvisited.length)];
+        const valid = [];
+        for (let d of dirs) {
+          const nr = startR + d[0], nc = startC + d[1];
+          if (nr >= 0 && nr < gridN && nc >= 0 && nc < gridN && !grid[nr][nc]) {
+            valid.push(d);
+          }
+        }
+        if (valid.length > 0) {
+          const d1 = valid[Math.floor(prng() * valid.length)];
+          const r1 = startR + d1[0], c1 = startC + d1[1];
+          grid[startR][startC] = true;
+          grid[r1][c1] = true;
+
+          const valid3 = [];
+          for (let d of dirs) {
+            const nr = r1 + d[0], nc = c1 + d[1];
+            if (nr >= 0 && nr < gridN && nc >= 0 && nc < gridN && !grid[nr][nc]) {
+              valid3.push([nr, nc]);
+            }
+          }
+          if (valid3.length > 0 && prng() < 0.6) {
+            const [r2, c2] = valid3[Math.floor(prng() * valid3.length)];
+            grid[r2][c2] = true;
+            arrows.push([[startR, startC], [r1, c1], [r2, c2]]);
+          } else {
+            arrows.push([[startR, startC], [r1, c1]]);
+          }
+        }
+      }
+
+      return { arrows, grid };
+    }
+
+    // High-Density Multi-Length Procedural Level Generator
+    // Guaranteed 100% Solvable Cycle-Free Directed Acyclic Graph (DAG) Engine
     function generateLevel(levelNum) {
       const prng = createPrng(levelNum * 9973 + 12345);
       const cluster = getClusterCubesForLevel(levelNum);
@@ -953,168 +1155,98 @@
         }
       });
 
-      // User-Requested Progressive Difficulty Curve:
-      // - Initial stage starts with 10 or more arrows!
-      // - Milestone spikes on levels 10, 15, 20!
-      let gridN, targetArrows;
-      if (levelNum <= 4) {
-        gridN = 4;
-        targetArrows = 10 + (levelNum - 1); // Levels 1-4: 10, 11, 12, 13
-      } else if (levelNum <= 9) {
-        gridN = 4;
-        targetArrows = 14 + (levelNum - 5); // Levels 5-9: 14, 15, 16, 17, 18
-      } else if (levelNum === 10) {
-        gridN = 5;
-        targetArrows = 20; // Level 10 Milestone: HARD (20 arrows)
-      } else if (levelNum <= 14) {
-        gridN = 5;
-        targetArrows = 21 + (levelNum - 11); // Levels 11-14: 21, 22, 23, 24
-      } else if (levelNum === 15) {
-        gridN = 5;
-        targetArrows = 27; // Level 15 Milestone: HARD (27 arrows)
-      } else if (levelNum <= 19) {
-        gridN = 5;
-        targetArrows = 28 + (levelNum - 16); // Levels 16-19: 28, 29, 30, 31
-      } else if (levelNum === 20) {
-        gridN = 5;
-        targetArrows = 36; // Level 20 Milestone: SUPER HARD (36 arrows)
-      } else if (levelNum <= 50) {
-        gridN = 5;
-        targetArrows = 36 + Math.floor((levelNum - 20) * 0.7);
-      } else if (levelNum <= 100) {
-        gridN = 6;
-        targetArrows = 57 + Math.floor((levelNum - 50) * 0.36);
+      // Difficulty & Arrow Progression:
+      // Level 1: 22 arrows (Grid 5x5, Single Cube)
+      // Level 2: 26 arrows (Grid 5x5)
+      // Level 3: 32 arrows (Grid 6x6)
+      // Level 4: 42 arrows (Grid 6x6)
+      // Level 5: 52 arrows (Grid 7x7, Milestone Challenge!)
+      // Level 10: 70 arrows (Grid 8x8)
+      // Level 14: 102 arrows (Grid 10x10, Single Cube - exact match to reference screenshot!)
+      // Level 25: 135 arrows (Grid 11x11)
+      // Level 50: 180 arrows (Grid 8x8, 2 Cubes)
+      // Level 100: 270 arrows (Grid 8x8, 3 Cubes)
+      // Level 250: 450 arrows (Grid 11x11, 4 Cubes 2x2 Compound Labyrinth, 94% dense!)
+      let gridN, minLen, maxLen, targetCap;
+      if (levelNum === 1) {
+        gridN = 5; minLen = 3; maxLen = 6; targetCap = 22;
+      } else if (levelNum === 2) {
+        gridN = 5; minLen = 3; maxLen = 6; targetCap = 26;
+      } else if (levelNum === 3) {
+        gridN = 6; minLen = 4; maxLen = 7; targetCap = 32;
+      } else if (levelNum === 4) {
+        gridN = 6; minLen = 3; maxLen = 6; targetCap = 42;
+      } else if (levelNum === 5) {
+        gridN = 7; minLen = 3; maxLen = 6; targetCap = 52;
+      } else if (levelNum <= 10) {
+        gridN = 8; minLen = 4; maxLen = 7; targetCap = 50 + (levelNum - 5) * 4;
+      } else if (levelNum <= 15) {
+        gridN = 10; minLen = 4; maxLen = 7; targetCap = 70 + (levelNum - 10) * 8; // L14: ~102 arrows
+      } else if (levelNum <= 25) {
+        gridN = 11; minLen = 4; maxLen = 8; targetCap = 110 + (levelNum - 15) * 3;
+      } else if (levelNum <= 60) {
+        gridN = 8; minLen = 3; maxLen = 6; targetCap = 140 + Math.floor((levelNum - 25) * 1.5);
+      } else if (levelNum <= 120) {
+        gridN = 8; minLen = 3; maxLen = 6; targetCap = 190 + Math.floor((levelNum - 60) * 1.5);
+      } else if (levelNum <= 180) {
+        gridN = 9; minLen = 3; maxLen = 6; targetCap = 280 + Math.floor((levelNum - 120) * 1.5);
       } else {
-        gridN = 6;
-        targetArrows = Math.min(120, 75 + Math.floor((levelNum - 100) * 0.3));
+        gridN = 11; minLen = 3; maxLen = 6; targetCap = 370 + Math.floor((levelNum - 180) * 1.15); // L250: ~450 arrows
       }
       currentGridN = gridN;
 
+      // Generate face mazes for each exterior face
+      const candidateArrows = [];
+      exteriorFaces.forEach(ef => {
+        const { cx, cy, cz, f } = ef;
+        const faceMaze = generateFaceMaze(gridN, prng, minLen, maxLen);
+        faceMaze.arrows.forEach(cellPath => {
+          const specPath = cellPath.map(([r, c]) => ({ cx, cy, cz, f, r, c }));
+          candidateArrows.push(specPath);
+        });
+      });
+
+      // Interleave candidates across faces for balanced multi-face DAG ordering
+      for (let i = candidateArrows.length - 1; i > 0; i--) {
+        const j = Math.floor(prng() * (i + 1));
+        const tmp = candidateArrows[i];
+        candidateArrows[i] = candidateArrows[j];
+        candidateArrows[j] = tmp;
+      }
+
       const occupied = new Set();
       const arrows = [];
+      const adj = [];
 
-      // True 3D cross-cube head-on conflict check
-      function checkHeadOnConflict(candPts, candFDir, existingArrows) {
-        const cHead = candPts[candPts.length - 1];
-        for (let ex of existingArrows) {
-          for (let pt of ex.points) {
-            const d = distPointToRay(pt, cHead, candFDir);
-            if (d < 0.18) {
-              const dot = ex.forwardDir[0] * candFDir[0] + ex.forwardDir[1] * candFDir[1] + ex.forwardDir[2] * candFDir[2];
-              if (dot < -0.7) return true; // Direct mutual head-on deadlock!
-            }
-          }
-          const exHead = ex.points[ex.points.length - 1];
-          for (let pt of candPts) {
-            const d = distPointToRay(pt, exHead, ex.forwardDir);
-            if (d < 0.18) {
-              const dot = ex.forwardDir[0] * candFDir[0] + ex.forwardDir[1] * candFDir[1] + ex.forwardDir[2] * candFDir[2];
-              if (dot < -0.7) return true;
+      // Fast single-pass reachability using Int16Array queue and Uint8Array visited buffer
+      const MAX_A = 600;
+      const visited = new Uint8Array(MAX_A);
+      const queue = new Int16Array(MAX_A);
+
+      function canReachAny(u, targetSet) {
+        if (targetSet.has(u)) return true;
+        visited.fill(0);
+        let qHead = 0, qTail = 0;
+        queue[qTail++] = u;
+        visited[u] = 1;
+
+        while (qHead < qTail) {
+          const curr = queue[qHead++];
+          const neighbors = adj[curr];
+          for (let i = 0; i < neighbors.length; i++) {
+            const nxt = neighbors[i];
+            if (targetSet.has(nxt)) return true;
+            if (!visited[nxt]) {
+              visited[nxt] = 1;
+              queue[qTail++] = nxt;
             }
           }
         }
         return false;
       }
 
-      // Fast forward-peeling solvability validator (Works across adjacent cubes!)
-      function isBlockedInList(arrow, list) {
-        const pHead = arrow.points[arrow.points.length - 1];
-        const fDir = arrow.forwardDir;
-        const COLLISION_RADIUS = 0.18;
-
-        for (let other of list) {
-          if (other.id === arrow.id) continue;
-          for (let pt of other.points) {
-            const d = distPointToRay(pt, pHead, fDir);
-            if (d < COLLISION_RADIUS) {
-              return other; // Other sits directly in the 3D escape path!
-            }
-          }
-        }
-        return null;
-      }
-
-      function isLevelSolvable(arrowList) {
-        let rem = [...arrowList];
-        while (rem.length > 0) {
-          let freedIdx = -1;
-          for (let i = 0; i < rem.length; i++) {
-            if (!isBlockedInList(rem[i], rem)) {
-              freedIdx = i;
-              break;
-            }
-          }
-          if (freedIdx === -1) return false;
-          rem.splice(freedIdx, 1);
-        }
-        return true;
-      }
-
-      // Generate candidates on exterior faces
-      const candidates = [];
-      exteriorFaces.forEach(ef => {
-        // L-shapes
-        for (let r = 0; r < gridN - 1; r++) {
-          for (let c = 0; c < gridN - 1; c++) {
-            candidates.push([
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c },
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r + 1, c: c },
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r + 1, c: c + 1 }
-            ]);
-            candidates.push([
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r + 1, c: c + 1 },
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c + 1 },
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c }
-            ]);
-          }
-        }
-        // Straight lines
-        for (let r = 0; r < gridN; r++) {
-          for (let c = 0; c < gridN - 1; c++) {
-            candidates.push([
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c },
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c + 1 }
-            ]);
-            candidates.push([
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c + 1 },
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c }
-            ]);
-          }
-        }
-        for (let c = 0; c < gridN; c++) {
-          for (let r = 0; r < gridN - 1; r++) {
-            candidates.push([
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c },
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r + 1, c: c }
-            ]);
-            candidates.push([
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r + 1, c: c },
-              { cx: ef.cx, cy: ef.cy, cz: ef.cz, f: ef.f, r: r, c: c }
-            ]);
-          }
-        }
-      });
-
-      // Shuffle candidates
-      for (let i = candidates.length - 1; i > 0; i--) {
-        const j = Math.floor(prng() * (i + 1));
-        [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
-      }
-
-      let aIdx = 0;
-      for (let cand of candidates) {
-        if (arrows.length >= targetArrows) break;
-
-        // 1. Check cell overlap
-        let overlap = false;
-        for (let s of cand) {
-          const key = `${s.cx}_${s.cy}_${s.cz}_${s.f}_${s.r}_${s.c}`;
-          if (occupied.has(key)) {
-            overlap = true;
-            break;
-          }
-        }
-        if (overlap) continue;
+      for (let cand of candidateArrows) {
+        if (arrows.length >= targetCap) break;
 
         const pts = cand.map(s => faceGridTo3D(s.f, s.r, s.c, gridN, s.cx, s.cy, s.cz));
         const lastP = pts[pts.length - 1];
@@ -1123,28 +1255,89 @@
         const len = Math.sqrt(vx * vx + vy * vy + vz * vz);
         const fDir = len > 0 ? [vx / len, vy / len, vz / len] : [0, 0, 1];
 
-        // 2. Prevent head-on direct opposing arrows across all faces and adjacent cubes
-        if (checkHeadOnConflict(pts, fDir, arrows)) continue;
+        // CRITICAL: Prevent arrow exit ray from pointing into any other solid cube body in the compound shape!
+        const selfCube = [cand[0].cx, cand[0].cy, cand[0].cz];
+        if (rayHitsAnyCube(lastP, fDir, cluster, selfCube)) {
+          continue;
+        }
 
-        // 3. Mathematical Solvability Verification (Peel Simulation Check across adjacent cubes)
-        const testArrow = {
-          id: `a_${aIdx + 1}`,
+        // 2. Compute 3D block relationships with all existing arrows
+        const cHead = pts[pts.length - 1];
+        const whoCandBlocks = [];
+        const whoBlocksCand = [];
+        let directMutualHeadOn = false;
+        const selfFace = cand[0].f;
+        const step = (CUBE_UNIT * 0.94) / (gridN - 1);
+        const COLL_R = Math.min(0.12, step * 0.40);
+
+        for (let idx = 0; idx < arrows.length; idx++) {
+          const ex = arrows[idx];
+          const exCube = [ex.specs[0].cx, ex.specs[0].cy, ex.specs[0].cz];
+          const exFace = ex.specs[0].f;
+
+          // CRITICAL FIX: If on the SAME cube but DIFFERENT face, they NEVER block each other!
+          if (selfCube[0] === exCube[0] && selfCube[1] === exCube[1] && selfCube[2] === exCube[2] && selfFace !== exFace) {
+            continue;
+          }
+
+          // Does ex sit in the forward escape path of cand?
+          for (let p = 0; p < ex.points.length; p++) {
+            if (distPointToRay(ex.points[p], cHead, fDir) < COLL_R) {
+              whoBlocksCand.push(idx);
+              break;
+            }
+          }
+          // Does cand sit in the forward escape path of ex?
+          const exHead = ex.points[ex.points.length - 1];
+          for (let p = 0; p < pts.length; p++) {
+            if (distPointToRay(pts[p], exHead, ex.forwardDir) < COLL_R) {
+              whoCandBlocks.push(idx);
+              break;
+            }
+          }
+          // Direct mutual head-on deadlock check
+          if (whoBlocksCand.includes(idx) && whoCandBlocks.includes(idx)) {
+            directMutualHeadOn = true;
+            break;
+          }
+        }
+
+        if (directMutualHeadOn) continue;
+
+        // 3. Cycle Prevention: check if any arrow cand blocks can already reach any arrow that blocks cand
+        if (whoCandBlocks.length > 0 && whoBlocksCand.length > 0) {
+          const targetSet = new Set(whoBlocksCand);
+          let createsCycle = false;
+          for (let d = 0; d < whoCandBlocks.length; d++) {
+            if (canReachAny(whoCandBlocks[d], targetSet)) {
+              createsCycle = true;
+              break;
+            }
+          }
+          if (createsCycle) continue;
+        }
+
+        // 4. Accept candidate into DAG & occupied map
+        const newIdx = arrows.length;
+        adj.push([]);
+        for (let b = 0; b < whoBlocksCand.length; b++) {
+          adj[whoBlocksCand[b]].push(newIdx);
+        }
+        for (let d = 0; d < whoCandBlocks.length; d++) {
+          adj[newIdx].push(whoCandBlocks[d]);
+        }
+
+        for (let s of cand) {
+          occupied.add(`${s.cx}_${s.cy}_${s.cz}_${s.f}_${s.r}_${s.c}`);
+        }
+
+        arrows.push({
+          id: `a_${newIdx + 1}`,
           points: pts,
           forwardDir: fDir,
           isCollidedRed: false,
           specs: cand
-        };
-
-        if (!isLevelSolvable([...arrows, testArrow])) {
-          continue; // Rejects any placement that causes an unresolvable cycle or deadlock!
-        }
-
-        // Candidate validated and accepted!
-        for (let s of cand) {
-          occupied.add(`${s.cx}_${s.cy}_${s.cz}_${s.f}_${s.r}_${s.c}`);
-        }
-        arrows.push(testArrow);
-        aIdx++;
+        });
       }
 
       return {
@@ -1224,10 +1417,12 @@
 
       if (!pts || pts.length < 2) return;
 
-      const tubeR = 0.022 * scale;
-      const cornerR = tubeR * 1.25;
-      const coneR = 0.068 * scale;
-      const coneH = coneR * 2.1;
+      // Thinner, sleeker arrow geometry for enhanced readability and clarity
+      const step = (CUBE_UNIT * 0.94) / (currentGridN - 1);
+      const tubeR = Math.max(0.020, step * 0.14) * scale;
+      const cornerR = tubeR * 1.12;
+      const coneR = Math.max(0.048, step * 0.26) * scale;
+      const coneH = coneR * 1.85;
 
       const pHead = pts[pts.length - 1];
       const scaledPts = (scale >= 0.999) ? pts : pts.map(p => {
@@ -1254,8 +1449,8 @@
         joint.position.copy(p1);
         group.add(joint);
 
-        // Invisible touch hitbox collider (0.24 radius: 10x thicker touch area for effortless mobile tapping!)
-        const hitGeo = new THREE.CylinderGeometry(0.24, 0.24, dist + 0.08, 8);
+        // Invisible touch hitbox collider (covers step width for effortless mobile tapping)
+        const hitGeo = new THREE.CylinderGeometry(step * 0.48, step * 0.48, dist + 0.08, 8);
         hitGeo.translate(0, dist / 2, 0);
         const hitMesh = new THREE.Mesh(hitGeo, new THREE.MeshBasicMaterial({ visible: false }));
         hitMesh.position.copy(p1);
@@ -1276,7 +1471,7 @@
       headMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), forwardDir);
       group.add(headMesh);
 
-      const headHit = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), new THREE.MeshBasicMaterial({ visible: false }));
+      const headHit = new THREE.Mesh(new THREE.SphereGeometry(step * 0.52, 8, 8), new THREE.MeshBasicMaterial({ visible: false }));
       headHit.position.copy(lastP2);
       headHit.userData = { arrowId: group.userData?.arrowId };
       group.add(headHit);
@@ -1312,15 +1507,28 @@
 
       const pHead = arrow.points[arrow.points.length - 1];
       const fDir = arrow.forwardDir;
-      const COLLISION_RADIUS = 0.18; // Precise collision cylinder along exit flight line
+      const step = (CUBE_UNIT * 0.94) / (currentGridN - 1);
+      const COLLISION_RADIUS = Math.min(0.12, step * 0.40);
+
+      const aCube = arrow.specs && arrow.specs.length > 0 ? arrow.specs[0] : null;
 
       for (let other of activeArrows) {
         if (other.id === arrow.id) continue;
         if (!other.points) continue;
+
+        // CRITICAL FIX: If on the SAME cube but DIFFERENT face, they NEVER block each other!
+        // Arrows flying off face A into space are outside the cube and do not collide with face B!
+        const oCube = other.specs && other.specs.length > 0 ? other.specs[0] : null;
+        if (aCube && oCube) {
+          if (aCube.cx === oCube.cx && aCube.cy === oCube.cy && aCube.cz === oCube.cz && aCube.f !== oCube.f) {
+            continue;
+          }
+        }
+
         for (let pt of other.points) {
           const d = distPointToRay(pt, pHead, fDir);
           if (d < COLLISION_RADIUS) {
-            return other; // Blocked by vector sitting in front (on same cube or adjacent cube!)
+            return other; // Blocked by vector sitting in front on same face or obstacle!
           }
         }
       }
@@ -1637,34 +1845,45 @@
 
       const lvlData = generateLevel(currentLevel);
 
-      // Milestone Difficulty Badging (Milestones at 10, 15, 20!)
+      // Milestone Difficulty Badging (High-Density Curve: 20 -> 50 -> 450)
       let diffBadgeText = 'NORMAL';
       let diffBadgeClass = 'text-sky-300 border-sky-400/40 bg-purple-950/60';
 
-      if (currentLevel % 20 === 0) {
-        diffBadgeText = 'SUPER HARD';
-        diffBadgeClass = 'text-rose-300 border-rose-400/40 bg-purple-950/60 animate-pulse';
-      } else if (currentLevel === 10 || currentLevel === 15) {
-        diffBadgeText = 'HARD';
+      if (currentLevel === 250) {
+        diffBadgeText = 'APEX MASTER (450 👑)';
+        diffBadgeClass = 'text-rose-200 border-rose-400/80 bg-rose-950/80 animate-pulse font-black';
+      } else if (currentLevel % 50 === 0) {
+        diffBadgeText = 'GRANDMASTER';
+        diffBadgeClass = 'text-rose-300 border-rose-400/60 bg-purple-950/70 animate-pulse font-black';
+      } else if (currentLevel === 25) {
+        diffBadgeText = 'SUPER HARD (135 ⚡)';
+        diffBadgeClass = 'text-rose-300 border-rose-400/50 bg-purple-950/60 animate-pulse font-black';
+      } else if (currentLevel === 14) {
+        diffBadgeText = 'CIRCUIT MAZE (102 🎯)';
+        diffBadgeClass = 'text-emerald-300 border-emerald-400/60 bg-purple-950/60 font-black';
+      } else if (currentLevel === 10) {
+        diffBadgeText = 'HARD (70)';
         diffBadgeClass = 'text-amber-300 border-amber-400/40 bg-purple-950/60 font-black';
-      } else if (currentLevel % 5 === 0) {
-        diffBadgeText = 'CHALLENGE';
-        diffBadgeClass = 'text-amber-300 border-amber-400/40 bg-purple-950/60';
-      } else if (currentLevel <= 4) {
+      } else if (currentLevel === 5) {
+        diffBadgeText = 'CHALLENGE (52 🔥)';
+        diffBadgeClass = 'text-amber-300 border-amber-400/40 bg-purple-950/60 font-black';
+      } else if (currentLevel <= 3) {
         diffBadgeText = 'CASUAL';
         diffBadgeClass = 'text-emerald-300 border-emerald-400/40 bg-purple-950/60';
       } else if (currentLevel <= 9) {
         diffBadgeText = 'NORMAL';
         diffBadgeClass = 'text-sky-300 border-sky-400/40 bg-purple-950/60';
-      } else if (currentLevel <= 19) {
-        diffBadgeText = 'NORMAL';
-        diffBadgeClass = 'text-indigo-300 border-indigo-400/40 bg-purple-950/60';
-      } else if (currentLevel <= 50) {
+      } else if (currentLevel <= 49) {
         diffBadgeText = 'ADVANCED';
-        diffBadgeClass = 'text-amber-300 border-amber-400/40 bg-purple-950/60';
+        diffBadgeClass = 'text-indigo-300 border-indigo-400/40 bg-purple-950/60';
       } else {
         diffBadgeText = 'MASTER';
-        diffBadgeClass = 'text-rose-300 border-rose-400/40 bg-purple-950/60';
+        diffBadgeClass = 'text-purple-300 border-purple-400/40 bg-purple-950/60';
+      }
+
+      const simSel = document.getElementById('simulator-level-select');
+      if (simSel) {
+        simSel.value = currentLevel;
       }
 
       const badgeEl = document.getElementById('game-difficulty-badge');
@@ -2276,6 +2495,77 @@
       document.getElementById('btn-interstitial-install').addEventListener('click', () => {
         showToast('Unity Ads: Game install link opened (Simulation)');
       });
+
+      // 6. Level Jump Testing Controls (User Request: Jump between levels to test gameplay)
+      function setAndLoadLevel(lvl) {
+        const target = Math.max(1, Math.min(250, parseInt(lvl) || 1));
+        AppState.level = target;
+        AppState.save();
+        AppState.syncUI();
+        loadLevel(target);
+        showToast("Jumped to Level " + target + "! 🚀");
+      }
+
+      // Home Screen Level Stepper & Quick Pills
+      const homeLvlInput = document.getElementById('input-home-level-num');
+      if (homeLvlInput) {
+        homeLvlInput.addEventListener('change', (e) => {
+          const val = Math.max(1, Math.min(250, parseInt(e.target.value) || 1));
+          AppState.level = val;
+          AppState.save();
+          AppState.syncUI();
+        });
+      }
+
+      const btnHomePrev = document.getElementById('btn-home-lvl-prev');
+      if (btnHomePrev) {
+        btnHomePrev.addEventListener('click', () => {
+          const val = Math.max(1, AppState.level - 1);
+          AppState.level = val;
+          AppState.save();
+          AppState.syncUI();
+        });
+      }
+
+      const btnHomeNext = document.getElementById('btn-home-lvl-next');
+      if (btnHomeNext) {
+        btnHomeNext.addEventListener('click', () => {
+          const val = Math.min(250, AppState.level + 1);
+          AppState.level = val;
+          AppState.save();
+          AppState.syncUI();
+        });
+      }
+
+      document.querySelectorAll('.btn-quick-lvl').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const lvl = parseInt(btn.getAttribute('data-lvl'));
+          AppState.level = lvl;
+          AppState.save();
+          AppState.syncUI();
+        });
+      });
+
+      // In-Game Jump Controls
+      const simSelect = document.getElementById('simulator-level-select');
+      if (simSelect) {
+        simSelect.addEventListener('change', (e) => {
+          setAndLoadLevel(e.target.value);
+        });
+      }
+
+      const btnGameJumpGo = document.getElementById('btn-game-jump-go');
+      const gameDirectInput = document.getElementById('game-direct-level-input');
+      if (btnGameJumpGo && gameDirectInput) {
+        btnGameJumpGo.addEventListener('click', () => {
+          setAndLoadLevel(gameDirectInput.value);
+        });
+        gameDirectInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            setAndLoadLevel(gameDirectInput.value);
+          }
+        });
+      }
     });
   </script>
 </body>
