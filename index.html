@@ -101,8 +101,8 @@
 
     <!-- App Version at bottom -->
     <div class="text-center">
-      <div class="text-xs font-semibold text-slate-600">Studio Games 2026</div>
-      <div class="text-[10px] text-slate-400 mono-font font-bold mt-0.5">Version 1.0.4 • Android Build</div>
+      <div class="text-xs font-semibold text-slate-600">Yebee Games 2026</div>
+      <div class="text-[10px] text-slate-400 mono-font font-bold mt-0.5">Version 1.0.0 • Google Play Release</div>
     </div>
   </div>
 
@@ -162,7 +162,7 @@
         </p>
 
         <!-- Testing Level Selector (User Option: Jump between levels to test gameplay) -->
-        <div class="mb-4 p-3 rounded-2xl bg-white/80 border border-indigo-200 shadow-sm text-center">
+        <div id="container-home-level-jump" class="mb-4 p-3 rounded-2xl bg-white/80 border border-indigo-200 shadow-sm text-center hidden">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-[10px] font-black tracking-wider uppercase text-indigo-700 mono-font flex items-center gap-1">
               <span>🧪</span> Level Jump (Testing Mode)
@@ -276,7 +276,7 @@
         </div>
 
         <!-- Simulator Level Quick Switcher & Direct Input -->
-        <div class="flex items-center gap-1 glass-card px-2 py-0.5 rounded-full border border-indigo-200/90 shadow-sm pointer-events-auto">
+        <div id="container-game-level-jump" class="flex items-center gap-1 glass-card px-2 py-0.5 rounded-full border border-indigo-200/90 shadow-sm pointer-events-auto hidden">
           <span class="text-[10px] font-black text-indigo-700 uppercase mono-font">Jump:</span>
           <input id="game-direct-level-input" type="number" min="1" max="250" value="1" class="w-11 text-center text-xs font-black text-indigo-900 bg-white/90 rounded-md py-0.5 border border-indigo-300 focus:outline-none mono-font" title="Type any level (1-250)">
           <button id="btn-game-jump-go" class="px-2 py-0.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] mono-font active:scale-95 transition" title="Go to Level">GO</button>
@@ -324,9 +324,9 @@
             💡
           </div>
         </div>
-        <!-- Green '+' Badge -->
-        <div class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-white flex items-center justify-center font-black text-xs shadow">
-          +
+        <!-- Green '+' Badge / Count -->
+        <div id="badge-hint-count" class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-indigo-600 border-2 border-white text-white flex items-center justify-center font-black text-[11px] mono-font shadow">
+          2
         </div>
         <span class="text-[10px] font-bold text-slate-700 fredoka mt-1">Hint</span>
       </button>
@@ -338,8 +338,8 @@
             🧼
           </div>
         </div>
-        <div class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-white flex items-center justify-center font-black text-xs shadow">
-          +
+        <div id="badge-eraser-count" class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-indigo-600 border-2 border-white text-white flex items-center justify-center font-black text-[11px] mono-font shadow">
+          2
         </div>
         <span class="text-[10px] font-bold text-slate-700 fredoka mt-1">Eraser</span>
       </button>
@@ -351,8 +351,8 @@
             🪄
           </div>
         </div>
-        <div class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-white flex items-center justify-center font-black text-xs shadow">
-          +
+        <div id="badge-wand-count" class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-indigo-600 border-2 border-white text-white flex items-center justify-center font-black text-[11px] mono-font shadow">
+          1
         </div>
         <span class="text-[10px] font-bold text-slate-700 fredoka mt-1">Wand</span>
       </button>
@@ -429,59 +429,267 @@
 
 
   <!-- Modal: Store Modal -->
-  <div id="modal-store" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
-    <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-sky-200 text-left relative shadow-2xl">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+  <div id="modal-store" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="glass-card w-full max-w-sm p-5 rounded-3xl border border-sky-200 text-left relative shadow-2xl flex flex-col max-h-[88vh]">
+      
+      <!-- Store Header with Balance -->
+      <div class="flex items-center justify-between pb-2.5 border-b border-slate-200 mb-2.5">
         <div>
-          <h3 class="text-base font-bold text-slate-900 fredoka">Cosmic Vault Store</h3>
-          <p class="text-[11px] text-slate-500">Collect coins and powerups</p>
+          <div class="flex items-center gap-1.5">
+            <h3 class="text-base font-black text-slate-900 fredoka">Yebee Game Store</h3>
+            <span class="text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded-md mono-font">SAR / ر.س</span>
+          </div>
+          <p class="text-[11px] text-slate-500">Coin Packs, Tactical Bundles & Rewards</p>
         </div>
-        <button id="btn-close-store" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600">✕</button>
+        <button id="btn-close-store" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 active:scale-95 transition">✕</button>
       </div>
 
-      <div class="space-y-3 mb-4">
-        <!-- Watch Ad for Coins -->
-        <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-2xl">🪙</span>
-            <div>
-              <div class="text-xs font-bold text-slate-800">+250 Coins</div>
-              <div class="text-[10px] text-slate-500">Watch short video sponsor</div>
-            </div>
-          </div>
-          <button id="btn-store-ad-coins" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs active:scale-95 transition">
-            Watch 🎬
-          </button>
+      <!-- Live Balance Pill -->
+      <div class="flex items-center justify-between px-3 py-1.5 rounded-2xl bg-amber-50 border border-amber-200 mb-2.5 shadow-inner">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base">🪙</span>
+          <span class="text-xs font-bold text-amber-900">Your Vault:</span>
         </div>
-
-        <!-- Daily Reward -->
-        <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-2xl">🎁</span>
-            <div>
-              <div class="text-xs font-bold text-slate-800">+500 Studio Gift</div>
-              <div class="text-[10px] text-slate-500">Daily claim</div>
-            </div>
-          </div>
-          <button id="btn-store-claim-gift" class="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs active:scale-95 transition">
-            Claim
-          </button>
-        </div>
-
-        <!-- Powerup Bundle -->
-        <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-2xl">🪄</span>
-            <div>
-              <div class="text-xs font-bold text-slate-800">2x Wand + 2x Eraser</div>
-              <div class="text-[10px] text-slate-500">Special supply drop</div>
-            </div>
-          </div>
-          <button id="btn-store-claim-bundle" class="px-3 py-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs active:scale-95 transition">
-            Claim
-          </button>
+        <div class="flex items-center gap-2">
+          <span id="store-modal-coin-balance" class="text-sm font-black text-amber-700 mono-font">1,200</span>
+          <span class="text-[10px] text-amber-600 font-bold mono-font">Coins</span>
         </div>
       </div>
+
+      <!-- Store Category Tabs -->
+      <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl mb-2.5 text-xs font-bold">
+        <button id="tab-store-coins" class="flex-1 py-1.5 rounded-xl bg-white text-indigo-700 shadow-sm transition active:scale-95 flex items-center justify-center gap-1 font-extrabold">
+          <span>🪙</span><span>Coins</span>
+        </button>
+        <button id="tab-store-bundles" class="flex-1 py-1.5 rounded-xl text-slate-600 hover:text-indigo-600 transition active:scale-95 flex items-center justify-center gap-1 font-extrabold">
+          <span>⚡</span><span>Bundles</span>
+        </button>
+        <button id="tab-store-free" class="flex-1 py-1.5 rounded-xl text-slate-600 hover:text-indigo-600 transition active:scale-95 flex items-center justify-center gap-1 font-extrabold">
+          <span>🎁</span><span>Free</span>
+        </button>
+      </div>
+
+      <!-- Scrollable Products Container -->
+      <div id="store-content-container" class="overflow-y-auto space-y-2.5 pr-1 flex-1">
+        
+        <!-- Tab 1: Coin Packs (in Saudi Riyals - SAR) -->
+        <div id="store-panel-coins" class="space-y-2.5">
+          
+          <!-- Tier 1: 3,000 Coins -->
+          <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm hover:border-indigo-300 transition">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-xl shadow-xs">🪙</div>
+              <div>
+                <div class="text-xs font-black text-slate-800">Handful of Coins</div>
+                <div class="text-[10px] text-amber-600 font-extrabold mono-font">+3,000 Coins <span class="text-slate-400 font-normal">(6 Hints)</span></div>
+              </div>
+            </div>
+            <button class="btn-buy-iap px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black text-xs mono-font shadow-md transition" data-id="coins_3000" data-name="Handful of Coins (3,000)" data-price="3.99 SAR" data-coins="3000" data-hints="0" data-erasers="0" data-wands="0">
+              3.99 SAR
+            </button>
+          </div>
+
+          <!-- Tier 2: 8,500 Coins -->
+          <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm hover:border-indigo-300 transition relative">
+            <span class="absolute -top-2 right-4 px-2 py-0.2 rounded-full bg-indigo-600 text-[8px] font-black uppercase text-white mono-font tracking-wider shadow">POPULAR</span>
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-xl shadow-xs">💰</div>
+              <div>
+                <div class="text-xs font-black text-slate-800">Pouch of Coins</div>
+                <div class="text-[10px] text-indigo-700 font-extrabold mono-font">+8,500 Coins <span class="text-emerald-600 font-black">(17 Hints!)</span></div>
+              </div>
+            </div>
+            <button class="btn-buy-iap px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black text-xs mono-font shadow-md transition" data-id="coins_8500" data-name="Pouch of Coins (8,500)" data-price="7.99 SAR" data-coins="8500" data-hints="0" data-erasers="0" data-wands="0">
+              7.99 SAR
+            </button>
+          </div>
+
+          <!-- Tier 3: 25,000 Coins -->
+          <div class="p-3 rounded-2xl bg-gradient-to-r from-amber-50 to-indigo-50/40 border border-amber-300 flex items-center justify-between shadow-sm relative">
+            <span class="absolute -top-2 right-4 px-2 py-0.2 rounded-full bg-amber-500 text-[8px] font-black uppercase text-white mono-font tracking-wider shadow">BEST VALUE</span>
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-200 border border-amber-400 flex items-center justify-center text-xl shadow-xs">🏆</div>
+              <div>
+                <div class="text-xs font-black text-slate-900">Chest of Coins</div>
+                <div class="text-[10px] text-amber-700 font-extrabold mono-font">+25,000 Coins <span class="text-rose-600 font-black">(50 Hints / 25 Wands!)</span></div>
+              </div>
+            </div>
+            <button class="btn-buy-iap px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 active:scale-95 text-slate-950 font-black text-xs mono-font shadow-md transition" data-id="coins_25000" data-name="Chest of Coins (25,000)" data-price="18.99 SAR" data-coins="25000" data-hints="0" data-erasers="0" data-wands="0">
+              18.99 SAR
+            </button>
+          </div>
+
+          <!-- Tier 4: 65,000 Coins -->
+          <div class="p-3 rounded-2xl bg-white border border-purple-200 flex items-center justify-between shadow-sm hover:border-purple-300 transition relative">
+            <span class="absolute -top-2 right-4 px-2 py-0.2 rounded-full bg-purple-600 text-[8px] font-black uppercase text-white mono-font tracking-wider shadow">MEGA PACK</span>
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-purple-100 border border-purple-300 flex items-center justify-center text-xl shadow-xs">👑</div>
+              <div>
+                <div class="text-xs font-black text-slate-800">Cosmic Vault</div>
+                <div class="text-[10px] text-purple-700 font-extrabold mono-font">+65,000 Coins <span class="text-rose-600 font-black">(130 Hints!)</span></div>
+              </div>
+            </div>
+            <button class="btn-buy-iap px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 active:scale-95 text-white font-black text-xs mono-font shadow-md transition" data-id="coins_65000" data-name="Cosmic Vault (65,000)" data-price="37.99 SAR" data-coins="65000" data-hints="0" data-erasers="0" data-wands="0">
+              37.99 SAR
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 2: Bundles (Coins + Tactical Powers) -->
+        <div id="store-panel-bundles" class="space-y-2.5 hidden">
+          <!-- Explorer Starter Pack -->
+          <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-indigo-300 transition">
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xl">🚀</span>
+                <span class="text-xs font-black text-slate-900 fredoka">Explorer Starter Pack</span>
+              </div>
+              <button class="btn-buy-iap px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black text-xs mono-font shadow-md transition" data-id="bundle_explorer" data-name="Explorer Starter Pack" data-price="7.99 SAR" data-coins="5000" data-hints="5" data-erasers="5" data-wands="3">
+                7.99 SAR
+              </button>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-100 font-bold mono-font">
+              <span class="text-amber-700">🪙 5,000 Coins</span>
+              <span>💡 5 Hints</span>
+              <span>🧼 5 Erasers</span>
+              <span class="text-purple-700">🪄 3 Wands</span>
+            </div>
+          </div>
+
+          <!-- Master Strategist Bundle -->
+          <div class="p-3 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 shadow-sm relative">
+            <span class="absolute -top-2 right-4 px-2 py-0.2 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-[8px] font-black uppercase text-white mono-font tracking-wider shadow">HOT DEAL</span>
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xl">✨</span>
+                <span class="text-xs font-black text-indigo-950 fredoka">Master Strategist Bundle</span>
+              </div>
+              <button class="btn-buy-iap px-3 py-1.5 rounded-xl bg-indigo-700 hover:bg-indigo-600 active:scale-95 text-white font-black text-xs mono-font shadow-md transition" data-id="bundle_strategist" data-name="Master Strategist Bundle" data-price="18.99 SAR" data-coins="15000" data-hints="12" data-erasers="12" data-wands="8">
+                18.99 SAR
+              </button>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-indigo-900 bg-white/90 p-2 rounded-xl border border-indigo-100 font-bold mono-font">
+              <span class="text-amber-700">🪙 15,000 Coins</span>
+              <span>💡 12 Hints</span>
+              <span>🧼 12 Erasers</span>
+              <span class="text-purple-700">🪄 8 Wands</span>
+            </div>
+          </div>
+
+          <!-- Apex Solver Crate -->
+          <div class="p-3 rounded-2xl bg-white border border-purple-200 shadow-sm relative">
+            <span class="absolute -top-2 right-4 px-2 py-0.2 rounded-full bg-purple-600 text-[8px] font-black uppercase text-white mono-font tracking-wider shadow">VIP CRATE</span>
+            <div class="flex items-center justify-between mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xl">👑</span>
+                <span class="text-xs font-black text-purple-950 fredoka">Apex Solver Crate</span>
+              </div>
+              <button class="btn-buy-iap px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-600 active:scale-95 text-white font-black text-xs mono-font shadow-md transition" data-id="bundle_apex" data-name="Apex Solver Crate" data-price="37.99 SAR" data-coins="45000" data-hints="30" data-erasers="30" data-wands="20">
+                37.99 SAR
+              </button>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-purple-900 bg-purple-50 p-2 rounded-xl border border-purple-100 font-bold mono-font">
+              <span class="text-amber-700">🪙 45,000 Coins</span>
+              <span>💡 30 Hints</span>
+              <span>🧼 30 Erasers</span>
+              <span class="text-purple-700">🪄 20 Wands</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Free / Ad Rewards -->
+        <div id="store-panel-free" class="space-y-2.5 hidden">
+          <!-- Watch Ad for Coins -->
+          <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🪙</span>
+              <div>
+                <div class="text-xs font-bold text-slate-800">+250 Coins</div>
+                <div class="text-[10px] text-slate-500">Watch short video sponsor</div>
+              </div>
+            </div>
+            <button id="btn-store-ad-coins" class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs active:scale-95 transition">
+              Watch 🎬
+            </button>
+          </div>
+
+          <!-- Daily Reward -->
+          <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🎁</span>
+              <div>
+                <div class="text-xs font-bold text-slate-800">+500 Daily Gift</div>
+                <div class="text-[10px] text-slate-500">Daily claim from Yebee Games</div>
+              </div>
+            </div>
+            <button id="btn-store-claim-gift" class="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs active:scale-95 transition">
+              Claim
+            </button>
+          </div>
+
+          <!-- Powerup Bundle -->
+          <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🪄</span>
+              <div>
+                <div class="text-xs font-bold text-slate-800">2x Wand + 2x Eraser</div>
+                <div class="text-[10px] text-slate-500">Free starter supply drop</div>
+              </div>
+            </div>
+            <button id="btn-store-claim-bundle" class="px-3 py-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-xs active:scale-95 transition">
+              Claim
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Google Play In-App Purchase Flow (Simulation & Native Hook) -->
+  <div id="modal-google-play-purchase" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm hidden transition-opacity duration-300">
+    <div class="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-5 text-left shadow-2xl border-t sm:border border-slate-200 animate-in slide-in-from-bottom-5">
+      
+      <!-- Top Google Play Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded-md bg-gradient-to-tr from-emerald-500 via-sky-500 to-indigo-600 flex items-center justify-center text-white text-[11px] font-black">
+            ▶
+          </div>
+          <span class="text-xs font-black text-slate-800 tracking-tight">Google Play</span>
+          <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded mono-font font-bold">Billing v6</span>
+        </div>
+        <button id="btn-cancel-google-play" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs active:scale-95 transition">✕</button>
+      </div>
+
+      <!-- Item details -->
+      <div class="flex items-center justify-between mb-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+        <div>
+          <h4 id="iap-modal-title" class="text-xs font-black text-slate-900 fredoka">Chest of Coins (25,000)</h4>
+          <p class="text-[10px] text-slate-500 mono-font">Arrow Cube 3D • Yebee Games</p>
+        </div>
+        <div id="iap-modal-price" class="text-base font-black text-emerald-700 mono-font">18.99 SAR</div>
+      </div>
+
+      <!-- Payment Method (Mada / Google Pay / Visa) -->
+      <div class="p-2.5 rounded-2xl bg-white border border-slate-200 mb-3 flex items-center justify-between shadow-xs">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-xs">💳</div>
+          <div>
+            <div class="text-[11px] font-bold text-slate-800">mada / Google Pay •••• 4242</div>
+            <div class="text-[9px] text-emerald-600 font-bold mono-font">Sandbox Approved (KSA)</div>
+          </div>
+        </div>
+        <span class="text-xs text-slate-400">›</span>
+      </div>
+
+      <div class="text-[10px] text-slate-400 mb-3 leading-normal">
+        Tapping "1-Tap Buy" authorizes Google Play to charge your selected payment method in Saudi Riyals. Coins and powers will be delivered to your game immediately.
+      </div>
+
+      <!-- 1-Tap Buy Button -->
+      <button id="btn-confirm-google-play" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-black text-xs tracking-wide shadow-lg shadow-emerald-500/25 transition flex items-center justify-center gap-2">
+        <span id="iap-btn-text">1-Tap Buy</span>
+      </button>
     </div>
   </div>
 
@@ -632,7 +840,7 @@
     // TESTING CONFIGURATION
     // Set to true to allow jumping between any levels (1 to 250) for testing gameplay.
     // Set to false when ready for production release to enforce sequential unlocking!
-    const ENABLE_LEVEL_JUMP = true;
+    const ENABLE_LEVEL_JUMP = false;
 
     // App State Management (Stored in localStorage)
     const AppState = {
@@ -645,6 +853,11 @@
       avatarEmoji: "🦊",
       avatarFrame: "frame-gold",
       isMuted: false,
+
+      // Powerup Inventory
+      hints: 2,
+      erasers: 2,
+      wands: 1,
 
       // Economy & Quests Tracking
       lastDailyGiftDate: "",
@@ -685,6 +898,13 @@
           this.levelsClearedCount = parseInt(localStorage.getItem('arrow_cube_levels_cleared_count')) || 0;
           this.quest1Claimed = localStorage.getItem('arrow_cube_quest1_claimed') === 'true';
           this.quest2Claimed = localStorage.getItem('arrow_cube_quest2_claimed') === 'true';
+
+          const h = localStorage.getItem('arrow_cube_hints');
+          if (h !== null) this.hints = parseInt(h) || 0;
+          const er = localStorage.getItem('arrow_cube_erasers');
+          if (er !== null) this.erasers = parseInt(er) || 0;
+          const w = localStorage.getItem('arrow_cube_wands');
+          if (w !== null) this.wands = parseInt(w) || 0;
         } catch(e) {}
       },
 
@@ -703,6 +923,10 @@
           localStorage.setItem('arrow_cube_levels_cleared_count', this.levelsClearedCount);
           localStorage.setItem('arrow_cube_quest1_claimed', this.quest1Claimed);
           localStorage.setItem('arrow_cube_quest2_claimed', this.quest2Claimed);
+
+          localStorage.setItem('arrow_cube_hints', this.hints);
+          localStorage.setItem('arrow_cube_erasers', this.erasers);
+          localStorage.setItem('arrow_cube_wands', this.wands);
         } catch(e) {}
       },
 
@@ -739,6 +963,44 @@
         if (hBtn) hBtn.textContent = this.level;
         const gLvl = document.getElementById('game-level-num');
         if (gLvl) gLvl.textContent = this.level;
+
+        // Update Store modal coin balance
+        const sBal = document.getElementById('store-modal-coin-balance');
+        if (sBal) sBal.textContent = this.coins.toLocaleString();
+
+        // Update Powerup Badges in In-Game HUD
+        const bHint = document.getElementById('badge-hint-count');
+        if (bHint) {
+          if (this.hints > 0) {
+            bHint.textContent = this.hints;
+            bHint.className = 'absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-indigo-600 border-2 border-white text-white flex items-center justify-center font-black text-[11px] mono-font shadow';
+          } else {
+            bHint.textContent = '+';
+            bHint.className = 'absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-white flex items-center justify-center font-black text-xs shadow';
+          }
+        }
+
+        const bEraser = document.getElementById('badge-eraser-count');
+        if (bEraser) {
+          if (this.erasers > 0) {
+            bEraser.textContent = this.erasers;
+            bEraser.className = 'absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-indigo-600 border-2 border-white text-white flex items-center justify-center font-black text-[11px] mono-font shadow';
+          } else {
+            bEraser.textContent = '+';
+            bEraser.className = 'absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-white flex items-center justify-center font-black text-xs shadow';
+          }
+        }
+
+        const bWand = document.getElementById('badge-wand-count');
+        if (bWand) {
+          if (this.wands > 0) {
+            bWand.textContent = this.wands;
+            bWand.className = 'absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-indigo-600 border-2 border-white text-white flex items-center justify-center font-black text-[11px] mono-font shadow';
+          } else {
+            bWand.textContent = '+';
+            bWand.className = 'absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-white flex items-center justify-center font-black text-xs shadow';
+          }
+        }
 
         const homeInput = document.getElementById('input-home-level-num');
         if (homeInput && document.activeElement !== homeInput) homeInput.value = this.level;
@@ -1417,12 +1679,12 @@
 
       if (!pts || pts.length < 2) return;
 
-      // Thinner, sleeker arrow geometry for enhanced readability and clarity
+      // Sleeker, modern arrow proportions for crisp puzzle clarity
       const step = (CUBE_UNIT * 0.94) / (currentGridN - 1);
-      const tubeR = Math.max(0.020, step * 0.14) * scale;
-      const cornerR = tubeR * 1.12;
-      const coneR = Math.max(0.048, step * 0.26) * scale;
-      const coneH = coneR * 1.85;
+      const tubeR = Math.min(0.038, Math.max(0.020, step * 0.052)) * scale;
+      const cornerR = tubeR * 1.06;
+      const coneR = Math.min(0.076, Math.max(0.045, tubeR * 2.05)) * scale;
+      const coneH = coneR * 2.2;
 
       const pHead = pts[pts.length - 1];
       const scaledPts = (scale >= 0.999) ? pts : pts.map(p => {
@@ -2246,6 +2508,18 @@
     // UI INITIALIZATION & EVENT LISTENERS
     // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
+      // Enforce Level Jump Visibility based on ENABLE_LEVEL_JUMP
+      const homeJumpEl = document.getElementById('container-home-level-jump');
+      const gameJumpEl = document.getElementById('container-game-level-jump');
+      if (homeJumpEl) {
+        if (ENABLE_LEVEL_JUMP) homeJumpEl.classList.remove('hidden');
+        else homeJumpEl.classList.add('hidden');
+      }
+      if (gameJumpEl) {
+        if (ENABLE_LEVEL_JUMP) gameJumpEl.classList.remove('hidden');
+        else gameJumpEl.classList.add('hidden');
+      }
+
       try { init3D(); } catch(e) { console.error('3D Init Warning:', e); }
       AppState.syncUI();
 
@@ -2443,11 +2717,139 @@
         showToast('Profile updated! ✨');
       });
 
-      // 5. In-Game Powerup Trigger Buttons (Requirement 5 & 6)
-      document.getElementById('btn-top-hint').addEventListener('click', () => openPowerupModal('hint'));
-      document.getElementById('powerup-btn-hint').addEventListener('click', () => openPowerupModal('hint'));
-      document.getElementById('powerup-btn-eraser').addEventListener('click', () => openPowerupModal('eraser'));
-      document.getElementById('powerup-btn-wand').addEventListener('click', () => openPowerupModal('wand'));
+      // 5. In-Game Powerup Trigger Buttons (Direct Inventory Use or Modal)
+      function useOrOpenPowerup(type) {
+        initAudio();
+        if (type === 'hint') {
+          if (AppState.hints > 0) {
+            AppState.hints--;
+            AppState.save();
+            AppState.syncUI();
+            activateHint();
+            return;
+          }
+        } else if (type === 'eraser') {
+          if (AppState.erasers > 0) {
+            AppState.erasers--;
+            AppState.save();
+            AppState.syncUI();
+            isEraserActive = true;
+            document.getElementById('eraser-active-banner').classList.remove('hidden');
+            showToast('Eraser Mode Active: Tap an arrow to delete! 🧼');
+            return;
+          }
+        } else if (type === 'wand') {
+          if (AppState.wands > 0) {
+            AppState.wands--;
+            AppState.save();
+            AppState.syncUI();
+            activateMagicWand();
+            return;
+          }
+        }
+        openPowerupModal(type);
+      }
+
+      document.getElementById('btn-top-hint').addEventListener('click', () => useOrOpenPowerup('hint'));
+      document.getElementById('powerup-btn-hint').addEventListener('click', () => useOrOpenPowerup('hint'));
+      document.getElementById('powerup-btn-eraser').addEventListener('click', () => useOrOpenPowerup('eraser'));
+      document.getElementById('powerup-btn-wand').addEventListener('click', () => useOrOpenPowerup('wand'));
+
+      // Yebee Store Tabs & Google Play IAP Integration
+      const tabCoins = document.getElementById('tab-store-coins');
+      const tabBundles = document.getElementById('tab-store-bundles');
+      const tabFree = document.getElementById('tab-store-free');
+      const panelCoins = document.getElementById('store-panel-coins');
+      const panelBundles = document.getElementById('store-panel-bundles');
+      const panelFree = document.getElementById('store-panel-free');
+
+      function switchStoreTab(activeTab) {
+        initAudio();
+        [panelCoins, panelBundles, panelFree].forEach(p => p && p.classList.add('hidden'));
+        [tabCoins, tabBundles, tabFree].forEach(t => {
+          if (t) {
+            t.className = 'flex-1 py-1.5 rounded-xl text-slate-600 hover:text-indigo-600 transition active:scale-95 flex items-center justify-center gap-1 font-extrabold';
+          }
+        });
+
+        if (activeTab === 'coins') {
+          if (panelCoins) panelCoins.classList.remove('hidden');
+          if (tabCoins) tabCoins.className = 'flex-1 py-1.5 rounded-xl bg-white text-indigo-700 shadow-sm transition active:scale-95 flex items-center justify-center gap-1 font-extrabold';
+        } else if (activeTab === 'bundles') {
+          if (panelBundles) panelBundles.classList.remove('hidden');
+          if (tabBundles) tabBundles.className = 'flex-1 py-1.5 rounded-xl bg-white text-indigo-700 shadow-sm transition active:scale-95 flex items-center justify-center gap-1 font-extrabold';
+        } else if (activeTab === 'free') {
+          if (panelFree) panelFree.classList.remove('hidden');
+          if (tabFree) tabFree.className = 'flex-1 py-1.5 rounded-xl bg-white text-indigo-700 shadow-sm transition active:scale-95 flex items-center justify-center gap-1 font-extrabold';
+        }
+      }
+
+      if (tabCoins) tabCoins.addEventListener('click', () => switchStoreTab('coins'));
+      if (tabBundles) tabBundles.addEventListener('click', () => switchStoreTab('bundles'));
+      if (tabFree) tabFree.addEventListener('click', () => switchStoreTab('free'));
+
+      // Google Play In-App Purchase Simulation & Native Billing Hook
+      let currentPendingIAP = null;
+      const modalGooglePlay = document.getElementById('modal-google-play-purchase');
+      const iapTitle = document.getElementById('iap-modal-title');
+      const iapPrice = document.getElementById('iap-modal-price');
+      const iapBtnText = document.getElementById('iap-btn-text');
+
+      document.querySelectorAll('.btn-buy-iap').forEach(btn => {
+        btn.addEventListener('click', () => {
+          initAudio();
+          currentPendingIAP = {
+            id: btn.getAttribute('data-id'),
+            name: btn.getAttribute('data-name'),
+            price: btn.getAttribute('data-price'),
+            coins: parseInt(btn.getAttribute('data-coins')) || 0,
+            hints: parseInt(btn.getAttribute('data-hints')) || 0,
+            erasers: parseInt(btn.getAttribute('data-erasers')) || 0,
+            wands: parseInt(btn.getAttribute('data-wands')) || 0
+          };
+          if (iapTitle) iapTitle.textContent = currentPendingIAP.name;
+          if (iapPrice) iapPrice.textContent = currentPendingIAP.price;
+          if (modalGooglePlay) modalGooglePlay.classList.remove('hidden');
+        });
+      });
+
+      const btnCancelGP = document.getElementById('btn-cancel-google-play');
+      if (btnCancelGP) {
+        btnCancelGP.addEventListener('click', () => {
+          if (modalGooglePlay) modalGooglePlay.classList.add('hidden');
+          currentPendingIAP = null;
+        });
+      }
+
+      const btnConfirmGP = document.getElementById('btn-confirm-google-play');
+      if (btnConfirmGP) {
+        btnConfirmGP.addEventListener('click', () => {
+          if (!currentPendingIAP) return;
+          initAudio();
+          btnConfirmGP.disabled = true;
+          if (iapBtnText) iapBtnText.textContent = 'Processing with Google Play... ⏳';
+
+          setTimeout(() => {
+            const item = currentPendingIAP;
+            AppState.coins += item.coins;
+            AppState.hints += item.hints;
+            AppState.erasers += item.erasers;
+            AppState.wands += item.wands;
+            AppState.save();
+            AppState.syncUI();
+
+            playMagicFanfare();
+            triggerHaptic('win');
+
+            if (modalGooglePlay) modalGooglePlay.classList.add('hidden');
+            btnConfirmGP.disabled = false;
+            if (iapBtnText) iapBtnText.textContent = '1-Tap Buy';
+
+            showToast(`Purchase Confirmed! ${item.name} unlocked. ✨`);
+            currentPendingIAP = null;
+          }, 450);
+        });
+      }
 
       document.getElementById('btn-close-powerup-modal').addEventListener('click', () => {
         document.getElementById('modal-powerup').classList.add('hidden');

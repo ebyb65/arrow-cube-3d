@@ -1,6 +1,6 @@
 {
-  "appId": "com.studiogames.nebulacore",
-  "appName": "Nebula Core",
+  "appId": "com.yebeegames.arrowcube3d",
+  "appName": "Arrow Cube 3D",
   "webDir": "dist",
   "bundledWebRuntime": false
 }

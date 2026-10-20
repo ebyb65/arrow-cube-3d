@@ -1,7 +1,8 @@
 {
-  "name": "nebula-core-arrow-game",
+  "name": "arrow-cube-3d",
   "version": "1.0.0",
-  "description": "3D story-driven mobile puzzle game for Android",
+  "description": "3D spatial puzzle game for Android - Arrow Cube 3D by Yebee Games",
+  "author": "Yebee Games",
   "main": "index.html",
   "scripts": {
     "dev": "vite",
