@@ -12,10 +12,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install NPM Dependencies
         run: |
@@ -26,15 +32,6 @@ jobs:
           mkdir -p dist
           cp index.html dist/index.html
 
-      - name: Set up Java JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Initialize Capacitor Android Project
         run: |
           npx cap add android || true
@@ -44,19 +41,17 @@ jobs:
         run: |
           cd android
           chmod +x ./gradlew
-          # 1. Build Debug APK (for phone testing)
           ./gradlew assembleDebug
-          # 2. Build Release AAB (for Google Play Console)
           ./gradlew bundleRelease
-
-      - name: Upload Play Store AAB Bundle (Play Console Upload)
-        uses: actions/upload-artifact@v4
-        with:
-          name: ArrowCube3D-Release-AAB
-          path: android/app/build/outputs/bundle/release/*.aab
 
       - name: Upload Debug APK (Direct Testing)
         uses: actions/upload-artifact@v4
         with:
           name: ArrowCube3D-Debug-APK
           path: android/app/build/outputs/apk/debug/*.apk
+
+      - name: Upload Play Store AAB Bundle (Play Console Upload)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArrowCube3D-Release-AAB
+          path: android/app/build/outputs/bundle/release/*.aab
