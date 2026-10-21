@@ -37,6 +37,23 @@ jobs:
           npx cap add android || true
           npx cap sync android
 
+      - name: Configure SDK 24 for Google Play Automatic Protection
+        run: |
+          python3 -c "
+          import os, re
+          files = ['android/variables.gradle', 'android/app/build.gradle', 'android/app/src/main/AndroidManifest.xml']
+          for f in files:
+              if os.path.exists(f):
+                  with open(f, 'r') as fp:
+                      content = fp.read()
+                  content = re.sub(r'minSdkVersion\s*=\s*\d+', 'minSdkVersion = 24', content)
+                  content = re.sub(r'minSdkVersion\s+\d+', 'minSdkVersion 24', content)
+                  content = re.sub(r'android:minSdkVersion=\"[^\"]*\"', 'android:minSdkVersion=\"24\"', content)
+                  with open(f, 'w') as fp:
+                      fp.write(content)
+                  print('Updated minSdkVersion to 24 in', f)
+          "
+
       - name: Build Android Debug APK & Release AAB
         run: |
           cd android
