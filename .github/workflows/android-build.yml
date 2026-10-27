@@ -3,11 +3,14 @@ name: Build Arrow Cube 3D (APK & Play Store AAB)
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -15,73 +18,118 @@ jobs:
       - name: Set up Java JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: zulu
           java-version: '17'
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
+          cache: npm
 
       - name: Install NPM Dependencies
-        run: |
-          npm install
+        run: npm install
 
       - name: Build Web Game
-        run: |
-          mkdir -p dist
-          cp index.html dist/index.html
+        run: npm run build
 
       - name: Initialize Capacitor Android Project
         run: |
           npx cap add android || true
           npx cap sync android
 
-      - name: Configure SDK 36 and Version Code 2 for Google Play
+      - name: Configure Android SDK and app version
+        shell: bash
         run: |
-          python3 -c "
-          import os, re
-          files = ['android/variables.gradle', 'android/app/build.gradle', 'android/app/src/main/AndroidManifest.xml']
-          for f in files:
-              if os.path.exists(f):
-                  with open(f, 'r') as fp:
-                      content = fp.read()
-                  content = re.sub(r'minSdkVersion\s*=\s*\d+', 'minSdkVersion = 24', content)
-                  content = re.sub(r'minSdkVersion\s+\d+', 'minSdkVersion 24', content)
-                  content = re.sub(r'android:minSdkVersion=\"[^\"]*\"', 'android:minSdkVersion=\"24\"', content)
-                  content = re.sub(r'compileSdkVersion\s*=\s*\d+', 'compileSdkVersion = 36', content)
-                  content = re.sub(r'compileSdkVersion\s+\d+', 'compileSdkVersion 36', content)
-                  content = re.sub(r'targetSdkVersion\s*=\s*\d+', 'targetSdkVersion = 36', content)
-                  content = re.sub(r'targetSdkVersion\s+\d+', 'targetSdkVersion 36', content)
-                  content = re.sub(r'android:targetSdkVersion=\"[^\"]*\"', 'android:targetSdkVersion=\"36\"', content)
-                  content = re.sub(r'versionCode\s+\d+', 'versionCode 2', content)
-                  content = re.sub(r'versionName\s+\"[^\"]*\"', 'versionName \"1.0.1\"', content)
-                  with open(f, 'w') as fp:
-                      fp.write(content)
-                  print('Configured SDK 36 in', f)
-          "
+          set -euo pipefail
+          VERSION_CODE=$((GITHUB_RUN_NUMBER + 2))
+          VERSION_NAME="1.0.${VERSION_CODE}"
+          export VERSION_CODE VERSION_NAME
 
-      - name: Build Android Debug APK & Release AAB
+          python3 <<'PY'
+          import os
+          import re
+
+          version_code = os.environ['VERSION_CODE']
+          version_name = os.environ['VERSION_NAME']
+          files = [
+              'android/variables.gradle',
+              'android/app/build.gradle',
+              'android/app/src/main/AndroidManifest.xml',
+          ]
+
+          for path in files:
+              if not os.path.exists(path):
+                  continue
+
+              with open(path, 'r', encoding='utf-8') as fp:
+                  content = fp.read()
+
+              content = re.sub(r'minSdkVersion\s*=\s*\d+', 'minSdkVersion = 24', content)
+              content = re.sub(r'minSdkVersion\s+\d+', 'minSdkVersion 24', content)
+              content = re.sub(r'android:minSdkVersion="[^"]*"', 'android:minSdkVersion="24"', content)
+              content = re.sub(r'compileSdkVersion\s*=\s*\d+', 'compileSdkVersion = 36', content)
+              content = re.sub(r'compileSdkVersion\s+\d+', 'compileSdkVersion 36', content)
+              content = re.sub(r'targetSdkVersion\s*=\s*\d+', 'targetSdkVersion = 36', content)
+              content = re.sub(r'targetSdkVersion\s+\d+', 'targetSdkVersion 36', content)
+              content = re.sub(r'android:targetSdkVersion="[^"]*"', 'android:targetSdkVersion="36"', content)
+              content = re.sub(r'versionCode\s+\d+', f'versionCode {version_code}', content)
+              content = re.sub(r'versionName\s+"[^"]*"', f'versionName "{version_name}"', content)
+
+              with open(path, 'w', encoding='utf-8') as fp:
+                  fp.write(content)
+
+              print(f'Configured {path}: versionCode={version_code}, versionName={version_name}')
+          PY
+
+      - name: Build Android Debug APK and Release AAB
         run: |
           cd android
           chmod +x ./gradlew
           ./gradlew assembleDebug
           ./gradlew bundleRelease
-          cd ..
 
-      - name: Sign Release AAB Bundle for Google Play
+      - name: Sign Release AAB for Google Play
+        if: github.event_name != 'pull_request'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
         run: |
-          echo "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" | base64 -d > yebee-upload-keystore.jks
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore yebee-upload-keystore.jks -storepass yebeegames2026 -keypass yebeegames2026 android/app/build/outputs/bundle/release/*.aab yebeegames
-          jarsigner -verify android/app/build/outputs/bundle/release/*.aab
+          set -euo pipefail
 
-      - name: Upload Debug APK (Direct Testing)
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "Required GitHub Actions secret is missing: $name"
+              exit 1
+            fi
+          done
+
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > upload-keystore.jks
+
+          jarsigner \
+            -verbose \
+            -sigalg SHA256withRSA \
+            -digestalg SHA-256 \
+            -keystore upload-keystore.jks \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -keypass "$ANDROID_KEY_PASSWORD" \
+            android/app/build/outputs/bundle/release/*.aab \
+            "$ANDROID_KEY_ALIAS"
+
+          jarsigner -verify android/app/build/outputs/bundle/release/*.aab
+          rm -f upload-keystore.jks
+
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: ArrowCube3D-Debug-APK
           path: android/app/build/outputs/apk/debug/*.apk
 
-      - name: Upload Play Store AAB Bundle (Signed for Google Play)
+      - name: Upload Play Store AAB Bundle
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: ArrowCube3D-Release-AAB
