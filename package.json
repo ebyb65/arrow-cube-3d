@@ -1,23 +1,24 @@
 {
   "name": "arrow-cube-3d",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "3D spatial puzzle game for Android - Arrow Cube 3D by Yebee Games",
   "author": "Yebee Games",
-  "main": "index.html",
+  "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "cap:sync": "cap sync android",
-    "cap:open": "cap open android"
+    "build": "node scripts/build.mjs",
+    "cap:sync": "cap sync android"
   },
   "dependencies": {
-    "@capacitor/android": "^6.0.0",
-    "@capacitor/cli": "^6.0.0",
-    "@capacitor/core": "^6.0.0",
-    "three": "^0.160.0"
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "capacitor-unity-ads": "^1.0.0"
   },
   "devDependencies": {
-    "vite": "^5.0.0"
+    "@fontsource/fredoka": "^5.0.0",
+    "@fontsource/inter": "^5.0.0",
+    "@fontsource/jetbrains-mono": "^5.0.0",
+    "tailwindcss": "3.4.17",
+    "three": "0.128.0"
   }
 }

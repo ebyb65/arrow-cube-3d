@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Arrow Cube 3D: Multi-Block Escape Puzzle</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script>if(typeof THREE === 'undefined'){document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');}</script>
+  <link rel="stylesheet" href="./assets/fonts.css">
+  <link rel="stylesheet" href="./assets/app.css">
+  <script src="./assets/three.min.js"></script>
+  <script src="./assets/ads.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
     body {
       font-family: 'Inter', sans-serif;
       touch-action: none;
@@ -67,7 +67,7 @@
     }
   </style>
 </head>
-<body class="w-screen h-screen flex flex-col justify-between relative overflow-hidden pb-14">
+<body class="w-screen h-screen flex flex-col justify-between relative overflow-hidden">
 
   <!-- 3D WebGL Canvas Container -->
   <div id="canvas-container" class="absolute inset-0 w-full h-full z-0 cursor-grab active:cursor-grabbing"></div>
@@ -127,11 +127,6 @@
 
       <!-- Currency & Lives Counter -->
       <div class="flex items-center gap-2">
-        <!-- Lives / Hearts -->
-        <div class="glass-card px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-sm">
-          <span class="text-rose-500 text-sm animate-pulse">❤️</span>
-          <span id="home-lives-count" class="text-xs font-extrabold text-slate-800 mono-font">5/5</span>
-        </div>
 
         <!-- Coins -->
         <div class="glass-card px-3 py-1.5 rounded-2xl flex items-center gap-1.5 shadow-sm bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200">
@@ -412,7 +407,7 @@
         <!-- Option A: Pay Coins -->
         <button id="btn-powerup-buy-coins" class="w-full py-3 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-1.5">
           <span>Pay</span>
-          <span id="powerup-modal-coin-cost" class="mono-font text-sm">500</span>
+          <span id="powerup-modal-coin-cost" class="mono-font text-sm">150</span>
           <span>Coins 🪙</span>
         </button>
 
@@ -458,10 +453,10 @@
 
       <!-- Store Category Tabs -->
       <div class="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl mb-2.5 text-xs font-bold">
-        <button id="tab-store-coins" class="flex-1 py-1.5 rounded-xl bg-white text-indigo-700 shadow-sm transition active:scale-95 flex items-center justify-center gap-1 font-extrabold">
+        <button id="tab-store-coins" class="hidden flex-1 py-1.5 rounded-xl bg-white text-indigo-700 shadow-sm transition active:scale-95 flex items-center justify-center gap-1 font-extrabold">
           <span>🪙</span><span>Coins</span>
         </button>
-        <button id="tab-store-bundles" class="flex-1 py-1.5 rounded-xl text-slate-600 hover:text-indigo-600 transition active:scale-95 flex items-center justify-center gap-1 font-extrabold">
+        <button id="tab-store-bundles" class="hidden flex-1 py-1.5 rounded-xl text-slate-600 hover:text-indigo-600 transition active:scale-95 flex items-center justify-center gap-1 font-extrabold">
           <span>⚡</span><span>Bundles</span>
         </button>
         <button id="tab-store-free" class="flex-1 py-1.5 rounded-xl text-slate-600 hover:text-indigo-600 transition active:scale-95 flex items-center justify-center gap-1 font-extrabold">
@@ -473,7 +468,7 @@
       <div id="store-content-container" class="overflow-y-auto space-y-2.5 pr-1 flex-1">
         
         <!-- Tab 1: Coin Packs (in Saudi Riyals - SAR) -->
-        <div id="store-panel-coins" class="space-y-2.5">
+        <div id="store-panel-coins" class="space-y-2.5 hidden">
           
           <!-- Tier 1: 3,000 Coins -->
           <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm hover:border-indigo-300 transition">
@@ -598,7 +593,7 @@
         </div>
 
         <!-- Tab 3: Free / Ad Rewards -->
-        <div id="store-panel-free" class="space-y-2.5 hidden">
+        <div id="store-panel-free" class="space-y-2.5">
           <!-- Watch Ad for Coins -->
           <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-2">
@@ -726,67 +721,13 @@
   </div>
 
 
-  <!-- Unity Ads: Simulated Bottom Banner Ad -->
-  <div id="unity-banner-ad" class="fixed bottom-0 inset-x-0 z-20 flex items-center justify-center bg-slate-900 border-t border-slate-800 shadow-2xl py-1 px-3">
-    <div class="w-full max-w-sm flex items-center justify-between text-white text-xs gap-2">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg unity-badge flex items-center justify-center font-black text-[10px] tracking-tighter border border-slate-700">
-          U
-        </div>
-        <div>
-          <div class="flex items-center gap-1">
-            <span class="text-[9px] font-bold text-amber-400 uppercase tracking-widest mono-font">Ad</span>
-            <span class="text-xs font-semibold text-slate-200">Play 3D Games Free!</span>
-          </div>
-          <div class="text-[10px] text-slate-400">Unity Ads • Game ID: 800403098</div>
-        </div>
-      </div>
-      <button id="btn-banner-install" class="px-3 py-1 rounded-lg bg-sky-500 hover:bg-sky-400 active:scale-95 text-white font-bold text-[11px] shadow-sm transition">
-        Install
-      </button>
-    </div>
+  <!-- Tutorial tip (levels 1-3) -->
+  <div id="tutorial-tip" class="fixed inset-x-4 bottom-36 z-30 max-w-sm mx-auto glass-card p-4 rounded-3xl border-2 border-sky-300 shadow-2xl text-center hidden">
+    <div id="tutorial-icon" class="text-3xl mb-1">👆</div>
+    <div id="tutorial-title" class="text-sm font-black text-slate-900 fredoka mb-1">Tap an arrow</div>
+    <p id="tutorial-text" class="text-xs text-slate-600 leading-relaxed mb-3"></p>
+    <button id="btn-tutorial-ok" class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 active:scale-95 transition text-xs font-extrabold text-white shadow-md">Got it</button>
   </div>
-
-
-  <!-- Unity Ads: Fullscreen Interstitial / Rewarded Ad Modal -->
-  <div id="modal-unity-interstitial" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md hidden transition-opacity duration-300">
-    <div class="w-full max-w-md bg-slate-900 rounded-3xl border border-slate-700 p-5 text-white flex flex-col justify-between shadow-2xl relative overflow-hidden h-[75vh] max-h-[520px]">
-      
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-6 h-6 rounded bg-white text-slate-950 font-black flex items-center justify-center text-xs">U</div>
-          <span id="ad-modal-type-title" class="text-xs font-bold text-slate-300 tracking-wider uppercase mono-font">Unity Video Ad</span>
-        </div>
-        <div id="interstitial-timer" class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 mono-font">
-          Reward in 5s...
-        </div>
-        <button id="btn-close-interstitial" class="px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white mono-font hidden">
-          Skip Ad ✕
-        </button>
-      </div>
-
-      <div class="my-auto text-center space-y-3 py-6">
-        <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-3xl shadow-xl shadow-sky-500/20 animate-pulse">
-          🎮
-        </div>
-        <h3 class="text-lg font-black fredoka text-white">Cube Escape: Arrow Master 3D</h3>
-        <p class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
-          Over 250+ mind-bending 3D spatial puzzles with transparent crystal voxels!
-        </p>
-        <div class="flex justify-center gap-1 text-amber-400 text-sm">
-          ★★★★★ <span class="text-xs text-slate-400 ml-1">(4.9/5 • 10M+ Downloads)</span>
-        </div>
-      </div>
-
-      <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
-        <div class="text-[10px] text-slate-500 mono-font">Placement: BP_Interstitial_Android • ID: 800403098</div>
-        <button id="btn-interstitial-install" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 active:scale-95 font-bold text-xs text-white shadow-lg transition">
-          Play Now ➔
-        </button>
-      </div>
-    </div>
-  </div>
-
 
   <!-- Modal: Level Completed / Victory -->
   <div id="modal-level-win" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden transition-opacity duration-300">
@@ -801,8 +742,11 @@
 
       <!-- Coins Reward Badge -->
       <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-800 font-black text-xs mono-font mb-5">
-        <span>+100 Coins Earned! 🪙</span>
+        <span id="win-coins-badge">+50 Coins Earned! 🪙</span>
       </div>
+      <button id="btn-win-double" class="w-full mb-3 py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 active:scale-95 transition text-xs font-extrabold text-white shadow-md">
+        🎬 Watch video: Double coins
+      </button>
 
       <div class="flex items-center gap-3">
         <button id="btn-win-home" class="flex-1 py-3 px-4 rounded-2xl border border-slate-200 hover:bg-slate-100 active:scale-95 transition text-xs font-bold text-slate-700">
@@ -826,6 +770,9 @@
       <p class="text-xs text-slate-600 mb-5 leading-relaxed">
         An arrow collided with another vector. Failed moves are marked in red to guide your next attempt!
       </p>
+      <button id="btn-continue-ad" class="w-full mb-2.5 py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 active:scale-95 transition text-xs font-extrabold text-white shadow-md">
+        🎬 Watch video: +1 heart & keep going
+      </button>
       <button id="btn-try-again" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 active:scale-95 transition text-xs font-bold text-white shadow-md">
         Try Level Again ↺
       </button>
@@ -841,10 +788,11 @@
     // Set to true to allow jumping between any levels (1 to 250) for testing gameplay.
     // Set to false when ready for production release to enforce sequential unlocking!
     const ENABLE_LEVEL_JUMP = false;
+    const IAP_ENABLED = false; // Turn on only after real Google Play Billing is integrated
 
     // App State Management (Stored in localStorage)
     const AppState = {
-      coins: 150,
+      coins: 300,
       lives: 5,
       maxLives: 5,
       level: 1,
@@ -870,10 +818,10 @@
         try {
           const c = localStorage.getItem('arrow_cube_coins_v3');
           if (c !== null) {
-            this.coins = parseInt(c) || 150;
+            this.coins = parseInt(c) || 300;
           } else {
             // First time or migrating from old bloated version: reset fairly to 150
-            this.coins = 150;
+            this.coins = 300;
             localStorage.setItem('arrow_cube_coins_v3', this.coins);
           }
 
@@ -948,7 +896,6 @@
 
       syncUI() {
         document.getElementById('home-coins-count').textContent = this.coins.toLocaleString();
-        document.getElementById('home-lives-count').textContent = `${this.lives}/${this.maxLives}`;
         document.getElementById('home-player-name').textContent = this.playerName;
         document.getElementById('home-profile-emoji').textContent = this.avatarEmoji;
         
@@ -1075,7 +1022,14 @@
     let animatingArrows = new Set();
     let isEraserActive = false;
     let gamesPlayedCounter = 0;
-    const AD_FREQUENCY = 4; // Interstitial ad triggers every 4 games played
+    let fitRadius = 1.8;
+    const WIN_COINS = 50;
+    const POWERUP_COST = { hint: 150, eraser: 250, wand: 500 };
+    let lastWinCoins = 0;
+    let continuesUsed = 0;
+    const MAX_CONTINUES = 2;
+    const AD_FREQUENCY = 3; // Interstitial after every 3rd win
+    const AD_START_LEVEL = 6; // No interstitials during the first 5 levels
 
     // Three.js Scene Variables
     let scene, camera, renderer, raycaster, mouse;
@@ -1103,8 +1057,11 @@
 
     function updateCameraFrame() {
       if (!camera) return;
-      const aspect = camera.aspect;
-      camera.position.z = baseCameraDistance * userZoomFactor;
+      // Fit the whole puzzle on screen for any aspect ratio (portrait phones have a narrow horizontal view)
+      const vf = THREE.MathUtils.degToRad(camera.fov);
+      const hf = 2 * Math.atan(Math.tan(vf / 2) * camera.aspect);
+      const fitDist = (fitRadius / Math.sin(Math.min(vf, hf) / 2));
+      camera.position.z = Math.max(baseCameraDistance, fitDist) * userZoomFactor;
       camera.updateProjectionMatrix();
     }
 
@@ -1431,21 +1388,21 @@
       // Level 250: 450 arrows (Grid 11x11, 4 Cubes 2x2 Compound Labyrinth, 94% dense!)
       let gridN, minLen, maxLen, targetCap;
       if (levelNum === 1) {
-        gridN = 5; minLen = 3; maxLen = 6; targetCap = 22;
+        gridN = 4; minLen = 2; maxLen = 3; targetCap = 6;     // tutorial
       } else if (levelNum === 2) {
-        gridN = 5; minLen = 3; maxLen = 6; targetCap = 26;
+        gridN = 4; minLen = 2; maxLen = 4; targetCap = 10;    // tutorial: rotate the cube
       } else if (levelNum === 3) {
-        gridN = 6; minLen = 4; maxLen = 7; targetCap = 32;
+        gridN = 5; minLen = 2; maxLen = 4; targetCap = 14;    // tutorial: hints
       } else if (levelNum === 4) {
-        gridN = 6; minLen = 3; maxLen = 6; targetCap = 42;
+        gridN = 5; minLen = 3; maxLen = 5; targetCap = 18;
       } else if (levelNum === 5) {
-        gridN = 7; minLen = 3; maxLen = 6; targetCap = 52;
+        gridN = 5; minLen = 3; maxLen = 6; targetCap = 22;
       } else if (levelNum <= 10) {
-        gridN = 8; minLen = 4; maxLen = 7; targetCap = 50 + (levelNum - 5) * 4;
+        gridN = 6; minLen = 3; maxLen = 6; targetCap = 22 + (levelNum - 5) * 5;   // L10: ~47
       } else if (levelNum <= 15) {
-        gridN = 10; minLen = 4; maxLen = 7; targetCap = 70 + (levelNum - 10) * 8; // L14: ~102 arrows
+        gridN = 8; minLen = 4; maxLen = 7; targetCap = 50 + (levelNum - 10) * 6;  // L15: ~80
       } else if (levelNum <= 25) {
-        gridN = 11; minLen = 4; maxLen = 8; targetCap = 110 + (levelNum - 15) * 3;
+        gridN = 10; minLen = 4; maxLen = 8; targetCap = 84 + (levelNum - 15) * 5; // L25: ~134
       } else if (levelNum <= 60) {
         gridN = 8; minLen = 3; maxLen = 6; targetCap = 140 + Math.floor((levelNum - 25) * 1.5);
       } else if (levelNum <= 120) {
@@ -1875,6 +1832,8 @@
             animatingArrows.delete(arrowId);
 
             if (hearts <= 0) {
+              const cBtn = document.getElementById('btn-continue-ad');
+              if (cBtn) cBtn.classList.toggle('hidden', continuesUsed >= MAX_CONTINUES);
               setTimeout(() => {
                 document.getElementById('modal-game-over').classList.remove('hidden');
               }, 200);
@@ -1934,10 +1893,17 @@
 
     // Level Win Handler
     function handleLevelWin() {
+      const tutBox = document.getElementById('tutorial-tip');
+      if (tutBox) tutBox.classList.add('hidden');
       triggerHaptic('win');
       playMagicFanfare();
 
-      AppState.addCoins(30); // Balanced reward: +30 Coins per victory!
+      AppState.addCoins(WIN_COINS);
+      lastWinCoins = WIN_COINS;
+      const winBadge = document.getElementById('win-coins-badge');
+      if (winBadge) winBadge.textContent = `+${WIN_COINS} Coins Earned! 🪙`;
+      const dbl = document.getElementById('btn-win-double');
+      if (dbl) { dbl.disabled = false; dbl.classList.remove('opacity-50'); }
       AppState.levelsClearedCount++;
 
       if (currentLevel >= AppState.maxUnlockedLevel) {
@@ -1953,6 +1919,7 @@
     }
 
     function checkAndShowAd(onFinished) {
+      if (currentLevel < AD_START_LEVEL) { if (onFinished) onFinished(); return; }
       gamesPlayedCounter++;
       if (gamesPlayedCounter >= AD_FREQUENCY) {
         gamesPlayedCounter = 0;
@@ -1962,41 +1929,16 @@
       }
     }
 
-    // Unity Ads Video Simulation
-    let interstitialTimerInterval = null;
+    // Real ads (src/ads.js). Rewarded grants only after a completed ad.
     function triggerUnityAd(type = 'interstitial', onComplete) {
-      const modal = document.getElementById('modal-unity-interstitial');
-      const timerBadge = document.getElementById('interstitial-timer');
-      const closeBtn = document.getElementById('btn-close-interstitial');
-      const titleEl = document.getElementById('ad-modal-type-title');
-
-      titleEl.textContent = type === 'rewarded' ? 'Unity Rewarded Video' : 'Unity Interstitial Ad';
-      modal.classList.remove('hidden');
-      closeBtn.classList.add('hidden');
-      timerBadge.classList.remove('hidden');
-
-      let timeLeft = 5;
-      timerBadge.textContent = `Reward in ${timeLeft}s...`;
-
-      clearInterval(interstitialTimerInterval);
-      interstitialTimerInterval = setInterval(() => {
-        timeLeft--;
-        if (timeLeft > 0) {
-          timerBadge.textContent = `Reward in ${timeLeft}s...`;
-        } else {
-          clearInterval(interstitialTimerInterval);
-          timerBadge.classList.add('hidden');
-          closeBtn.classList.remove('hidden');
-        }
-      }, 1000);
-
-      function closeAd() {
-        modal.classList.add('hidden');
-        clearInterval(interstitialTimerInterval);
-        closeBtn.removeEventListener('click', closeAd);
-        if (onComplete) onComplete();
+      if (!window.Ads) { if (type !== 'rewarded' && onComplete) onComplete(); return; }
+      if (type === 'rewarded') {
+        window.Ads.showRewarded(onComplete, (closedEarly) => {
+          showToast(closedEarly ? 'Watch the full video to get the reward.' : 'No video available right now. Try again in a moment.');
+        });
+      } else {
+        window.Ads.showInterstitial(onComplete);
       }
-      closeBtn.addEventListener('click', closeAd);
     }
 
     // POWERUP ACTIVATIONS (Requirements 5 & 6)
@@ -2056,22 +1998,49 @@
         icon.textContent = '💡';
         title.textContent = 'Get Move Hint';
         desc.textContent = 'Highlights the next safe unblocked arrow in glowing green.';
-        coinCost.textContent = '500';
+        coinCost.textContent = String(POWERUP_COST.hint);
         adCount.textContent = '(1 Ad)';
       } else if (type === 'eraser') {
         icon.textContent = '🧼';
         title.textContent = 'Eraser Tool';
         desc.textContent = 'Vaporize any blocking arrow on the board with a single tap.';
-        coinCost.textContent = '500';
+        coinCost.textContent = String(POWERUP_COST.eraser);
         adCount.textContent = '(1 Ad)';
       } else if (type === 'wand') {
         icon.textContent = '🪄';
         title.textContent = 'Magic Wand';
         desc.textContent = 'Magically evaporates 2 to 3 blocking arrows simultaneously!';
-        coinCost.textContent = '1000';
-        adCount.textContent = '(2 Ads)';
+        coinCost.textContent = String(POWERUP_COST.wand);
+        adCount.textContent = '(1 Ad)';
       }
       modal.classList.remove('hidden');
+    }
+
+    // First-time tutorial tips
+    const TUTORIAL = {
+      1: { icon: '👆', title: 'Tap an arrow to free it', text: 'Each arrow slides off the way it points. The glowing green one has a clear path. Tap it! If an arrow hits another one, you lose a heart.', glow: true },
+      2: { icon: '🔄', title: 'Spin the cube', text: 'Drag anywhere to rotate the cube. Arrows on the other sides count too. Clear them all to win.' },
+      3: { icon: '💡', title: 'Stuck? Use a hint', text: 'Tap the 💡 Hint button to light up a safe arrow. You can pay with coins or watch a short video.' },
+    };
+    function maybeShowTutorial(lvl) {
+      const tip = TUTORIAL[lvl];
+      const box = document.getElementById('tutorial-tip');
+      if (!box) return;
+      box.classList.add('hidden');
+      let seen = false;
+      try { seen = localStorage.getItem('arrow_cube_tut_' + lvl) === '1'; } catch (e) {}
+      if (!tip || seen) return;
+      document.getElementById('tutorial-icon').textContent = tip.icon;
+      document.getElementById('tutorial-title').textContent = tip.title;
+      document.getElementById('tutorial-text').textContent = tip.text;
+      setTimeout(() => {
+        box.classList.remove('hidden');
+        if (tip.glow) activateHint();
+      }, 600);
+      document.getElementById('btn-tutorial-ok').onclick = () => {
+        box.classList.add('hidden');
+        try { localStorage.setItem('arrow_cube_tut_' + lvl, '1'); } catch (e) {}
+      };
     }
 
     // Load Level & Build Multi-Cube 3D Meshes
@@ -2082,6 +2051,7 @@
       AppState.syncUI();
 
       hearts = 3;
+      continuesUsed = 0;
       updateHeartsUI();
 
       // Guard: Ensure mainCubeGroup and scene exist
@@ -2244,6 +2214,7 @@
       bbox.getSize(size);
       const maxDim = Math.max(size.x, size.y, size.z);
       baseCameraDistance = Math.max(8.5, maxDim * 2.1);
+      fitRadius = maxDim * 0.72; // bounding-sphere radius of the cluster
       updateCameraFrame();
 
       // Build Arrows
@@ -2261,6 +2232,7 @@
       mainCubeGroup.quaternion.set(0, 0, 0, 1);
       applyRotation(0.38, 0.52);
       updateUI();
+      maybeShowTutorial(currentLevel);
     }
 
     // Three.js Scene Setup
@@ -2580,8 +2552,30 @@
 
       document.getElementById('btn-try-again').addEventListener('click', () => {
         document.getElementById('modal-game-over').classList.add('hidden');
-        checkAndShowAd(() => {
-          loadLevel(currentLevel);
+        loadLevel(currentLevel); // never show an ad right after a loss
+      });
+
+      document.getElementById('btn-continue-ad').addEventListener('click', () => {
+        triggerUnityAd('rewarded', () => {
+          continuesUsed++;
+          hearts = 1;
+          updateHeartsUI();
+          document.getElementById('modal-game-over').classList.add('hidden');
+          showToast('+1 heart! Red arrows are blocked: try a different one. ❤️');
+        });
+      });
+
+      document.getElementById('btn-win-double').addEventListener('click', (e) => {
+        const btn = e.currentTarget;
+        if (btn.disabled || !lastWinCoins) return;
+        triggerUnityAd('rewarded', () => {
+          AppState.addCoins(lastWinCoins);
+          const badge = document.getElementById('win-coins-badge');
+          if (badge) badge.textContent = `+${lastWinCoins * 2} Coins Earned! 🪙`;
+          lastWinCoins = 0;
+          btn.disabled = true;
+          btn.classList.add('opacity-50');
+          showToast('Coins doubled! 🪙');
         });
       });
 
@@ -2795,7 +2789,7 @@
       const iapPrice = document.getElementById('iap-modal-price');
       const iapBtnText = document.getElementById('iap-btn-text');
 
-      document.querySelectorAll('.btn-buy-iap').forEach(btn => {
+      if (IAP_ENABLED) document.querySelectorAll('.btn-buy-iap').forEach(btn => {
         btn.addEventListener('click', () => {
           initAudio();
           currentPendingIAP = {
@@ -2822,7 +2816,7 @@
       }
 
       const btnConfirmGP = document.getElementById('btn-confirm-google-play');
-      if (btnConfirmGP) {
+      if (btnConfirmGP && IAP_ENABLED) {
         btnConfirmGP.addEventListener('click', () => {
           if (!currentPendingIAP) return;
           initAudio();
@@ -2857,7 +2851,7 @@
 
       // Buy with Coins
       document.getElementById('btn-powerup-buy-coins').addEventListener('click', () => {
-        const cost = currentPowerupType === 'wand' ? 1000 : 500;
+        const cost = POWERUP_COST[currentPowerupType];
         if (AppState.spendCoins(cost)) {
           document.getElementById('modal-powerup').classList.add('hidden');
           if (currentPowerupType === 'hint') activateHint();
@@ -2888,14 +2882,6 @@
         isEraserActive = false;
         document.getElementById('eraser-active-banner').classList.add('hidden');
         showToast('Eraser mode cancelled.');
-      });
-
-      // Ad install buttons feedback
-      document.getElementById('btn-banner-install').addEventListener('click', () => {
-        showToast('Unity Ads: Redirecting to Google Play store (Simulation)');
-      });
-      document.getElementById('btn-interstitial-install').addEventListener('click', () => {
-        showToast('Unity Ads: Game install link opened (Simulation)');
       });
 
       // 6. Level Jump Testing Controls (User Request: Jump between levels to test gameplay)
