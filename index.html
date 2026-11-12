@@ -13,11 +13,11 @@
       --sat: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
       --sab: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
     }
-    #screen-home { padding-top: calc(1rem + var(--sat)); padding-bottom: calc(1rem + var(--sab)); }
+    #screen-home { padding-top: calc(1rem + var(--sat)); padding-bottom: calc(1rem + var(--sab) + var(--banner-space, 0px)); }
     #screen-game > header { padding-top: calc(0.75rem + var(--sat)); }
-    #screen-game > footer { margin-bottom: calc(1rem + var(--sab)); }
+    #screen-game > footer { margin-bottom: calc(1rem + var(--sab) + var(--banner-space, 0px)); }
     #toast-message, #eraser-active-banner { top: calc(6rem + var(--sat)); }
-    #tutorial-tip { bottom: calc(9rem + var(--sab)); }
+    #tutorial-tip { bottom: calc(9rem + var(--sab) + var(--banner-space, 0px)); }
     body {
       font-family: 'Inter', sans-serif;
       touch-action: none;
