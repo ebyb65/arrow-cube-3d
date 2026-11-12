@@ -1,5 +1,11 @@
 {
   "appId": "com.yebeegames.arrowcube3d",
   "appName": "Arrow Cube 3D",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
 }
