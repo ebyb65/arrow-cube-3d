@@ -1,58 +1,47 @@
-// Ads for Arrow Cube 3D through Unity LevelPlay (capacitor-levelplay), the same
-// setup Drop 2048 uses. App key and ad unit IDs are public SDK identifiers.
+// Unity Ads for Arrow Cube 3D (capacitor-unity-ads bridge).
 // Formats: rewarded (player chooses to watch) and interstitial (between levels).
 (function () {
   const CONFIG = {
-    appKey: '800403098',
-    rewardedId: '',       // LevelPlay > Arrow Cube 3D > Ad units > Rewarded
-    interstitialId: '',   // LevelPlay > Arrow Cube 3D > Ad units > Interstitial
-    loadTimeoutMs: 30000,
-    userWaitMs: 12000,    // how long a player waits for a video after tapping Watch
+    gameId: '800403098',              // Unity dashboard > Arrow Cube 3D > Monetization > Game ID
+    testMode: true,                   // keep true for closed testing; set false for the production release
+    rewardedId: 'Rewarded_Android',   // Unity dashboard > Monetization > Ad Units
+    interstitialId: 'Interstitial_Android',
+    userWaitMs: 12000,                // how long a player waits for a video after tapping Watch
   };
 
   function plugin() {
     const c = window.Capacitor;
     if (!c || !c.isNativePlatform || !c.isNativePlatform()) return null;
-    return (c.Plugins && c.Plugins.LevelPlay) || null;
+    return (c.Plugins && (c.Plugins.Unityads || c.Plugins.UnityAds)) || null;
   }
+
+  function msg(e) { return e && e.message ? e.message : String(e); }
 
   const Ads = {
     initialized: false,
     initPromise: null,
-    pending: {},
+    loading: {},
+    loaded: { rewarded: false, interstitial: false },
     busy: false,
     lastError: '',
 
-    isNative() { return !!plugin(); },
-
-    note(msg) {
-      this.lastError = msg;
-      console.warn('[Ads] ' + msg);
-    },
-
-    idFor(kind) { return kind === 'rewarded' ? CONFIG.rewardedId : CONFIG.interstitialId; },
+    note(m) { this.lastError = m; console.warn('[Ads] ' + m); },
 
     async init() {
       if (this.initialized) return true;
       if (this.initPromise) return this.initPromise;
       const p = plugin();
       if (!p) { this.note('Ads only run inside the Android app.'); return false; }
-      if (!CONFIG.appKey || !CONFIG.rewardedId || !CONFIG.interstitialId) {
-        this.note('Ad unit IDs are not set yet.');
-        return false;
-      }
       this.initPromise = (async () => {
         try {
-          await p.addListener('loaded', e => this.finishLoad(e, true));
-          await p.addListener('loadFailed', e => this.finishLoad(e, false));
-          // No consent manager yet: do not signal consent to personalized ads.
-          await p.initialize({ appKey: CONFIG.appKey, consent: { gdprConsent: false } });
+          await p.initialize({ gameId: CONFIG.gameId, testMode: CONFIG.testMode });
           this.initialized = true;
           this.loadAd('rewarded');
-          this.loadAd('interstitial');
+          setTimeout(() => this.loadAd('interstitial'), 1500);
           return true;
         } catch (e) {
-          this.note('Init failed: ' + (e && e.message ? e.message : e));
+          this.note('Init failed: ' + msg(e));
+          setTimeout(() => this.init(), 20000);
           return false;
         } finally {
           this.initPromise = null;
@@ -61,76 +50,47 @@
       return this.initPromise;
     },
 
-    finishLoad(event, ok) {
-      if (!event || !['rewarded', 'interstitial'].includes(event.format)) return;
-      if (event.adUnitId !== this.idFor(event.format)) return;
-      const pend = this.pending[event.format];
-      if (!pend) return;
-      if (!ok) this.note(event.format + ' load failed: ' + (event.error && event.error.message ? event.error.message : JSON.stringify(event.error || 'unknown')));
-      pend.finish(ok);
-    },
-
-    // Resolves true once an ad of this kind is ready to show.
+    // Resolves true once an ad of this kind is loaded.
     loadAd(kind) {
       const p = plugin();
       if (!p || !this.initialized) return Promise.resolve(false);
-      if (this.pending[kind]) return this.pending[kind].promise;
-      const adUnitId = this.idFor(kind);
-      let resolve;
-      const pend = { promise: new Promise(r => { resolve = r; }) };
-      pend.finish = ok => {
-        if (this.pending[kind] !== pend) return;
-        clearTimeout(pend.timer);
-        delete this.pending[kind];
-        resolve(ok);
-      };
-      this.pending[kind] = pend;
-      pend.timer = setTimeout(() => { this.note(kind + ' load timed out'); pend.finish(false); }, CONFIG.loadTimeoutMs);
-      (async () => {
-        try {
-          const s = await p.isReady({ format: kind, adUnitId });
-          if (s && s.ready) pend.finish(true);
-          else if (kind === 'rewarded') await p.loadRewarded({ adUnitId });
-          else await p.loadInterstitial({ adUnitId });
-        } catch (e) {
-          this.note(kind + ' load request failed: ' + (e && e.message ? e.message : e));
-          pend.finish(false);
-        }
-      })();
-      return pend.promise;
+      if (this.loaded[kind]) return Promise.resolve(true);
+      if (this.loading[kind]) return this.loading[kind];
+      const placementId = kind === 'rewarded' ? CONFIG.rewardedId : CONFIG.interstitialId;
+      const call = kind === 'rewarded' ? p.loadRewardedVideo({ placementId }) : p.loadInterstitial({ placementId });
+      this.loading[kind] = call.then(() => {
+        this.loaded[kind] = true;
+        return true;
+      }).catch(e => {
+        this.note(kind + ' load failed: ' + msg(e));
+        setTimeout(() => this.loadAd(kind), 20000);
+        return false;
+      }).finally(() => { delete this.loading[kind]; });
+      return this.loading[kind];
     },
 
-    async isReady(kind) {
-      const p = plugin();
-      if (!p || !this.initialized) return false;
-      try { const s = await p.isReady({ format: kind, adUnitId: this.idFor(kind) }); return !!(s && s.ready); }
-      catch (e) { return false; }
-    },
-
-    // Interstitial: never blocks the game. If nothing is ready, carry on at once.
+    // Interstitial: never blocks the game. If nothing is loaded, carry on at once.
     async showInterstitial(onDone) {
       const done = () => { onDone && onDone(); };
-      if (this.busy || !this.initialized || !(await this.isReady('interstitial'))) {
+      const p = plugin();
+      if (!p || this.busy || !this.loaded.interstitial) {
         if (this.initialized) this.loadAd('interstitial');
         done();
         return;
       }
       this.busy = true;
-      try {
-        const r = await plugin().showInterstitial({ adUnitId: CONFIG.interstitialId });
-        if (r && r.error) this.note('Interstitial failed: ' + JSON.stringify(r.error));
-      } catch (e) {
-        this.note('Interstitial failed: ' + (e && e.message ? e.message : e));
-      }
+      this.loaded.interstitial = false;
+      try { await p.showInterstitial(); } catch (e) { this.note('Interstitial failed: ' + msg(e)); }
       this.busy = false;
-      this.loadAd('interstitial');
+      setTimeout(() => this.loadAd('interstitial'), 1000);
       done();
     },
 
-    // Rewarded: the reward is granted only when the player finishes the video.
-    // onUnavailable(reason): reason is 'closed' (skipped) or 'none' (no video).
+    // Rewarded: reward only when the player finishes the video.
+    // onUnavailable(reason): 'closed' (skipped) or 'none' (no video available).
     async showRewarded(onReward, onUnavailable, onLoading) {
-      if (!plugin()) {               // browser preview: simulate a completed video
+      const p = plugin();
+      if (!p) {                       // browser preview: simulate a completed video
         setTimeout(() => onReward && onReward(), 400);
         return;
       }
@@ -138,7 +98,7 @@
       this.busy = true;
       try {
         if (!(await this.init())) { onUnavailable && onUnavailable('none'); return; }
-        if (!(await this.isReady('rewarded'))) {
+        if (!this.loaded.rewarded) {
           onLoading && onLoading();
           const ok = await Promise.race([
             this.loadAd('rewarded'),
@@ -146,16 +106,16 @@
           ]);
           if (!ok) { onUnavailable && onUnavailable('none'); return; }
         }
-        const r = await plugin().showRewarded({ adUnitId: CONFIG.rewardedId });
-        if (r && r.rewarded === true) onReward && onReward();
-        else if (r && r.error) { this.note('Rewarded failed: ' + JSON.stringify(r.error)); onUnavailable && onUnavailable('none'); }
+        this.loaded.rewarded = false;
+        const r = await p.showRewardedVideo();
+        if (r && r.success) onReward && onReward();
         else onUnavailable && onUnavailable('closed');
       } catch (e) {
-        this.note('Rewarded failed: ' + (e && e.message ? e.message : e));
+        this.note('Rewarded failed: ' + msg(e));
         onUnavailable && onUnavailable('none');
       } finally {
         this.busy = false;
-        if (this.initialized) this.loadAd('rewarded');
+        setTimeout(() => this.loadAd('rewarded'), 1000);
       }
     },
   };

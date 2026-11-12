@@ -37,7 +37,7 @@ jobs:
           npx cap add android
           npx cap sync android
 
-      - name: Configure SDK levels, version and LevelPlay Unity adapter
+      - name: Configure SDK levels, version and Unity Ads SDK
         run: |
           python3 - << 'EOF'
           import os, re
@@ -51,13 +51,8 @@ jobs:
               s = re.sub(r'targetSdkVersion\s*=\s*\d+', 'targetSdkVersion = 36', s)
               s = re.sub(r'versionCode\s+\d+', f'versionCode {vc}', s)
               s = re.sub(r'versionName\s+"[^"]*"', f'versionName "{vn}"', s)
-              if f.endswith('app/build.gradle'):
-                  if 'unityads-adapter' not in s:
-                      s = s.replace('dependencies {', "dependencies {\n    implementation 'com.unity3d.ads-mediation:unityads-adapter:5.15.0'", 1)
-                  # Same as Drop 2048: leave out the Ad Quality SDK (Data safety: installed apps)
-                  rule = "exclude group: 'com.unity3d.ads-mediation', module: 'adquality-sdk'"
-                  if rule not in s:
-                      s += "\nconfigurations.all {\n    " + rule + "\n}\n"
+              if f.endswith('app/build.gradle') and 'com.unity3d.ads:unity-ads' not in s:
+                  s = s.replace('dependencies {', "dependencies {\n    implementation 'com.unity3d.ads:unity-ads:4.12.5'", 1)
               open(f, 'w').write(s)
               print('Configured', f)
           EOF
