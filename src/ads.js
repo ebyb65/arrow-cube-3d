@@ -4,8 +4,8 @@
   const CONFIG = {
     gameId: '800403098',              // Unity dashboard > Arrow Cube 3D > Monetization > Game ID
     testMode: true,                   // keep true for closed testing; set false for the production release
-    rewardedId: 'Rewarded_Android',   // Unity dashboard > Monetization > Ad Units
-    interstitialId: 'Interstitial_Android',
+    rewardedId: 'BP_Rewarded_Android',   // Unity dashboard > Monetization > Ad Units
+    interstitialId: 'BP_Interstitial_Android',
     userWaitMs: 12000,                // how long a player waits for a video after tapping Watch
   };
 
