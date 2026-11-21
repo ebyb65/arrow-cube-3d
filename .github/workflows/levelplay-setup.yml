@@ -1,0 +1,33 @@
+name: LevelPlay setup (app + ad units)
+
+# Runs when this file or the setup script changes on this branch; re-run from the
+# Actions tab (or by Claude) after the LevelPlay secrets are added.
+on:
+  push:
+    branches: [ levelplay-banner ]
+    paths: [ '.github/workflows/levelplay-setup.yml', 'scripts/levelplay_setup.py' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Create or find the app and its ad units
+        env:
+          LEVELPLAY_SECRET_KEY: ${{ secrets.LEVELPLAY_SECRET_KEY }}
+          LEVELPLAY_REFRESH_TOKEN: ${{ secrets.LEVELPLAY_REFRESH_TOKEN }}
+        run: python3 scripts/levelplay_setup.py
+      - name: Save the IDs in the game
+        run: |
+          if git diff --quiet src/ads.js; then echo "IDs already up to date."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Add LevelPlay app key and ad unit IDs"
+          git push
