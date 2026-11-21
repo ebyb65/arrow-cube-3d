@@ -4,10 +4,10 @@
 // Formats: rewarded (player chooses), interstitial (between levels), banner (bottom of screen).
 (function () {
   const CONFIG = {
-    appKey: '',           // LevelPlay > Apps > Arrow Cube 3D > App key
-    rewardedId: '',       // LevelPlay > Arrow Cube 3D > Ad units > Rewarded
-    interstitialId: '',   // LevelPlay > Arrow Cube 3D > Ad units > Interstitial
-    bannerId: '',         // LevelPlay > Arrow Cube 3D > Ad units > Banner (empty = no banner)
+    appKey: '29c1bafdd',           // LevelPlay > Apps > Arrow Cube 3D > App key
+    rewardedId: '7osr38c4s9h4roh0',       // LevelPlay > Arrow Cube 3D > Ad units > Rewarded
+    interstitialId: '07nu4ybfn5zi2ume',   // LevelPlay > Arrow Cube 3D > Ad units > Interstitial
+    bannerId: 'zehbz0n3zrawvnk1',         // LevelPlay > Arrow Cube 3D > Ad units > Banner (empty = no banner)
     bannerRetryMs: 30000,
     loadTimeoutMs: 30000,
     userWaitMs: 12000,    // how long a player waits for a video after tapping Watch
