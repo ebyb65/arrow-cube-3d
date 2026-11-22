@@ -206,6 +206,10 @@
           <span>PLAY LEVEL</span>
           <span id="home-play-level-btn" class="mono-font bg-white/20 px-2 py-0.5 rounded-lg text-sm">1</span>
         </button>
+        <button id="btn-home-map" class="w-full mt-2.5 py-2.5 px-4 rounded-2xl bg-white border border-indigo-200 hover:bg-indigo-50 active:scale-95 transition text-xs font-extrabold text-indigo-700 flex items-center justify-center gap-2">
+          <span>🗺️ Level Map</span>
+          <span class="mono-font bg-amber-100 text-amber-700 px-2 py-0.5 rounded-lg">★ <span id="home-map-stars">0</span></span>
+        </button>
       </div>
     </div>
 
@@ -224,7 +228,8 @@
       </button>
 
       <!-- Right Tab: Events -->
-      <button id="nav-btn-events" class="flex-1 py-2 rounded-2xl flex flex-col items-center justify-center text-slate-500 hover:text-indigo-600 active:scale-95 transition">
+      <button id="nav-btn-events" class="relative flex-1 py-2 rounded-2xl flex flex-col items-center justify-center text-slate-500 hover:text-indigo-600 active:scale-95 transition">
+        <span id="events-dot" class="absolute top-1.5 right-1/4 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white"></span>
         <span class="text-xl">🏆</span>
         <span class="text-[10px] font-bold fredoka mt-0.5">Events</span>
       </button>
@@ -251,7 +256,7 @@
         <!-- Center: Purple Styled Level Banner (Like Screenshot) -->
         <div class="flex-1 py-1.5 px-3 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white flex items-center justify-between shadow-md border border-purple-400/30">
           <div class="flex items-center gap-1.5">
-            <span class="text-xs font-black tracking-wider uppercase mono-font text-purple-200">LVL</span>
+            <span id="game-level-label" class="text-xs font-black tracking-wider uppercase mono-font text-purple-200">LVL</span>
             <span id="game-level-num" class="fredoka text-base font-bold">14</span>
           </div>
           <span id="game-difficulty-badge" class="text-[9px] font-black uppercase tracking-wider bg-purple-950/60 border border-purple-400/40 px-2 py-0.5 rounded-full text-emerald-300 mono-font">
@@ -702,17 +707,33 @@
     <div class="glass-card w-full max-w-sm p-6 rounded-3xl border border-sky-200 text-left relative shadow-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
         <div>
-          <h3 class="text-base font-bold text-slate-900 fredoka">Daily Spatial Quests</h3>
-          <p class="text-[11px] text-slate-500">Complete challenges to earn coins</p>
+          <h3 class="text-base font-bold text-slate-900 fredoka">Daily Puzzle & Quests</h3>
+          <p class="text-[11px] text-slate-500">A new puzzle every day. Keep your streak going!</p>
         </div>
         <button id="btn-close-events" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600">✕</button>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 shadow-sm mb-4">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="text-sm font-black text-slate-900 fredoka">📅 Today's Puzzle</div>
+            <div id="daily-status" class="text-[11px] text-slate-600">Solve it to grow your streak</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-orange-600 mono-font">Streak</div>
+            <div class="text-lg font-black text-orange-600 fredoka">🔥 <span id="daily-streak-num">0</span></div>
+          </div>
+        </div>
+        <div id="streak-calendar" class="grid grid-cols-7 gap-1 mb-3"></div>
+        <button id="btn-daily-play" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 active:scale-95 transition text-xs font-extrabold text-white shadow-md">Play today's puzzle</button>
+        <button id="btn-streak-save" class="hidden w-full mt-2 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 active:scale-95 transition text-[11px] font-extrabold text-white shadow-md">🎬 Missed yesterday? Watch a video to save your streak</button>
       </div>
 
       <div class="space-y-3 mb-2">
         <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
           <div>
             <div class="text-xs font-bold text-slate-800">Untangle 3 Levels</div>
-            <div class="text-[10px] text-slate-500">Reward: +200 Coins</div>
+            <div class="text-[10px] text-slate-500">Reward: +150 Coins</div>
           </div>
           <button id="btn-quest-1" class="px-3 py-1.5 rounded-xl bg-indigo-500 text-white font-bold text-xs active:scale-95 transition">Claim</button>
         </div>
@@ -720,7 +741,7 @@
         <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
           <div>
             <div class="text-xs font-bold text-slate-800">Clear a Multi-Cube Block</div>
-            <div class="text-[10px] text-slate-500">Reward: +350 Coins</div>
+            <div class="text-[10px] text-slate-500">Reward: +250 Coins</div>
           </div>
           <button id="btn-quest-2" class="px-3 py-1.5 rounded-xl bg-indigo-500 text-white font-bold text-xs active:scale-95 transition">Claim</button>
         </div>
@@ -728,6 +749,20 @@
     </div>
   </div>
 
+
+  <!-- Modal: Level Map -->
+  <div id="modal-level-map" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden">
+    <div class="glass-card w-full max-w-sm rounded-3xl border border-sky-200 shadow-2xl flex flex-col" style="max-height: calc(100vh - 2rem - var(--sat) - var(--sab));">
+      <div class="flex items-center justify-between p-5 pb-3 border-b border-slate-200">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 fredoka">🗺️ Level Map</h3>
+          <p class="text-[11px] text-slate-500"><span id="map-star-total">0</span> / 750 ★ · Replay levels for 3 stars</p>
+        </div>
+        <button id="btn-close-map" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600">✕</button>
+      </div>
+      <div id="level-map-grid" class="grid grid-cols-5 gap-2 p-4 overflow-y-auto"></div>
+    </div>
+  </div>
 
   <!-- Tutorial tip (levels 1-3) -->
   <div id="tutorial-tip" class="fixed inset-x-4 bottom-36 z-30 max-w-sm mx-auto glass-card p-3 rounded-2xl border-2 border-sky-300 shadow-2xl hidden">
@@ -749,6 +784,7 @@
       </div>
 
       <div class="text-[11px] uppercase font-bold tracking-widest text-sky-600 mono-font mb-0.5" id="win-subtitle">Sector Cleared</div>
+      <div id="win-stars" class="text-3xl tracking-widest text-amber-400 mb-1 leading-none">★★★</div>
       <h2 class="text-2xl font-black text-slate-900 mb-1 fredoka" id="win-title">Vectors Untangled!</h2>
       <p class="text-xs text-slate-600 mb-3" id="win-story">All compound blocks liberated cleanly.</p>
 
@@ -810,6 +846,10 @@
       maxLives: 5,
       level: 1,
       maxUnlockedLevel: 1,
+      levelStars: {},
+      dailyLastDate: '',
+      dailyStreak: 0,
+      streakSavedDate: '',
       playerName: "Player 1",
       avatarEmoji: "🦊",
       avatarFrame: "frame-gold",
@@ -860,6 +900,10 @@
           this.quest1Claimed = localStorage.getItem('arrow_cube_quest1_claimed') === 'true';
           this.quest2Claimed = localStorage.getItem('arrow_cube_quest2_claimed') === 'true';
 
+          try { this.levelStars = JSON.parse(localStorage.getItem('arrow_cube_level_stars') || '{}') || {}; } catch (e2) { this.levelStars = {}; }
+          this.dailyLastDate = localStorage.getItem('arrow_cube_daily_last') || '';
+          this.dailyStreak = parseInt(localStorage.getItem('arrow_cube_daily_streak')) || 0;
+          this.streakSavedDate = localStorage.getItem('arrow_cube_streak_saved') || '';
           const h = localStorage.getItem('arrow_cube_hints');
           if (h !== null) this.hints = parseInt(h) || 0;
           const er = localStorage.getItem('arrow_cube_erasers');
@@ -885,6 +929,10 @@
           localStorage.setItem('arrow_cube_quest1_claimed', this.quest1Claimed);
           localStorage.setItem('arrow_cube_quest2_claimed', this.quest2Claimed);
 
+          localStorage.setItem('arrow_cube_level_stars', JSON.stringify(this.levelStars || {}));
+          localStorage.setItem('arrow_cube_daily_last', this.dailyLastDate || '');
+          localStorage.setItem('arrow_cube_daily_streak', this.dailyStreak || 0);
+          localStorage.setItem('arrow_cube_streak_saved', this.streakSavedDate || '');
           localStorage.setItem('arrow_cube_hints', this.hints);
           localStorage.setItem('arrow_cube_erasers', this.erasers);
           localStorage.setItem('arrow_cube_wands', this.wands);
@@ -917,12 +965,20 @@
           frameEl.className = `w-9 h-9 rounded-xl flex items-center justify-center text-xl bg-white ${this.avatarFrame} transition`;
         }
 
+        const progress = Math.min(250, this.maxUnlockedLevel);
         const hLvl = document.getElementById('home-level-title-num');
-        if (hLvl) hLvl.textContent = this.level;
+        if (hLvl) hLvl.textContent = progress;
         const hBtn = document.getElementById('home-play-level-btn');
-        if (hBtn) hBtn.textContent = this.level;
+        if (hBtn) hBtn.textContent = progress;
         const gLvl = document.getElementById('game-level-num');
-        if (gLvl) gLvl.textContent = this.level;
+        const gLbl = document.getElementById('game-level-label');
+        if (gLvl) gLvl.textContent = playMode === 'daily' ? 'Daily' : this.level;
+        if (gLbl) gLbl.classList.toggle('hidden', playMode === 'daily');
+        const starTotal = Object.values(this.levelStars || {}).reduce((a, b) => a + b, 0);
+        const mapStars = document.getElementById('home-map-stars');
+        if (mapStars) mapStars.textContent = starTotal;
+        const dot = document.getElementById('events-dot');
+        if (dot) dot.classList.toggle('hidden', this.dailyLastDate === dayKey());
 
         // Update Store modal coin balance
         const sBal = document.getElementById('store-modal-coin-balance');
@@ -1037,6 +1093,33 @@
     let gamesPlayedCounter = 0;
     let fitRadius = 1.8;
     const WIN_COINS = 50;
+    var playMode = 'level';             // 'level' or 'daily'
+    var dailyRewardPending = 0;
+    const STREAK_REWARDS = [50, 75, 100, 125, 150, 200, 300];   // day 1..7 of the streak cycle (day 7 also gives a wand)
+
+    function dayKey(d) {
+      d = d || new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function daysBetween(a, b) {            // whole days from key a to key b
+      if (!a || !b) return Infinity;
+      const [y1, m1, d1] = a.split('-').map(Number), [y2, m2, d2] = b.split('-').map(Number);
+      return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
+    }
+    // Current streak as the player sees it today (0 if it lapsed)
+    function liveStreak() {
+      const gap = daysBetween(AppState.dailyLastDate, dayKey());
+      return gap <= 1 ? AppState.dailyStreak : 0;
+    }
+    // A streak that missed exactly one day can be saved once with a video
+    function streakCanBeSaved() {
+      return AppState.dailyStreak > 0 && daysBetween(AppState.dailyLastDate, dayKey()) === 2 && AppState.streakSavedDate !== dayKey();
+    }
+    function starsForRun() {
+      if (continuesUsed > 0) return 1;
+      return Math.max(1, Math.min(3, hearts));
+    }
+    function starString(n) { return '★'.repeat(n) + '☆'.repeat(3 - n); }
     const POWERUP_COST = { hint: 150, eraser: 250, wand: 500 };
     let lastWinCoins = 0;
     let continuesUsed = 0;
@@ -1369,8 +1452,8 @@
 
     // High-Density Multi-Length Procedural Level Generator
     // Guaranteed 100% Solvable Cycle-Free Directed Acyclic Graph (DAG) Engine
-    function generateLevel(levelNum) {
-      const prng = createPrng(levelNum * 9973 + 12345);
+    function generateLevel(levelNum, seed) {
+      const prng = createPrng(seed != null ? seed : levelNum * 9973 + 12345);
       const cluster = getClusterCubesForLevel(levelNum);
       const cubeSet = new Set(cluster.map(c => `${c.pos[0]}_${c.pos[1]}_${c.pos[2]}`));
 
@@ -1911,28 +1994,56 @@
       triggerHaptic('win');
       playMagicFanfare();
 
-      AppState.addCoins(WIN_COINS);
-      lastWinCoins = WIN_COINS;
+      const stars = starsForRun();
+      let reward = WIN_COINS;
+      let extra = '';
+      if (playMode === 'daily') {
+        const already = AppState.dailyLastDate === dayKey();
+        if (!already) {
+          const gap = daysBetween(AppState.dailyLastDate, dayKey());
+          AppState.dailyStreak = gap === 1 ? AppState.dailyStreak + 1 : 1;
+          AppState.dailyLastDate = dayKey();
+          const dayInCycle = ((AppState.dailyStreak - 1) % 7) + 1;
+          reward = STREAK_REWARDS[dayInCycle - 1];
+          if (dayInCycle === 7) { AppState.wands += 1; extra = ' + 1 Wand'; }
+        } else {
+          reward = 25;
+        }
+      } else {
+        const prev = AppState.levelStars[currentLevel] || 0;
+        if (stars > prev) AppState.levelStars[currentLevel] = stars;
+      }
+      AppState.addCoins(reward);
+      lastWinCoins = reward;
       const winBadge = document.getElementById('win-coins-badge');
-      if (winBadge) winBadge.textContent = `+${WIN_COINS} Coins Earned! 🪙`;
+      if (winBadge) winBadge.textContent = `+${reward} Coins${extra} 🪙`;
+      const winStars = document.getElementById('win-stars');
+      if (winStars) {
+        winStars.textContent = starString(stars);
+        winStars.classList.toggle('hidden', playMode === 'daily');
+      }
+      const nextBtn = document.getElementById('btn-next-level');
+      if (nextBtn) nextBtn.textContent = playMode === 'daily' ? 'Done ✓' : 'Next Level →';
       const dbl = document.getElementById('btn-win-double');
       if (dbl) { dbl.disabled = false; dbl.classList.remove('opacity-50'); }
       AppState.levelsClearedCount++;
 
-      if (currentLevel >= AppState.maxUnlockedLevel) {
+      if (playMode !== 'daily' && currentLevel >= AppState.maxUnlockedLevel) {
         AppState.maxUnlockedLevel = currentLevel + 1;
       }
       AppState.save();
       AppState.syncUI();
 
       checkAndShowAd(() => {
-        document.getElementById('win-subtitle').textContent = `Sector ${currentLevel} Complete`;
+        document.getElementById('win-subtitle').textContent = playMode === 'daily'
+          ? `Daily Puzzle · 🔥 ${AppState.dailyStreak}-day streak`
+          : `Sector ${currentLevel} Complete`;
         document.getElementById('modal-level-win').classList.remove('hidden');
       });
     }
 
     function checkAndShowAd(onFinished) {
-      if (currentLevel < AD_START_LEVEL) { if (onFinished) onFinished(); return; }
+      if (playMode !== 'daily' && currentLevel < AD_START_LEVEL) { if (onFinished) onFinished(); return; }
       gamesPlayedCounter++;
       if (gamesPlayedCounter >= AD_FREQUENCY) {
         gamesPlayedCounter = 0;
@@ -2031,6 +2142,77 @@
       modal.classList.remove('hidden');
     }
 
+    // Daily puzzle panel
+    function renderEvents() {
+      const today = dayKey();
+      const doneToday = AppState.dailyLastDate === today;
+      const streak = liveStreak();
+      document.getElementById('daily-streak-num').textContent = streak;
+      const status = document.getElementById('daily-status');
+      const btn = document.getElementById('btn-daily-play');
+      const cycleDay = doneToday ? ((streak - 1) % 7) + 1 : (streak % 7) + 1;   // today's position in the 7-day cycle
+      if (doneToday) {
+        status.textContent = 'Solved today! Come back tomorrow ✓';
+        btn.textContent = 'Play again (practice)';
+        btn.classList.add('opacity-80');
+      } else {
+        const r = STREAK_REWARDS[cycleDay - 1];
+        status.textContent = `Today's reward: +${r} coins${cycleDay === 7 ? ' + 1 wand' : ''}`;
+        btn.textContent = "Play today's puzzle";
+        btn.classList.remove('opacity-80');
+      }
+      const cal = document.getElementById('streak-calendar');
+      cal.innerHTML = '';
+      for (let d = 1; d <= 7; d++) {
+        const reached = doneToday ? d <= cycleDay : d < cycleDay;
+        const isToday = d === cycleDay;
+        const cell = document.createElement('div');
+        cell.className = 'rounded-lg py-1 text-center border ' + (reached
+          ? 'bg-orange-500 border-orange-500 text-white'
+          : isToday ? 'bg-white border-orange-400 border-2 text-orange-700' : 'bg-white/70 border-amber-200 text-slate-400');
+        cell.innerHTML = `<div class="text-[9px] font-bold">Day ${d}</div><div class="text-[10px] font-black">${d === 7 ? '🪄' : STREAK_REWARDS[d - 1]}</div>`;
+        cal.appendChild(cell);
+      }
+      document.getElementById('btn-streak-save').classList.toggle('hidden', !streakCanBeSaved());
+    }
+    function openEvents() {
+      renderEvents();
+      document.getElementById('modal-events').classList.remove('hidden');
+    }
+
+    // Level map
+    function openLevelMap() {
+      const grid = document.getElementById('level-map-grid');
+      grid.innerHTML = '';
+      const unlocked = Math.min(250, AppState.maxUnlockedLevel);
+      let total = 0;
+      for (let l = 1; l <= 250; l++) {
+        const st = AppState.levelStars[l] || 0;
+        total += st;
+        const open = l <= unlocked;
+        const b = document.createElement('button');
+        b.className = 'aspect-square rounded-xl flex flex-col items-center justify-center border transition active:scale-95 ' + (
+          !open ? 'bg-slate-100 border-slate-200 text-slate-300' :
+          l === unlocked ? 'bg-gradient-to-br from-sky-500 to-indigo-600 border-indigo-600 text-white shadow-md' :
+          'bg-white border-slate-200 text-slate-800');
+        b.innerHTML = `<span class="text-sm font-black fredoka leading-none">${open ? l : '🔒'}</span>` +
+          (open && l !== unlocked ? `<span class="text-[9px] leading-none mt-0.5 ${st ? 'text-amber-400' : 'text-slate-300'}">${starString(st)}</span>` : '');
+        if (open) b.onclick = () => {
+          document.getElementById('modal-level-map').classList.add('hidden');
+          initAudio();
+          document.getElementById('screen-home').classList.add('hidden');
+          document.getElementById('screen-game').classList.remove('hidden');
+          loadLevel(l);
+        };
+        else b.disabled = true;
+        grid.appendChild(b);
+      }
+      document.getElementById('map-star-total').textContent = total;
+      document.getElementById('modal-level-map').classList.remove('hidden');
+      const cur = grid.children[unlocked - 1];
+      if (cur) setTimeout(() => cur.scrollIntoView({ block: 'center' }), 50);
+    }
+
     // First-time tutorial tips
     const TUTORIAL = {
       1: { icon: '👆', title: 'Tap an arrow to free it', text: 'Each arrow slides off the way it points. The glowing green one has a clear path. Tap it! If an arrow hits another one, you lose a heart.', glow: true },
@@ -2061,10 +2243,13 @@
     }
 
     // Load Level & Build Multi-Cube 3D Meshes
-    function loadLevel(lvlNum) {
-      currentLevel = Math.max(1, Math.min(250, lvlNum));
-      AppState.level = currentLevel;
-      AppState.save();
+    function loadLevel(lvlNum, daily) {
+      playMode = daily ? 'daily' : 'level';
+      if (!daily) {
+        currentLevel = Math.max(1, Math.min(250, lvlNum));
+        AppState.level = currentLevel;
+        AppState.save();
+      }
       AppState.syncUI();
 
       hearts = 3;
@@ -2092,7 +2277,10 @@
       const eb = document.getElementById('eraser-active-banner');
       if (eb) eb.classList.add('hidden');
 
-      const lvlData = generateLevel(currentLevel);
+      const today = dayKey();
+      const daySeed = Number(today.replace(/-/g, ''));
+      const dailyParam = Math.min(12 + (daySeed % 30), Math.max(8, AppState.maxUnlockedLevel + 5));
+      const lvlData = daily ? generateLevel(dailyParam, daySeed * 7919 + 17) : generateLevel(currentLevel);
 
       // Milestone Difficulty Badging (High-Density Curve: 20 -> 50 -> 450)
       let diffBadgeText = 'NORMAL';
@@ -2133,6 +2321,11 @@
       const simSel = document.getElementById('simulator-level-select');
       if (simSel) {
         simSel.value = currentLevel;
+      }
+
+      if (daily) {
+        diffBadgeText = 'DAILY 📅';
+        diffBadgeClass = 'text-amber-200 border-amber-400/60 bg-purple-950/70 font-black';
       }
 
       const badgeEl = document.getElementById('game-difficulty-badge');
@@ -2249,7 +2442,7 @@
       mainCubeGroup.quaternion.set(0, 0, 0, 1);
       applyRotation(0.38, 0.52);
       updateUI();
-      maybeShowTutorial(currentLevel);
+      if (!daily) maybeShowTutorial(currentLevel);
     }
 
     // Three.js Scene Setup
@@ -2545,7 +2738,7 @@
         initAudio();
         document.getElementById('screen-home').classList.add('hidden');
         document.getElementById('screen-game').classList.remove('hidden');
-        loadLevel(AppState.level);
+        loadLevel(Math.min(250, AppState.maxUnlockedLevel));
       });
 
       document.getElementById('btn-game-settings').addEventListener('click', () => {
@@ -2566,12 +2759,20 @@
 
       document.getElementById('btn-next-level').addEventListener('click', () => {
         document.getElementById('modal-level-win').classList.add('hidden');
-        loadLevel(currentLevel + 1);
+        if (playMode === 'daily') {
+          playMode = 'level';
+          document.getElementById('screen-game').classList.add('hidden');
+          document.getElementById('screen-home').classList.remove('hidden');
+          AppState.syncUI();
+          openEvents();
+          return;
+        }
+        loadLevel(Math.min(250, currentLevel + 1));
       });
 
       document.getElementById('btn-try-again').addEventListener('click', () => {
         document.getElementById('modal-game-over').classList.add('hidden');
-        loadLevel(currentLevel); // never show an ad right after a loss
+        loadLevel(currentLevel, playMode === 'daily'); // never show an ad right after a loss
       });
 
       document.getElementById('btn-continue-ad').addEventListener('click', () => {
@@ -2606,8 +2807,30 @@
         document.getElementById('modal-store').classList.add('hidden');
       });
 
-      document.getElementById('nav-btn-events').addEventListener('click', () => {
-        document.getElementById('modal-events').classList.remove('hidden');
+      document.getElementById('nav-btn-events').addEventListener('click', () => openEvents());
+
+      document.getElementById('btn-daily-play').addEventListener('click', () => {
+        document.getElementById('modal-events').classList.add('hidden');
+        initAudio();
+        document.getElementById('screen-home').classList.add('hidden');
+        document.getElementById('screen-game').classList.remove('hidden');
+        loadLevel(currentLevel, true);
+      });
+      document.getElementById('btn-streak-save').addEventListener('click', () => {
+        triggerUnityAd('rewarded', () => {
+          // Bridge the missed day: the streak continues if today's puzzle is solved
+          const y = new Date(); y.setDate(y.getDate() - 1);
+          AppState.dailyLastDate = dayKey(y);
+          AppState.streakSavedDate = dayKey();
+          AppState.save();
+          showToast('Streak saved! Solve today\'s puzzle to keep it going 🔥');
+          renderEvents();
+        });
+      });
+
+      document.getElementById('btn-home-map').addEventListener('click', () => openLevelMap());
+      document.getElementById('btn-close-map').addEventListener('click', () => {
+        document.getElementById('modal-level-map').classList.add('hidden');
       });
       document.getElementById('btn-close-events').addEventListener('click', () => {
         document.getElementById('modal-events').classList.add('hidden');
