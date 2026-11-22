@@ -37,6 +37,16 @@ jobs:
           npx cap add android
           npx cap sync android
 
+      - name: Set up Python (for icon generation)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Game icon and splash (from play_store_icon_512x512.png)
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 scripts/make_icons.py play_store_icon_512x512.png android/app/src/main/res
+
       - name: Configure SDK levels, version and LevelPlay Unity adapter
         run: |
           python3 - << 'EOF'
