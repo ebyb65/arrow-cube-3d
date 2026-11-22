@@ -9,8 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      VERSION_CODE: 6
-      VERSION_NAME: 1.0.5
+      VERSION_CODE: 7
+      VERSION_NAME: 1.0.6
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
