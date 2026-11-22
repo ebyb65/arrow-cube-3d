@@ -13,6 +13,7 @@
       --sat: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
       --sab: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
     }
+    body.theme-dark #screen-game > footer span.fredoka { color: #e2e8f0; }
     #screen-home { padding-top: calc(1rem + var(--sat)); padding-bottom: calc(1rem + var(--sab) + var(--banner-space, 0px)); }
     #screen-game > header { padding-top: calc(0.75rem + var(--sat)); }
     #screen-game > footer { margin-bottom: calc(1rem + var(--sab) + var(--banner-space, 0px)); }
@@ -478,6 +479,9 @@
         <button id="tab-store-free" class="flex-1 py-1.5 rounded-xl text-slate-600 hover:text-indigo-600 transition active:scale-95 flex items-center justify-center gap-1 font-extrabold">
           <span>🎁</span><span>Free</span>
         </button>
+        <button id="tab-store-themes" class="flex-1 py-1.5 rounded-xl text-slate-600 hover:text-indigo-600 transition active:scale-95 flex items-center justify-center gap-1 font-extrabold">
+          <span>🎨</span><span>Themes</span>
+        </button>
       </div>
 
       <!-- Scrollable Products Container -->
@@ -651,6 +655,11 @@
               Claim
             </button>
           </div>
+        </div>
+
+        <div id="store-panel-themes" class="space-y-2.5 hidden">
+          <p class="text-[10px] text-slate-500 px-1">Change how arrows and cubes look. Looks only: puzzles stay the same.</p>
+          <div id="store-theme-list" class="space-y-2.5"></div>
         </div>
       </div>
     </div>
@@ -874,6 +883,8 @@
       streakSavedDate: '',
       chestLevel: 0,          // level that earned the pending chest (0 = none)
       chestReadyAt: 0,        // ms timestamp when it can be opened for free
+      ownedThemes: ['classic'],
+      equippedTheme: 'classic',
       playerName: "Player 1",
       avatarEmoji: "🦊",
       avatarFrame: "frame-gold",
@@ -930,6 +941,9 @@
           this.streakSavedDate = localStorage.getItem('arrow_cube_streak_saved') || '';
           this.chestLevel = parseInt(localStorage.getItem('arrow_cube_chest_level')) || 0;
           this.chestReadyAt = parseInt(localStorage.getItem('arrow_cube_chest_ready_at')) || 0;
+          try { const ot = JSON.parse(localStorage.getItem('arrow_cube_owned_themes') || '["classic"]'); if (Array.isArray(ot)) this.ownedThemes = ot; } catch (e3) {}
+          if (!this.ownedThemes.includes('classic')) this.ownedThemes.unshift('classic');
+          this.equippedTheme = localStorage.getItem('arrow_cube_theme') || 'classic';
           const h = localStorage.getItem('arrow_cube_hints');
           if (h !== null) this.hints = parseInt(h) || 0;
           const er = localStorage.getItem('arrow_cube_erasers');
@@ -961,6 +975,8 @@
           localStorage.setItem('arrow_cube_streak_saved', this.streakSavedDate || '');
           localStorage.setItem('arrow_cube_chest_level', this.chestLevel || 0);
           localStorage.setItem('arrow_cube_chest_ready_at', this.chestReadyAt || 0);
+          localStorage.setItem('arrow_cube_owned_themes', JSON.stringify(this.ownedThemes || ['classic']));
+          localStorage.setItem('arrow_cube_theme', this.equippedTheme || 'classic');
           localStorage.setItem('arrow_cube_hints', this.hints);
           localStorage.setItem('arrow_cube_erasers', this.erasers);
           localStorage.setItem('arrow_cube_wands', this.wands);
@@ -1148,6 +1164,78 @@
       if (continuesUsed > 0) return 1;
       return Math.max(1, Math.min(3, hearts));
     }
+    // Cosmetic themes: colours only, no effect on gameplay
+    const THEMES = {
+      classic: { name: 'Classic', price: 0,    arrow: 0x0f172a, back: 0x94a3b8, cube: 0xffffff, emissive: 0x000000, rough: 0.15, metal: 0.05, opacity: 1,    edge: 0x94a3b8, bg: '' },
+      wood:    { name: 'Wood',    price: 800,  arrow: 0x3b1a08, back: 0xc8a47a, cube: 0xd9a66a, emissive: 0x000000, rough: 0.8,  metal: 0.0,  opacity: 1,    edge: 0x8b5a2b, bg: 'radial-gradient(circle at 50% 36%, #fffaf0 0%, #f3e2c3 55%, #e2c596 100%)' },
+      sunset:  { name: 'Sunset',  price: 1000, arrow: 0x4c0519, back: 0xfda4af, cube: 0xffedd5, emissive: 0x000000, rough: 0.3,  metal: 0.05, opacity: 1,    edge: 0xfb923c, bg: 'radial-gradient(circle at 50% 36%, #fff7ed 0%, #fed7aa 50%, #fda4af 100%)' },
+      crystal: { name: 'Crystal', price: 1200, arrow: 0x1e3a8a, back: 0x93c5fd, cube: 0xcfefff, emissive: 0x0b2540, rough: 0.05, metal: 0.1,  opacity: 0.86, edge: 0x60a5fa, bg: 'radial-gradient(circle at 50% 36%, #f0f9ff 0%, #bae6fd 55%, #7dd3fc 100%)' },
+      neon:    { name: 'Neon',    price: 1500, arrow: 0x22d3ee, back: 0x818cf8, cube: 0x4338ca, emissive: 0x1e1b4b, rough: 0.35, metal: 0.2,  opacity: 1,    edge: 0xf0abfc, bg: 'radial-gradient(circle at 50% 36%, #2a2470 0%, #15123d 55%, #07061a 100%)', dark: true },
+    };
+    const THEME_ORDER = ['classic', 'wood', 'sunset', 'crystal', 'neon'];
+    var currentCubeMat = null, currentEdgeMat = null;
+    function theme() { return THEMES[AppState.equippedTheme] || THEMES.classic; }
+    function hexCss(n) { return '#' + n.toString(16).padStart(6, '0'); }
+    function styleCubeMaterial(m) {
+      const t = theme();
+      m.color.setHex(t.cube);
+      if (m.emissive) m.emissive.setHex(t.emissive);
+      m.roughness = t.rough;
+      m.metalness = t.metal;
+      m.transparent = t.opacity < 1;
+      m.opacity = t.opacity;
+      m.needsUpdate = true;
+    }
+    function applyTheme() {
+      document.body.style.background = theme().bg;   // '' falls back to the stylesheet (Classic)
+      document.body.classList.toggle('theme-dark', !!theme().dark);
+      if (currentCubeMat) styleCubeMaterial(currentCubeMat);
+      if (currentEdgeMat) currentEdgeMat.color.setHex(theme().edge);
+    }
+    function renderThemes() {
+      const list = document.getElementById('store-theme-list');
+      if (!list) return;
+      list.innerHTML = '';
+      THEME_ORDER.forEach(id => {
+        const t = THEMES[id];
+        const owned = AppState.ownedThemes.includes(id);
+        const equipped = AppState.equippedTheme === id;
+        const row = document.createElement('div');
+        row.className = 'p-2.5 rounded-2xl bg-white border flex items-center justify-between shadow-sm ' + (equipped ? 'border-indigo-400 ring-2 ring-indigo-200' : 'border-slate-200');
+        const swatchBg = t.bg || 'radial-gradient(circle at 50% 36%, #ffffff 0%, #e0f2fe 48%, #bae6fd 100%)';
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-12 h-12 rounded-xl border border-slate-200 flex items-center justify-center" style="background:${swatchBg}">
+              <div class="w-7 h-7 rounded-md flex items-center justify-center shadow" style="background:${hexCss(t.cube)};opacity:${t.opacity};border:1.5px solid ${hexCss(t.edge)}">
+                <div class="w-4 h-1 rounded-full" style="background:${hexCss(t.arrow)}"></div>
+              </div>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-800">${t.name}</div>
+              <div class="text-[10px] text-slate-500">${owned ? (equipped ? 'In use' : 'Owned') : `🪙 ${t.price.toLocaleString()} coins`}</div>
+            </div>
+          </div>`;
+        const btn = document.createElement('button');
+        btn.className = 'px-3 py-1.5 rounded-xl font-bold text-xs active:scale-95 transition ' + (equipped
+          ? 'bg-slate-100 text-slate-400' : owned ? 'bg-indigo-500 text-white' : 'bg-amber-500 text-white');
+        btn.textContent = equipped ? 'Equipped' : owned ? 'Equip' : 'Buy';
+        btn.disabled = equipped;
+        btn.onclick = () => {
+          if (!owned) {
+            if (!AppState.spendCoins(t.price)) { showToast(`You need ${(t.price - AppState.coins).toLocaleString()} more coins 🪙`); return; }
+            AppState.ownedThemes.push(id);
+            showToast(`${t.name} theme unlocked! 🎨`);
+          }
+          AppState.equippedTheme = id;
+          AppState.save();
+          applyTheme();
+          renderThemes();
+        };
+        row.appendChild(btn);
+        list.appendChild(row);
+      });
+    }
+
     const CHEST_EVERY = 10;
     const CHEST_WAIT_MS = 4 * 60 * 60 * 1000;
     function chestMsLeft() { return Math.max(0, AppState.chestReadyAt - Date.now()); }
@@ -1873,7 +1961,7 @@
     function createArrowGroup(arrow) {
       const group = new THREE.Group();
       
-      const colorVal = arrow.isCollidedRed ? 0xef4444 : 0x0f172a;
+      const colorVal = arrow.isCollidedRed ? 0xef4444 : theme().arrow;
       const defaultMat = new THREE.MeshStandardMaterial({
         color: colorVal,
         roughness: 0.22,
@@ -2426,11 +2514,9 @@
 
       // Build Multi-Cube Cluster as a SINGLE UNIFIED FIGURE (Requirement: unified color & seamless monolithic shape!)
       const boxGeo = new THREE.BoxGeometry(CUBE_UNIT, CUBE_UNIT, CUBE_UNIT);
-      const unifiedCubeMat = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.15,
-        metalness: 0.05
-      });
+      const unifiedCubeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.15, metalness: 0.05 });
+      styleCubeMaterial(unifiedCubeMat);
+      currentCubeMat = unifiedCubeMat;
 
       lvlData.cluster.forEach(cube => {
         const [cx, cy, cz] = cube.pos;
@@ -2499,7 +2585,8 @@
 
       const lineGeo = new THREE.BufferGeometry();
       lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-      const lineMat = new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.45 });
+      const lineMat = new THREE.LineBasicMaterial({ color: theme().edge, transparent: true, opacity: 0.45 });
+      currentEdgeMat = lineMat;
       const edgeLines = new THREE.LineSegments(lineGeo, lineMat);
       mainCubeGroup.add(edgeLines);
 
@@ -2747,7 +2834,7 @@
         const dot = worldNorm.dot(dirToCamera);
 
         const isFacing = dot > 0.18;
-        const targetColor = isFacing ? 0x0f172a : 0x94a3b8;
+        const targetColor = isFacing ? theme().arrow : theme().back;
         const targetOpacity = isFacing ? 1.0 : 0.38;
 
         group.traverse(c => {
@@ -3106,16 +3193,20 @@
       const panelCoins = document.getElementById('store-panel-coins');
       const panelBundles = document.getElementById('store-panel-bundles');
       const panelFree = document.getElementById('store-panel-free');
+      const tabThemes = document.getElementById('tab-store-themes');
+      const panelThemes = document.getElementById('store-panel-themes');
 
       function switchStoreTab(activeTab) {
         initAudio();
-        [panelCoins, panelBundles, panelFree].forEach(p => p && p.classList.add('hidden'));
-        [tabCoins, tabBundles, tabFree].forEach(t => {
+        [panelCoins, panelBundles, panelFree, panelThemes].forEach(p => p && p.classList.add('hidden'));
+        [tabCoins, tabBundles, tabFree, tabThemes].forEach(t => {
           if (t) {
             t.className = 'flex-1 py-1.5 rounded-xl text-slate-600 hover:text-indigo-600 transition active:scale-95 flex items-center justify-center gap-1 font-extrabold';
+            if (!IAP_ENABLED && (t === tabCoins || t === tabBundles)) t.classList.add('hidden');
           }
         });
 
+        if (!IAP_ENABLED && (activeTab === 'coins' || activeTab === 'bundles')) activeTab = 'free';
         if (activeTab === 'coins') {
           if (panelCoins) panelCoins.classList.remove('hidden');
           if (tabCoins) tabCoins.className = 'flex-1 py-1.5 rounded-xl bg-white text-indigo-700 shadow-sm transition active:scale-95 flex items-center justify-center gap-1 font-extrabold';
@@ -3125,12 +3216,18 @@
         } else if (activeTab === 'free') {
           if (panelFree) panelFree.classList.remove('hidden');
           if (tabFree) tabFree.className = 'flex-1 py-1.5 rounded-xl bg-white text-indigo-700 shadow-sm transition active:scale-95 flex items-center justify-center gap-1 font-extrabold';
+        } else if (activeTab === 'themes') {
+          renderThemes();
+          if (panelThemes) panelThemes.classList.remove('hidden');
+          if (tabThemes) tabThemes.className = 'flex-1 py-1.5 rounded-xl bg-white text-indigo-700 shadow-sm transition active:scale-95 flex items-center justify-center gap-1 font-extrabold';
         }
       }
 
       if (tabCoins) tabCoins.addEventListener('click', () => switchStoreTab('coins'));
       if (tabBundles) tabBundles.addEventListener('click', () => switchStoreTab('bundles'));
       if (tabFree) tabFree.addEventListener('click', () => switchStoreTab('free'));
+      if (tabThemes) tabThemes.addEventListener('click', () => switchStoreTab('themes'));
+      applyTheme();
 
       // Google Play In-App Purchase Simulation & Native Billing Hook
       let currentPendingIAP = null;
