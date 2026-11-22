@@ -210,6 +210,9 @@
           <span>🗺️ Level Map</span>
           <span class="mono-font bg-amber-100 text-amber-700 px-2 py-0.5 rounded-lg">★ <span id="home-map-stars">0</span></span>
         </button>
+        <button id="btn-home-chest" class="hidden w-full mt-2 py-2 px-4 rounded-2xl bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-300 active:scale-95 transition text-xs font-extrabold text-amber-800 flex items-center justify-center gap-2">
+          <span>🎁</span><span id="home-chest-text">Chest</span>
+        </button>
       </div>
     </div>
 
@@ -750,6 +753,22 @@
   </div>
 
 
+  <!-- Modal: Treasure Chest -->
+  <div id="modal-chest" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden">
+    <div class="glass-card w-full max-w-xs p-6 rounded-3xl border-2 border-amber-200 text-center shadow-2xl">
+      <div id="chest-icon" class="text-5xl mb-2">🎁</div>
+      <h3 id="chest-title" class="text-lg font-black text-slate-900 fredoka">Treasure Chest</h3>
+      <p id="chest-subtitle" class="text-[11px] text-slate-500 mb-4">Reward for reaching level 10</p>
+      <div id="chest-result" class="hidden mb-4 px-3 py-2 rounded-2xl bg-amber-100 border border-amber-300 text-amber-800 text-sm font-black mono-font"></div>
+      <div id="chest-actions" class="space-y-2">
+        <p class="text-[11px] text-slate-600 mb-1">Coins + a random power-up inside</p>
+        <button id="btn-chest-video" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 active:scale-95 transition text-xs font-extrabold text-white shadow-md">🎬 Watch video: Open now</button>
+        <button id="btn-chest-free" class="w-full py-2.5 rounded-xl bg-white border border-amber-300 active:scale-95 transition text-xs font-extrabold text-amber-800">Open free in 4h</button>
+      </div>
+      <button id="btn-chest-close" class="w-full mt-2 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100">Close</button>
+    </div>
+  </div>
+
   <!-- Modal: Level Map -->
   <div id="modal-level-map" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md hidden">
     <div class="glass-card w-full max-w-sm rounded-3xl border border-sky-200 shadow-2xl flex flex-col" style="max-height: calc(100vh - 2rem - var(--sat) - var(--sab));">
@@ -792,6 +811,9 @@
       <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-800 font-black text-xs mono-font mb-5">
         <span id="win-coins-badge">+50 Coins Earned! 🪙</span>
       </div>
+      <button id="win-chest" class="hidden w-full mb-3 py-2.5 px-4 rounded-2xl bg-gradient-to-r from-amber-100 to-orange-100 border-2 border-amber-300 active:scale-95 transition text-xs font-extrabold text-amber-800 flex items-center justify-center gap-2">
+        <span class="text-lg">🎁</span><span>Treasure chest earned! Tap to open</span>
+      </button>
       <button id="btn-win-double" class="w-full mb-3 py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 active:scale-95 transition text-xs font-extrabold text-white shadow-md">
         🎬 Watch video: Double coins
       </button>
@@ -850,6 +872,8 @@
       dailyLastDate: '',
       dailyStreak: 0,
       streakSavedDate: '',
+      chestLevel: 0,          // level that earned the pending chest (0 = none)
+      chestReadyAt: 0,        // ms timestamp when it can be opened for free
       playerName: "Player 1",
       avatarEmoji: "🦊",
       avatarFrame: "frame-gold",
@@ -904,6 +928,8 @@
           this.dailyLastDate = localStorage.getItem('arrow_cube_daily_last') || '';
           this.dailyStreak = parseInt(localStorage.getItem('arrow_cube_daily_streak')) || 0;
           this.streakSavedDate = localStorage.getItem('arrow_cube_streak_saved') || '';
+          this.chestLevel = parseInt(localStorage.getItem('arrow_cube_chest_level')) || 0;
+          this.chestReadyAt = parseInt(localStorage.getItem('arrow_cube_chest_ready_at')) || 0;
           const h = localStorage.getItem('arrow_cube_hints');
           if (h !== null) this.hints = parseInt(h) || 0;
           const er = localStorage.getItem('arrow_cube_erasers');
@@ -933,6 +959,8 @@
           localStorage.setItem('arrow_cube_daily_last', this.dailyLastDate || '');
           localStorage.setItem('arrow_cube_daily_streak', this.dailyStreak || 0);
           localStorage.setItem('arrow_cube_streak_saved', this.streakSavedDate || '');
+          localStorage.setItem('arrow_cube_chest_level', this.chestLevel || 0);
+          localStorage.setItem('arrow_cube_chest_ready_at', this.chestReadyAt || 0);
           localStorage.setItem('arrow_cube_hints', this.hints);
           localStorage.setItem('arrow_cube_erasers', this.erasers);
           localStorage.setItem('arrow_cube_wands', this.wands);
@@ -977,6 +1005,7 @@
         const starTotal = Object.values(this.levelStars || {}).reduce((a, b) => a + b, 0);
         const mapStars = document.getElementById('home-map-stars');
         if (mapStars) mapStars.textContent = starTotal;
+        if (typeof updateChestBadge === 'function') updateChestBadge();
         const dot = document.getElementById('events-dot');
         if (dot) dot.classList.toggle('hidden', this.dailyLastDate === dayKey());
 
@@ -1118,6 +1147,55 @@
     function starsForRun() {
       if (continuesUsed > 0) return 1;
       return Math.max(1, Math.min(3, hearts));
+    }
+    const CHEST_EVERY = 10;
+    const CHEST_WAIT_MS = 4 * 60 * 60 * 1000;
+    function chestMsLeft() { return Math.max(0, AppState.chestReadyAt - Date.now()); }
+    function formatWait(ms) {
+      const m = Math.ceil(ms / 60000);
+      return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+    }
+    function updateChestBadge() {
+      const b = document.getElementById('btn-home-chest');
+      if (!b) return;
+      if (!AppState.chestLevel) { b.classList.add('hidden'); return; }
+      b.classList.remove('hidden');
+      const left = chestMsLeft();
+      document.getElementById('home-chest-text').textContent = left > 0 ? `Chest · ${formatWait(left)}` : 'Chest ready!';
+      b.classList.toggle('animate-pulse', left === 0);
+    }
+    function openChestModal() {
+      if (!AppState.chestLevel) return;
+      document.getElementById('chest-result').classList.add('hidden');
+      document.getElementById('chest-actions').classList.remove('hidden');
+      document.getElementById('chest-icon').textContent = '🎁';
+      document.getElementById('chest-title').textContent = 'Treasure Chest';
+      document.getElementById('chest-subtitle').textContent = `Reward for reaching level ${AppState.chestLevel}`;
+      const left = chestMsLeft();
+      const free = document.getElementById('btn-chest-free');
+      free.disabled = left > 0;
+      free.classList.toggle('opacity-50', left > 0);
+      free.textContent = left > 0 ? `Open free in ${formatWait(left)}` : 'Open free';
+      document.getElementById('modal-chest').classList.remove('hidden');
+    }
+    function grantChest() {
+      const coins = [100, 150, 200, 250][Math.floor(Math.random() * 4)];
+      const r = Math.random();
+      const item = r < 0.5 ? 'hint' : r < 0.85 ? 'eraser' : 'wand';
+      const names = { hint: '💡 Hint', eraser: '🧽 Eraser', wand: '🪄 Wand' };
+      AppState.chestLevel = 0;
+      AppState.chestReadyAt = 0;
+      if (item === 'hint') AppState.hints += 1; else if (item === 'eraser') AppState.erasers += 1; else AppState.wands += 1;
+      AppState.addCoins(coins);           // also saves and refreshes the UI
+      if (typeof updatePowerupBadges === 'function') updatePowerupBadges();
+      document.getElementById('chest-actions').classList.add('hidden');
+      document.getElementById('chest-icon').textContent = '✨';
+      document.getElementById('chest-title').textContent = 'Chest opened!';
+      document.getElementById('chest-subtitle').textContent = 'Added to your inventory';
+      const res = document.getElementById('chest-result');
+      res.textContent = `+${coins} coins · +1 ${names[item]}`;
+      res.classList.remove('hidden');
+      triggerHaptic && triggerHaptic('win');
     }
     function starString(n) { return '★'.repeat(n) + '☆'.repeat(3 - n); }
     const POWERUP_COST = { hint: 150, eraser: 250, wand: 500 };
@@ -2028,6 +2106,18 @@
       if (dbl) { dbl.disabled = false; dbl.classList.remove('opacity-50'); }
       AppState.levelsClearedCount++;
 
+      const chestCard = document.getElementById('win-chest');
+      if (chestCard) chestCard.classList.add('hidden');
+      if (playMode !== 'daily' && currentLevel % CHEST_EVERY === 0 && currentLevel >= AppState.maxUnlockedLevel) {
+        if (!AppState.chestLevel) {
+          AppState.chestLevel = currentLevel;
+          AppState.chestReadyAt = Date.now() + CHEST_WAIT_MS;
+          if (chestCard) chestCard.classList.remove('hidden');
+        } else {
+          AppState.coins += 100;          // chest slot full: give the coins straight away
+          setTimeout(() => showToast('Chest slot full: +100 coins instead 🪙'), 800);
+        }
+      }
       if (playMode !== 'daily' && currentLevel >= AppState.maxUnlockedLevel) {
         AppState.maxUnlockedLevel = currentLevel + 1;
       }
@@ -2829,6 +2919,22 @@
       });
 
       document.getElementById('btn-home-map').addEventListener('click', () => openLevelMap());
+      document.getElementById('btn-home-chest').addEventListener('click', () => openChestModal());
+      document.getElementById('win-chest').addEventListener('click', () => openChestModal());
+      document.getElementById('btn-chest-video').addEventListener('click', () => {
+        triggerUnityAd('rewarded', () => grantChest());
+      });
+      document.getElementById('btn-chest-free').addEventListener('click', () => {
+        if (chestMsLeft() > 0) return;
+        grantChest();
+      });
+      document.getElementById('btn-chest-close').addEventListener('click', () => {
+        document.getElementById('modal-chest').classList.add('hidden');
+        const wc = document.getElementById('win-chest');
+        if (wc && !AppState.chestLevel) wc.classList.add('hidden');
+        AppState.syncUI();
+      });
+      setInterval(updateChestBadge, 30000);
       document.getElementById('btn-close-map').addEventListener('click', () => {
         document.getElementById('modal-level-map').classList.add('hidden');
       });
