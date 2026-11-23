@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Block Escape 3D</title>
+<style>
+:root {
+  --bg: #eef1f6; --bg2: #ffffff; --ink: #1d2230; --ink2: #5b6476; --line: #d5dbe5;
+  --accent: #3e7bfa; --accent-ink: #ffffff; --board: #cfd6e2; --cell: #e3e8f0; --frame: #8a93a6;
+  --shadow: 0 6px 24px rgba(20, 30, 60, .14);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151c; --bg2: #1c212b; --ink: #eef1f6; --ink2: #9aa3b5; --line: #2c3341;
+    --accent: #5b8fff; --accent-ink: #0b0e14; --board: #2a303d; --cell: #343b4a; --frame: #596276;
+    --shadow: 0 6px 24px rgba(0, 0, 0, .45);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151c; --bg2: #1c212b; --ink: #eef1f6; --ink2: #9aa3b5; --line: #2c3341;
+  --accent: #5b8fff; --accent-ink: #0b0e14; --board: #2a303d; --cell: #343b4a; --frame: #596276;
+  --shadow: 0 6px 24px rgba(0, 0, 0, .45);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); overflow: hidden;
+  font: 16px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
+#scene { position: fixed; inset: 0; }
+canvas { display: block; }
+.hud { position: fixed; left: 0; right: 0; top: 0; padding: max(10px, env(safe-area-inset-top)) 16px 0;
+  display: flex; align-items: center; gap: 8px; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.pill { background: var(--bg2); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px;
+  font-weight: 600; font-size: 14px; box-shadow: var(--shadow); white-space: nowrap; }
+.grow { flex: 1; }
+.btn { appearance: none; border: 1px solid var(--line); background: var(--bg2); color: var(--ink);
+  border-radius: 14px; padding: 10px 14px; font: inherit; font-weight: 600; font-size: 15px; box-shadow: var(--shadow);
+  cursor: pointer; min-height: 44px; }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn.icon { width: 44px; padding: 0; display: grid; place-items: center; font-size: 20px; }
+.bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 16px max(14px, env(safe-area-inset-bottom));
+  display: flex; gap: 8px; justify-content: center; pointer-events: none; }
+.bar .btn { pointer-events: auto; flex: 1; max-width: 120px; }
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(76px + env(safe-area-inset-bottom)); margin: 0 auto; max-width: 420px;
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; text-align: center;
+  box-shadow: var(--shadow); font-size: 15px; transition: opacity .25s; pointer-events: none; }
+.toast.hide { opacity: 0; }
+.screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 24px 16px; gap: 14px; text-align: center; overflow-y: auto; }
+.screen.hide, .modal.hide { display: none; }
+h1 { margin: 0; font-size: 32px; letter-spacing: -.5px; }
+.sub { color: var(--ink2); font-size: 14px; max-width: 340px; }
+.how { text-align: left; max-width: 340px; margin: 0; padding-left: 20px; color: var(--ink); font-size: 15px; }
+.how li { margin: 6px 0; }
+.modal { position: fixed; inset: 0; background: rgba(10, 14, 22, .45); display: grid; place-items: center; padding: 16px; }
+.card { background: var(--bg2); border-radius: 20px; padding: 22px 18px; width: 100%; max-width: 340px; text-align: center;
+  box-shadow: var(--shadow); border: 1px solid var(--line); }
+.stars { font-size: 40px; letter-spacing: 6px; margin: 6px 0; color: #f5b40a; }
+.stars .off { color: var(--line); }
+.grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 360px; }
+.lv { aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--line); background: var(--bg2); color: var(--ink);
+  font: inherit; font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; }
+.lv small { font-size: 10px; color: #f5b40a; letter-spacing: 1px; min-height: 12px; }
+.row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.cube-logo { width: 84px; height: 84px; }
+</style>
+</head>
+<body>
+<div id="scene"></div>
+
+<div class="hud" id="hud">
+  <button class="btn icon" id="bMenu" aria-label="Levels">☰</button>
+  <span class="pill" id="hLevel">Level 1</span>
+  <span class="grow"></span>
+  <span class="pill" id="hMoves">Moves 0 · Par 1</span>
+</div>
+<div class="bar" id="bar">
+  <button class="btn" id="bUndo">↶ Undo</button>
+  <button class="btn" id="bRestart">⟲ Restart</button>
+  <button class="btn" id="bHint">💡 Hint</button>
+</div>
+<div class="toast hide" id="toast"></div>
+
+<div class="screen" id="sTitle">
+  <svg class="cube-logo" viewBox="0 0 84 84" aria-hidden="true">
+    <polygon points="42,6 76,24 42,42 8,24" fill="#3e7bfa"/>
+    <polygon points="8,24 42,42 42,78 8,60" fill="#e5484d"/>
+    <polygon points="76,24 42,42 42,78 76,60" fill="#2fb36b"/>
+    <rect x="34" y="16" width="16" height="9" rx="2" fill="#fff" opacity=".85" transform="rotate(27 42 20)"/>
+  </svg>
+  <h1>Block Escape 3D</h1>
+  <div class="sub">Prototype for Yebee Games. Not a release build: no ads, no coins, all levels open.</div>
+  <ul class="how">
+    <li><b>Swipe a block</b> to slide it. It stops at the next block or edge.</li>
+    <li>Blocks leave through a <b>gate of their own colour</b> on the cube's edges.</li>
+    <li>At a plain edge, <b>swipe again</b> to roll the block onto the next side.</li>
+    <li><b>Drag empty space</b> to turn the cube. Undo is free.</li>
+  </ul>
+  <div class="row">
+    <button class="btn primary" id="bPlay">Play</button>
+    <button class="btn" id="bLevels">Levels</button>
+  </div>
+</div>
+
+<div class="screen hide" id="sLevels">
+  <h1 style="font-size:24px">Levels</h1>
+  <div class="grid" id="lvGrid"></div>
+  <div class="row"><button class="btn" id="bBack">Back</button></div>
+</div>
+
+<div class="modal hide" id="mWin">
+  <div class="card">
+    <div style="font-weight:700;font-size:20px" id="wTitle">Level clear!</div>
+    <div class="stars" id="wStars"></div>
+    <div class="sub" style="margin:0 auto 14px" id="wInfo"></div>
+    <div class="row">
+      <button class="btn" id="wRetry">Replay</button>
+      <button class="btn primary" id="wNext">Next level</button>
+    </div>
+  </div>
+</div>
+
+<script>/*THREE*/</script>
+<script>/*LOGIC*/</script>
+<script>
+const LEVELS = /*LEVELS*/;
+const PALETTE = [0xe5484d, 0x3e7bfa, 0xf5c518, 0x2fb36b, 0x9b5de5, 0xf97316];
+const TIPS = {
+  1: 'Swipe the block toward the gate of its colour.',
+  2: 'Blocks stop at an edge. Swipe again to roll over to the next side. Drag empty space to turn the cube.',
+  3: 'A gate of another colour is a wall. Clear the way in the right order.',
+  4: 'Stuck? Undo is free, and Hint shows one good move.',
+};
+
+// ---------- storage (optional) ----------
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem('be3d') || '{}'); } catch (e) { return {}; } },
+  set(v) { try { localStorage.setItem('be3d', JSON.stringify(v)); } catch (e) {} },
+};
+let save = store.get(); save.stars = save.stars || {};
+
+// ---------- three.js scene ----------
+const host = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+host.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8890a0, 0.75));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+sun.position.set(3, 6, 8);
+camera.add(sun);
+scene.add(camera);
+const cube = new THREE.Group();
+scene.add(cube);
+const unitBox = new THREE.BoxGeometry(1, 1, 1);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const mats = {};
+function mat(color, opts) {
+  const k = color + JSON.stringify(opts || {});
+  if (!mats[k]) mats[k] = new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.55, metalness: 0.05 }, opts || {}));
+  return mats[k];
+}
+function themeColors() {
+  scene.background = new THREE.Color(css('--bg'));
+  return { board: new THREE.Color(css('--board')), cell: new THREE.Color(css('--cell')), frame: new THREE.Color(css('--frame')) };
+}
+const V = a => new THREE.Vector3(a[0], a[1], a[2]);
+
+// box helper: centre (cube-local) and size per axis
+function box(parent, center, size, material) {
+  const m = new THREE.Mesh(unitBox, material);
+  m.position.copy(center); m.scale.set(size[0], size[1], size[2]);
+  parent.add(m); return m;
+}
+function sizeFor(normal, tangentSize, normalSize) {
+  return [0, 1, 2].map(a => normal[a] !== 0 ? normalSize : tangentSize);
+}
+
+// ---------- game state ----------
+let L = null, idx = 0, state = null, history = [], moves = 0, busy = false;
+let boardGroup = null, blockGroups = [], hintArrow = null;
+
+function buildBoard() {
+  if (boardGroup) cube.remove(boardGroup);
+  boardGroup = new THREE.Group(); cube.add(boardGroup);
+  const N = L.n, h = N / 2, tc = themeColors();
+  box(boardGroup, new THREE.Vector3(), [N - 0.02, N - 0.02, N - 0.02], mat(tc.board.getHex()));
+  // cells
+  const cellMat = mat(tc.cell.getHex());
+  BE.FACES.forEach(f => {
+    for (let u = 0; u < N; u++) for (let v = 0; v < N; v++) {
+      const ax = f.findIndex(x => x !== 0), t = [0, 1, 2].filter(a => a !== ax);
+      const c = [0, 0, 0]; c[ax] = f[ax] * h; c[t[0]] = u + 0.5 - h; c[t[1]] = v + 0.5 - h;
+      box(boardGroup, V(c), sizeFor(f, 0.9, 0.02), cellMat);
+    }
+  });
+  // edges: frame + gates
+  const gm = BE.gateMap(L);
+  for (let a = 0; a < 6; a++) for (let b = a + 1; b < 6; b++) {
+    if (Math.floor(a / 2) === Math.floor(b / 2)) continue;
+    const na = BE.FACES[a], nb = BE.FACES[b];
+    const e = 3 - BE.axisOf(na) - BE.axisOf(nb);
+    const gates = gm[BE.edgeKey(a, b)] || {};
+    for (let i = 0; i < N; i++) {
+      const lane = 2 * i + 1 - N;
+      const p = V(na).add(V(nb)).multiplyScalar(h);
+      p.setComponent(e, lane / 2);
+      const col = gates[lane];
+      const sz = [0.07, 0.07, 0.07];
+      if (col === undefined) {
+        sz[e] = 1.0;
+        box(boardGroup, p, sz, mat(tc.frame.getHex()));
+      } else {
+        const out = V(na).add(V(nb)).multiplyScalar(0.1);
+        // a gate looks like a glowing tube on the edge, unlike the solid blocks
+        const g = [0.36, 0.36, 0.36]; g[e] = 0.96;
+        box(boardGroup, p.clone().add(out), g, mat(PALETTE[col], { emissive: PALETTE[col], emissiveIntensity: 0.9, transparent: true, opacity: 0.42, depthWrite: false }));
+        const core = [0.13, 0.13, 0.13]; core[e] = 1.0;
+        box(boardGroup, p.clone().add(out), core, mat(PALETTE[col], { emissive: PALETTE[col], emissiveIntensity: 0.6 }));
+      }
+    }
+  }
+}
+
+function blockMesh(cells, color) {
+  const g = new THREE.Group();
+  const N = L.n;
+  const m = mat(PALETTE[color]);
+  const top = mat(new THREE.Color(PALETTE[color]).lerp(new THREE.Color(0xffffff), 0.35).getHex());
+  const set = new Set(cells.map(c => c.join(',')));
+  cells.forEach(c => {
+    const n = BE.FACES[BE.faceOf(c, N)];
+    const base = V(c).multiplyScalar(0.5);
+    box(g, base.clone().add(V(n).multiplyScalar(0.17)), sizeFor(n, 0.86, 0.34), m).userData.block = true;
+    box(g, base.clone().add(V(n).multiplyScalar(0.345)), sizeFor(n, 0.56, 0.02), top).userData.block = true;
+    // connectors to neighbours in the same block (only +direction to avoid duplicates)
+    [0, 1, 2].forEach(a => {
+      if (n[a] !== 0) return;
+      const q = c.slice(); q[a] += 2;
+      if (!set.has(q.join(','))) return;
+      const mid = base.clone(); mid.setComponent(a, mid.getComponent(a) + 0.5);
+      const sz = sizeFor(n, 0.86, 0.34); sz[a] = 0.3;
+      box(g, mid.add(V(n).multiplyScalar(0.17)), sz, m).userData.block = true;
+    });
+  });
+  return g;
+}
+
+function buildBlocks() {
+  blockGroups.forEach(g => g && cube.remove(g));
+  blockGroups = state.map((cells, i) => {
+    if (!cells) return null;
+    const g = blockMesh(cells, L.blocks[i].color);
+    g.userData.index = i; cube.add(g); return g;
+  });
+}
+
+function fitCamera() {
+  const w = host.clientWidth, h = host.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  const r = (L ? L.n : 3) * 0.87 + 0.45; // bounding radius incl. tiles
+  const vfov = THREE.MathUtils.degToRad(camera.fov) / 2;
+  const hfov = Math.atan(Math.tan(vfov) * camera.aspect);
+  const usable = 0.92; // leave room for HUD and buttons
+  const d = r / Math.sin(Math.min(vfov, hfov) * usable);
+  camera.position.set(0, 0, d); camera.lookAt(0, 0, 0);
+}
+window.addEventListener('resize', fitCamera);
+
+// Pick the axis-aligned turn of the cube (24 options) that best shows what matters, then tilt it
+// so three faces are visible (front, top, right).
+const TILT = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.5, -0.65, 0, 'XYZ'));
+const ROTS = (() => {
+  const out = [], z = new THREE.Vector3(0, 0, 1);
+  BE.FACES.forEach(f => {
+    const q0 = new THREE.Quaternion().setFromUnitVectors(V(f), z);
+    for (let k = 0; k < 4; k++) out.push(new THREE.Quaternion().setFromAxisAngle(z, k * Math.PI / 2).multiply(q0));
+  });
+  return out;
+})();
+function orientBest(focus) {
+  // focus: [[normalVector, weight], ...]
+  let best = null, bestScore = -1e9;
+  ROTS.forEach(q => {
+    const full = TILT.clone().multiply(q);
+    let sc = 0;
+    focus.forEach(([n, w]) => { const v = n.clone().applyQuaternion(full); sc += w * (v.z > 0.2 ? v.z : -1); });
+    // prefer keeping the board "upright": world up stays up
+    sc += 0.01 * new THREE.Vector3(0, 1, 0).applyQuaternion(full).y;
+    if (sc > bestScore) { bestScore = sc; best = full; }
+  });
+  cube.quaternion.copy(best);
+}
+function levelFocus(extraBlock) {
+  const f = [];
+  state.forEach((cells, i) => {
+    if (!cells) return;
+    const w = (i === 0 && idx < 3) || i === extraBlock ? 6 : 1;
+    f.push([V(BE.FACES[BE.faceOf(cells[0], L.n)]), w]);
+  });
+  const cols = new Set(state.map((c, i) => c ? L.blocks[i].color : -1));
+  L.gates.forEach(g => {
+    if (!cols.has(g.color)) return;
+    f.push([V(BE.FACES[g.a]).add(V(BE.FACES[g.b])).normalize(), idx < 3 ? 4 : 1.5]);
+  });
+  return f;
+}
+
+function loadLevel(i) {
+  idx = i; L = LEVELS[i];
+  state = L.blocks.map(b => b.cells.map(c => c.slice()));
+  history = []; moves = 0; busy = false;
+  clearHint();
+  buildBoard(); buildBlocks(); fitCamera();
+  orientBest(levelFocus());
+  updateHud();
+  if (TIPS[i + 1]) toast(TIPS[i + 1], 6000); else toast('', 0);
+  save.last = i; store.set(save);
+}
+
+function updateHud() {
+  document.getElementById('hLevel').textContent = 'Level ' + (idx + 1) + ' / ' + LEVELS.length;
+  document.getElementById('hMoves').textContent = 'Moves ' + moves + ' · Par ' + L.par;
+  document.getElementById('bUndo').disabled = !history.length;
+}
+
+let toastTimer = 0;
+function toast(text, ms) {
+  const t = document.getElementById('toast');
+  clearTimeout(toastTimer);
+  if (!text) { t.classList.add('hide'); return; }
+  t.textContent = text; t.classList.remove('hide');
+  if (ms) toastTimer = setTimeout(() => t.classList.add('hide'), ms);
+}
+
+// ---------- animation ----------
+const anims = [];
+function tween(ms, fn) { return new Promise(res => anims.push({ t0: performance.now(), ms, fn, res })); }
+function stepAnims(now) {
+  for (let i = anims.length - 1; i >= 0; i--) {
+    const a = anims[i]; const t = Math.min(1, (now - a.t0) / a.ms);
+    a.fn(t);
+    if (t >= 1) { anims.splice(i, 1); a.res(); }
+  }
+}
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+async function playEvents(g, events, N) {
+  for (const ev of events) {
+    const n = V(ev.n), d = V(ev.d);
+    if (ev.t === 'step') {
+      const p0 = g.position.clone();
+      await tween(55, t => g.position.copy(p0).addScaledVector(d, t));
+    } else if (ev.t === 'roll') {
+      const Lb = ev.L, h = N / 2;
+      const Q = n.clone().add(d).multiplyScalar(h).addScaledVector(d, -Lb / 2).addScaledVector(n, -Lb / 2);
+      const axis = n.clone().cross(d).normalize();
+      const p0 = g.position.clone(), q0 = g.quaternion.clone();
+      const lift = n.clone().add(d).normalize();
+      await tween(260, t => {
+        const e = ease(t), R = new THREE.Quaternion().setFromAxisAngle(axis, e * Math.PI / 2);
+        g.position.copy(p0.clone().sub(Q).applyQuaternion(R).add(Q)).addScaledVector(lift, Math.sin(Math.PI * e) * 0.55);
+        g.quaternion.copy(R.clone().multiply(q0));
+      });
+    } else if (ev.t === 'exit') {
+      const p0 = g.position.clone();
+      g.traverse(o => { if (o.material) { o.material = o.material.clone(); o.material.transparent = true; } });
+      await tween(260, t => {
+        g.position.copy(p0).addScaledVector(d, t * 2.2).addScaledVector(n, Math.sin(Math.PI * t) * 0.3);
+        g.traverse(o => { if (o.material) o.material.opacity = 1 - t; });
+      });
+    }
+  }
+}
+
+async function bump(g, d) {
+  const p0 = g.position.clone(), dv = V(d);
+  await tween(160, t => g.position.copy(p0).addScaledVector(dv, Math.sin(Math.PI * t) * 0.14));
+  g.position.copy(p0);
+}
+
+async function doMove(i, d, fromHint) {
+  if (busy || !state[i]) return;
+  clearHint();
+  const r = BE.move(L, state, i, d);
+  const g = blockGroups[i];
+  if (r.kind === 'none') {
+    busy = true; await bump(g, d); busy = false;
+    const n = BE.FACES[BE.faceOf(state[i][0], L.n)];
+    const front = Math.max(...state[i].map(c => BE.dot(c, d)));
+    if (front === L.n - 1) toast('That edge is closed: its gate is another colour, or the next side is blocked.', 2500);
+    return;
+  }
+  busy = true;
+  history.push(state); state = r.state; moves++;
+  updateHud();
+  await playEvents(g, r.events, L.n);
+  if (r.kind !== 'exit') window.__lastDrift = Math.max(window.__lastDrift || 0, window.__be.drift(i));
+  // snap to the logical state (no drift)
+  buildBlocks();
+  busy = false;
+  if (state.every(c => !c)) win();
+}
+
+function win() {
+  const par = L.par;
+  const stars = moves <= par ? 3 : moves <= par + Math.ceil(par / 2) ? 2 : 1;
+  save.stars[idx] = Math.max(save.stars[idx] || 0, stars); store.set(save);
+  document.getElementById('wTitle').textContent = 'Level ' + (idx + 1) + ' clear!';
+  document.getElementById('wStars').innerHTML = [1, 2, 3].map(s => s <= stars ? '★' : '<span class="off">★</span>').join('');
+  document.getElementById('wInfo').textContent = moves + (moves === 1 ? ' move' : ' moves') + ' (par ' + par + ').' + (stars < 3 ? ' Finish in ' + par + ' for 3 stars.' : '');
+  document.getElementById('wNext').textContent = idx + 1 < LEVELS.length ? 'Next level' : 'All levels';
+  setTimeout(() => document.getElementById('mWin').classList.remove('hide'), 250);
+  toast('', 0);
+}
+
+// ---------- hint ----------
+function clearHint() { if (hintArrow) { cube.remove(hintArrow); hintArrow = null; } }
+function showHint() {
+  if (busy) return;
+  clearHint();
+  const s = BE.solve(L, state, 40000);
+  if (!s) { toast('No quick hint from here. Try Undo or Restart.', 2500); return; }
+  if (s.moves < 0) { toast("This position can't be solved any more. Undo or Restart.", 3000); return; }
+  if (!s.path.length) return;
+  const [i, d] = s.path[0];
+  const cells = state[i], n = BE.FACES[BE.faceOf(cells[0], L.n)];
+  const c = new THREE.Vector3();
+  cells.forEach(p => c.add(V(p).multiplyScalar(0.5))); c.multiplyScalar(1 / cells.length);
+  c.addScaledVector(V(n), 0.62);
+  hintArrow = new THREE.Group();
+  const m = mat(0xffffff, { emissive: 0xffffff, emissiveIntensity: 0.6 });
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.8, 12), m);
+  const head = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.4, 16), m);
+  shaft.position.y = 0.0; head.position.y = 0.6;
+  hintArrow.add(shaft, head);
+  hintArrow.position.copy(c);
+  hintArrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), V(d));
+  hintArrow.userData.base = c.clone(); hintArrow.userData.dir = V(d);
+  cube.add(hintArrow);
+  // turn the cube so the hinted face is visible
+  const viewN = V(n).applyQuaternion(cube.quaternion);
+  if (viewN.z < 0.3) orientBest(levelFocus(i));
+  toast('Swipe the block under the arrow, the way it points.', 2500);
+}
+
+// ---------- input ----------
+const ray = new THREE.Raycaster();
+let drag = null;
+function ndc(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  return new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+}
+function pickBlock(e) {
+  ray.setFromCamera(ndc(e), camera);
+  const objs = []; blockGroups.forEach(g => g && g.children.forEach(o => objs.push(o)));
+  const hit = ray.intersectObjects(objs, false)[0];
+  return hit ? hit.object.parent.userData.index : -1;
+}
+function toScreen(v) {
+  const p = v.clone().project(camera);
+  return new THREE.Vector2((p.x + 1) / 2 * host.clientWidth, (1 - p.y) / 2 * host.clientHeight);
+}
+function swipeDir(i, sx, sy) {
+  const cells = state[i], n = BE.faceOf(cells[0], L.n);
+  const c = new THREE.Vector3();
+  cells.forEach(p => c.add(V(p).multiplyScalar(0.5))); c.multiplyScalar(1 / cells.length);
+  const wc = c.clone().applyMatrix4(cube.matrixWorld), s0 = toScreen(wc);
+  const sw = new THREE.Vector2(sx, sy).normalize();
+  let best = null, bestDot = -2;
+  for (const d of BE.tangents(n)) {
+    const s1 = toScreen(c.clone().add(V(d)).applyMatrix4(cube.matrixWorld));
+    const v = s1.sub(s0); if (v.lengthSq() < 1) continue;
+    const dt = v.normalize().dot(sw);
+    if (dt > bestDot) { bestDot = dt; best = d; }
+  }
+  return best;
+}
+const el = renderer.domElement;
+el.addEventListener('pointerdown', e => {
+  if (busy) return;
+  el.setPointerCapture(e.pointerId);
+  const i = pickBlock(e);
+  drag = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, block: i, fired: false };
+});
+el.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (drag.block >= 0) {
+    if (!drag.fired && Math.hypot(dx, dy) > 18) {
+      drag.fired = true;
+      const d = swipeDir(drag.block, dx, dy);
+      if (d) doMove(drag.block, d);
+    }
+  } else {
+    const mx = e.clientX - drag.lx, my = e.clientY - drag.ly;
+    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), mx * 0.009);
+    const q2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), my * 0.009);
+    cube.quaternion.premultiply(q).premultiply(q2);
+  }
+  drag.lx = e.clientX; drag.ly = e.clientY;
+});
+el.addEventListener('pointerup', () => {
+  if (drag && drag.block >= 0 && !drag.fired) toast('Swipe the block (drag it) in the direction you want it to slide.', 2200);
+  drag = null;
+});
+el.addEventListener('pointercancel', () => { drag = null; });
+
+// ---------- UI ----------
+const $ = id => document.getElementById(id);
+function show(id) { ['sTitle', 'sLevels'].forEach(s => $(s).classList.toggle('hide', s !== id)); }
+$('bPlay').onclick = () => { show(null); loadLevel(save.last || 0); };
+$('bLevels').onclick = () => { renderLevels(); show('sLevels'); };
+$('bMenu').onclick = () => { renderLevels(); show('sLevels'); };
+$('bBack').onclick = () => show(L ? null : 'sTitle');
+$('bUndo').onclick = () => { if (busy || !history.length) return; state = history.pop(); moves = Math.max(0, moves - 1); clearHint(); buildBlocks(); updateHud(); };
+$('bRestart').onclick = () => { if (!busy) loadLevel(idx); };
+$('bHint').onclick = showHint;
+$('wRetry').onclick = () => { $('mWin').classList.add('hide'); loadLevel(idx); };
+$('wNext').onclick = () => {
+  $('mWin').classList.add('hide');
+  if (idx + 1 < LEVELS.length) loadLevel(idx + 1); else { renderLevels(); show('sLevels'); }
+};
+function renderLevels() {
+  $('lvGrid').innerHTML = '';
+  LEVELS.forEach((lv, i) => {
+    const b = document.createElement('button'); b.className = 'lv';
+    const s = save.stars[i] || 0;
+    b.innerHTML = (i + 1) + '<small>' + '★'.repeat(s) + '</small>';
+    b.onclick = () => { show(null); loadLevel(i); };
+    $('lvGrid').appendChild(b);
+  });
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (L) { buildBoard(); } });
+
+function frame(now) {
+  stepAnims(now);
+  if (hintArrow) {
+    const k = (Math.sin(now / 180) + 1) / 2;
+    hintArrow.position.copy(hintArrow.userData.base).addScaledVector(hintArrow.userData.dir, k * 0.25);
+  }
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+// a level is shown behind the title screen so the first frame isn't empty
+L = LEVELS[0]; state = L.blocks.map(b => b.cells); buildBoard(); buildBlocks(); fitCamera(); idx = 0; orientBest(levelFocus()); L = null;
+requestAnimationFrame(frame);
+
+// test hook: compare drawn blocks with the rules' state
+window.__be = {
+  state: () => state, level: () => idx, moves: () => moves, busy: () => busy, load: loadLevel, move: doMove,
+  solve: () => BE.solve(LEVELS[idx], state, 200000),
+  screen(i, d) {
+    const c = new THREE.Vector3(); const cells = state[i], n = BE.FACES[BE.faceOf(cells[0], L.n)];
+    cells.forEach(p => c.add(V(p).multiplyScalar(0.5))); c.multiplyScalar(1 / cells.length); c.addScaledVector(V(n), 0.34);
+    cube.updateMatrixWorld(true);
+    const a = toScreen(c.clone().applyMatrix4(cube.matrixWorld)), b = toScreen(c.clone().add(V(d)).applyMatrix4(cube.matrixWorld));
+    return [a.x, a.y, b.x - a.x, b.y - a.y];
+  },
+  drift(only) {
+    let worst = 0;
+    blockGroups.forEach((g, i) => {
+      if (!g || (only !== undefined && i !== only)) return;
+      g.updateMatrixWorld(true);
+      const want = state[i].map(c => V(c).multiplyScalar(0.5));
+      // first tile of each cell is the body: centre - normal*0.17 == cell centre
+      let k = 0;
+      g.children.forEach(o => {
+        if (Math.abs(o.scale.x * o.scale.y * o.scale.z - 0.86 * 0.86 * 0.34) > 1e-6) return;
+        const p = o.position.clone().applyMatrix4(g.matrix);
+        const best = Math.min(...want.map(w => w.distanceTo(p)));
+        worst = Math.max(worst, best - 0.17); k++;
+      });
+    });
+    return worst;
+  },
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+const fs = require('fs');
+const lv = process.argv[2] || 'levels.json';
+let h = fs.readFileSync(__dirname + '/index.src.html', 'utf8');
+const rep = (k, v) => { const i = h.indexOf(k); if (i < 0) throw k; h = h.slice(0, i) + v + h.slice(i + k.length); };
+rep('/*THREE*/', fs.readFileSync(require.resolve('three/build/three.min.js'), 'utf8'));
+rep('/*LOGIC*/', fs.readFileSync(__dirname + '/logic.js', 'utf8'));
+rep('/*LEVELS*/', fs.readFileSync(lv, 'utf8'));
+fs.mkdirSync(__dirname + '/dist', { recursive: true });
+fs.writeFileSync(__dirname + '/dist/index.html', h);
+console.log('dist/index.html', (h.length / 1024).toFixed(0), 'KB');
