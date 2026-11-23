@@ -1,0 +1,31 @@
+name: Google Play upload (testing tracks only)
+on:
+  push:
+    branches: [ ops/play-upload ]
+    paths: [ ops/upload.json ]
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - id: cfg
+        run: |
+          echo "run_id=$(jq -r .build_run_id ops/upload.json)" >> "$GITHUB_OUTPUT"
+          echo "artifact=$(jq -r .artifact ops/upload.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.cfg.outputs.artifact }}
+          run-id: ${{ steps.cfg.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: aab
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install --quiet google-auth requests
+      - name: Upload to Google Play testing track
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: python3 scripts/play_upload.py
