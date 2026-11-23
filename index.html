@@ -112,7 +112,7 @@
     <!-- App Version at bottom -->
     <div class="text-center">
       <div class="text-xs font-semibold text-slate-600">Yebee Games 2026</div>
-      <div class="text-[10px] text-slate-400 mono-font font-bold mt-0.5">Version 1.0.0 • Google Play Release</div>
+      <div id="splash-version" class="text-[10px] text-slate-400 mono-font font-bold mt-0.5">Version 1.0.7</div>
     </div>
   </div>
 
@@ -214,6 +214,9 @@
         <button id="btn-home-chest" class="hidden w-full mt-2 py-2 px-4 rounded-2xl bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-300 active:scale-95 transition text-xs font-extrabold text-amber-800 flex items-center justify-center gap-2">
           <span>🎁</span><span id="home-chest-text">Chest</span>
         </button>
+        <a id="btn-home-feedback" href="mailto:support@yebeegames.com" class="feedback-link block w-full mt-2 py-1.5 text-[11px] font-bold text-slate-500 hover:text-indigo-600 active:scale-95 transition">
+          💬 Send feedback
+        </a>
       </div>
     </div>
 
@@ -406,6 +409,14 @@
       <button id="btn-save-profile" class="w-full py-3 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold text-xs uppercase tracking-wider shadow-md active:scale-95 transition">
         Save Profile
       </button>
+
+      <!-- Feedback: opens the player's email app (nothing is sent automatically) -->
+      <div class="mt-4 pt-3 border-t border-slate-200 text-center">
+        <a id="btn-profile-feedback" href="mailto:support@yebeegames.com" class="feedback-link block w-full py-2.5 rounded-2xl bg-white border border-indigo-200 hover:bg-indigo-50 active:scale-95 transition text-xs font-extrabold text-indigo-700">
+          💬 Send feedback
+        </a>
+        <p class="text-[10px] text-slate-500 mt-1.5">Ideas, bugs, too hard or too easy? Write to <span id="feedback-email-text" class="font-bold select-all">support@yebeegames.com</span></p>
+      </div>
     </div>
   </div>
 
@@ -869,6 +880,18 @@
     const ENABLE_LEVEL_JUMP = false;
     const AD_DEBUG = true; // closed testing: show why a video is unavailable. Set false for production.
     const IAP_ENABLED = false; // Turn on only after real Google Play Billing is integrated
+    const APP_VERSION = '1.0.7'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
+    const FEEDBACK_EMAIL = 'support@yebeegames.com'; // same contact as privacy_policy.html
+
+    // "Send feedback": a plain mailto link, so the player sees and edits everything before sending.
+    function feedbackMailto() {
+      let level = 1;
+      try { level = AppState.maxUnlockedLevel || 1; } catch (e) {}
+      const subject = 'Arrow Cube 3D feedback (v' + APP_VERSION + ')';
+      const body = '\n\n---\nGame version: ' + APP_VERSION + '\nHighest level: ' + level +
+        '\nDevice: ' + (navigator.userAgent || '').slice(0, 200);
+      return 'mailto:' + FEEDBACK_EMAIL + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    }
 
     // App State Management (Stored in localStorage)
     const AppState = {
@@ -3131,6 +3154,14 @@
         };
         frameGrid.appendChild(btn);
       });
+
+      document.querySelectorAll('.feedback-link').forEach(a => {
+        a.href = feedbackMailto();
+        // Refresh just before the email app opens so the level number is current.
+        a.addEventListener('click', () => { a.href = feedbackMailto(); });
+      });
+      document.getElementById('feedback-email-text').textContent = FEEDBACK_EMAIL;
+      document.getElementById('splash-version').textContent = 'Version ' + APP_VERSION;
 
       document.getElementById('btn-open-profile').addEventListener('click', () => {
         document.getElementById('input-player-name').value = AppState.playerName;
