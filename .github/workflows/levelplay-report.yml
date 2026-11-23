@@ -1,0 +1,32 @@
+name: LevelPlay revenue report
+
+# Last 7 days vs the 7 before, per app and ad format (all apps on the LevelPlay
+# account, so Drop 2048 is included). Read-only: it never changes LevelPlay.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 9 * * 1'   # Mondays 09:17 UTC (runs from the default branch only)
+  push:
+    branches: [ develop ]
+    paths: [ '.github/workflows/levelplay-report.yml', 'scripts/levelplay_report.py' ]
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build the report
+        env:
+          LEVELPLAY_SECRET_KEY: ${{ secrets.LEVELPLAY_SECRET_KEY }}
+          LEVELPLAY_REFRESH_TOKEN: ${{ secrets.LEVELPLAY_REFRESH_TOKEN }}
+        run: python3 scripts/levelplay_report.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: levelplay-report
+          path: levelplay_report.json
