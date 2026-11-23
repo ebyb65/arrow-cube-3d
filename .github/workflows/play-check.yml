@@ -1,0 +1,19 @@
+name: Google Play API check (read-only)
+on:
+  push:
+    branches: [ ops/play-check ]
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install --quiet google-auth requests
+      - name: List tracks for each game
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          PACKAGES: com.yebeegames.arrowcube3d,com.games.drop2048
+        run: python3 scripts/play_check.py
