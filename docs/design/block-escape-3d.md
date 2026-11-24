@@ -1,6 +1,9 @@
 # Block Escape 3D: prototype design spec
 
-Owner: Lena (design and QA). Status: playable prototype for the CEO's yes/no decision, 23 Nov 2026.
+Owner: Lena (design and QA). Status: PARKED by the CEO on 24 Nov 2026 after playing the prototype.
+
+CEO feedback: rolling blocks over the edges was confusing, and the cube with gates on its edges looked complicated.
+Lesson for the next game: the rules must read in one glance on a phone; a 3D hook that needs explaining is a cost, not a feature.
 Not scheduled: by the ideas review, game #3 starts only after Arrow Cube reaches production.
 
 ## The one-line pitch
