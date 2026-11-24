@@ -43,12 +43,16 @@ WHAT'S INSIDE
 • Treasure chests along the way with coins and helpers
 • Hints, Eraser and Magic Wand helpers for when you are stuck
 • Themes to change the look of the cube
+• Classic 2D mode: flat arrow puzzles from 4x4 up to 10x10
 • No timer: think as long as you like
+• Plays offline, no Wi-Fi needed
 • Videos are always optional, for extra helpers or a second chance
 
 Made by Yebee Games, a small independent studio. Tell us what you think from the Play Store page; we read every message.
 ```
-Check before publishing (Lena/Theo): treasure chest contents, themes and 3-star rating match the release build; if Classic 2D mode (1.0.7) ships, add "• A Classic 2D mode" line.
+Check before publishing (Lena/Theo): treasure chest contents, themes and 3-star rating match the release build. Classic 2D line added 24 Nov (it is on develop since 1.0.8, so it ships with production); remove it if the production build is cut without it.
+
+**Offline check (Zara, 24 Nov):** develop 1.0.8 `npm run build`, loaded in Chromium with every non-local request blocked: 0 outside requests, fonts and Three.js load from the bundle, 3D level 1 and Classic 2D level 1 both start with no errors. So "Plays offline" is true for play; ads simply don't load without a connection (nothing is gated on them). Worth one real airplane-mode check on a phone before publishing.
 
 ## Screenshots
 Storyboard in `store/screenshots.md`. Screenshots to be produced from the release build (next Zara shift).
