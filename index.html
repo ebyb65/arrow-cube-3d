@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="./assets/app.css">
   <script src="./assets/three.min.js"></script>
   <script src="./assets/ads.js"></script>
+  <script src="./assets/classic2d.js"></script>
   <style>
     :root {
       --sat: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
@@ -210,6 +211,10 @@
         <button id="btn-home-map" class="w-full mt-2.5 py-2.5 px-4 rounded-2xl bg-white border border-indigo-200 hover:bg-indigo-50 active:scale-95 transition text-xs font-extrabold text-indigo-700 flex items-center justify-center gap-2">
           <span>🗺️ Level Map</span>
           <span class="mono-font bg-amber-100 text-amber-700 px-2 py-0.5 rounded-lg">★ <span id="home-map-stars">0</span></span>
+        </button>
+        <button id="btn-home-classic2d" class="w-full mt-2 py-2.5 px-4 rounded-2xl bg-white border border-sky-200 hover:bg-sky-50 active:scale-95 transition text-xs font-extrabold text-sky-700 flex items-center justify-center gap-2">
+          <span>⬆️ Classic 2D</span>
+          <span class="mono-font bg-sky-100 text-sky-700 px-2 py-0.5 rounded-lg">Lv <span id="home-classic2d-level">1</span></span>
         </button>
         <button id="btn-home-chest" class="hidden w-full mt-2 py-2 px-4 rounded-2xl bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-300 active:scale-95 transition text-xs font-extrabold text-amber-800 flex items-center justify-center gap-2">
           <span>🎁</span><span id="home-chest-text">Chest</span>
@@ -880,7 +885,7 @@
     const ENABLE_LEVEL_JUMP = false;
     const AD_DEBUG = true; // closed testing: show why a video is unavailable. Set false for production.
     const IAP_ENABLED = false; // Turn on only after real Google Play Billing is integrated
-    const APP_VERSION = '1.0.7'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
+    const APP_VERSION = '1.0.8'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
     const FEEDBACK_EMAIL = 'support@yebeegames.com'; // same contact as privacy_policy.html
 
     // "Send feedback": a plain mailto link, so the player sees and edits everything before sending.
@@ -3029,6 +3034,22 @@
       });
 
       document.getElementById('btn-home-map').addEventListener('click', () => openLevelMap());
+      // Classic 2D mode (src/classic2d.js): flat arrow puzzle, own level counter, no ads.
+      const refreshClassic2dBadge = () => {
+        const el = document.getElementById('home-classic2d-level');
+        if (el && window.Classic2D) el.textContent = window.Classic2D.savedLevel();
+      };
+      refreshClassic2dBadge();
+      document.getElementById('btn-home-classic2d').addEventListener('click', () => {
+        if (!window.Classic2D) return;
+        initAudio();
+        window.Classic2D.open({
+          addCoins: (n) => AppState.addCoins(n),
+          sound: (k) => { if (k === 'ok') playChime(); else if (k === 'bump') playCollisionBuzz(); else if (k === 'win') playMagicFanfare(); },
+          haptic: (k) => triggerHaptic(k),
+          onClose: refreshClassic2dBadge,
+        });
+      });
       document.getElementById('btn-home-chest').addEventListener('click', () => openChestModal());
       document.getElementById('win-chest').addEventListener('click', () => openChestModal());
       document.getElementById('btn-chest-video').addEventListener('click', () => {

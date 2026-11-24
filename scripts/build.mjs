@@ -43,6 +43,7 @@ fs.writeFileSync(path.join(assets, 'fonts.css'), fontCss);
 // 4. Game files
 fs.copyFileSync(path.join(root, 'index.html'), path.join(dist, 'index.html'));
 fs.copyFileSync(path.join(root, 'src/ads.js'), path.join(assets, 'ads.js'));
+fs.copyFileSync(path.join(root, 'src/classic2d.js'), path.join(assets, 'classic2d.js'));
 
 // Guard: no remote scripts or styles may remain in the shipped page
 const html = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
