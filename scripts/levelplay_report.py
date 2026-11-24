@@ -85,6 +85,33 @@ for r in dau_rows:
     d = dau.setdefault(app_of(r), {'cur': [], 'prev': []})
     d[period(r['date'])].append(num(r.get('activeUsers')))
 
+
+# Which ad networks actually served (last 7 days), so we can see whether Unity Ads
+# is live before ironSource stops serving on 31 Dec 2026 (backlog lp-unity).
+# Optional: if the API rejects the breakdown name, the report still finishes.
+def try_report(metrics, breakdowns):
+    q = urllib.parse.urlencode({'startDate': cur_start.isoformat(), 'endDate': cur_end.isoformat(),
+                                'metrics': metrics, 'breakdowns': breakdowns, 'page': 1, 'resultsPerPage': 5000})
+    req = urllib.request.Request(BASE + '/levelPlay/reporting/v1?' + q,
+                                 headers={'Accept': 'application/json', 'Authorization': 'Bearer ' + token})
+    try:
+        with urllib.request.urlopen(req, timeout=90) as r: got = json.loads(r.read().decode())
+    except Exception as e:
+        print(f'Network breakdown "{breakdowns}" not available: {str(e)[:200]}')
+        return None
+    return got.get('data') if isinstance(got, dict) else None
+
+net_rows, net_key = None, None
+for key in ('adNetwork', 'network', 'adSource'):
+    net_rows = try_report('revenue,impressions', 'app,' + key)
+    if net_rows is not None:
+        net_key = key; break
+if net_rows: print('Sample network row:', json.dumps(net_rows[0]))
+nets = {}
+for r in net_rows or []:
+    n = r.get(net_key) or r.get('adNetwork') or r.get('network') or r.get('adSource') or '?'
+    v = nets.setdefault((app_of(r), str(n)), [0.0, 0.0]); v[0] += num(r.get('revenue')); v[1] += num(r.get('impressions'))
+
 def ecpm(rev, imp): return rev / imp * 1000 if imp else 0.0
 def chg(a, b):
     if not b: return 'new' if a else '–'
@@ -109,6 +136,12 @@ else:
     for app, d in sorted(dau.items()):
         a, b = avg(d['cur']), avg(d['prev'])
         out.append(f'| {app} | {a:.1f} | {b:.1f} | {chg(a, b)} |')
+    if nets:
+        out += ['', f'| App | Ad network (last 7d) | Revenue | Impressions |', '|---|---|---:|---:|']
+        for (app, n), (rv, im) in sorted(nets.items()):
+            out.append(f'| {app} | {n} | ${rv:.2f} | {im:.0f} |')
+    elif net_rows is None:
+        out += ['', 'Ad network breakdown: not available from the reporting API (see log).']
     known = {a for a, _ in by} | set(dau)
     quiet = sorted(set(names.values()) - known)
     if quiet: out += ['', 'Apps on the account with no data in these 14 days: ' + ', '.join(quiet)]
@@ -119,4 +152,5 @@ if os.environ.get('GITHUB_STEP_SUMMARY'):
     open(os.environ['GITHUB_STEP_SUMMARY'], 'a').write(text)
 json.dump({'current': [str(cur_start), str(cur_end)], 'previous': [str(prev_start), str(prev_end)],
            'apps': names, 'byFormat': [{'app': a, 'adFormat': f, **v} for (a, f), v in by.items()],
-           'activeUsers': dau}, open('levelplay_report.json', 'w'), indent=1)
+           'activeUsers': dau,
+           'byNetwork': [{'app': a, 'network': n, 'revenue': v[0], 'impressions': v[1]} for (a, n), v in nets.items()]}, open('levelplay_report.json', 'w'), indent=1)
