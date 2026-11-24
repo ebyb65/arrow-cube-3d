@@ -885,7 +885,7 @@
     const ENABLE_LEVEL_JUMP = false;
     const AD_DEBUG = true; // closed testing: show why a video is unavailable. Set false for production.
     const IAP_ENABLED = false; // Turn on only after real Google Play Billing is integrated
-    const APP_VERSION = '1.0.8'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
+    const APP_VERSION = '1.0.9'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
     const FEEDBACK_EMAIL = 'support@yebeegames.com'; // same contact as privacy_policy.html
 
     // "Send feedback": a plain mailto link, so the player sees and edits everything before sending.
@@ -1162,6 +1162,27 @@
     let activeArrows = [];
     let initialCount = 0;
     let animatingArrows = new Set();
+    // A level is won exactly once: the win runs when the last arrow has left
+    // AND no escape/erase animation is still flying (ac-double-win).
+    let levelWinScheduled = false;
+    function maybeScheduleLevelWin() {
+      if (levelWinScheduled) return;
+      if (activeArrows.length !== 0 || animatingArrows.size !== 0) return;
+      levelWinScheduled = true;
+      setTimeout(handleLevelWin, 250);
+    }
+    // Eraser cancelled (button or leaving the level) gives the eraser back
+    // to the player's stock, however it was paid for (ac-eraser-cancel).
+    function cancelEraserMode(silent) {
+      if (!isEraserActive) return;
+      isEraserActive = false;
+      const eb = document.getElementById('eraser-active-banner');
+      if (eb) eb.classList.add('hidden');
+      AppState.erasers++;
+      AppState.save();
+      AppState.syncUI();
+      if (!silent) showToast('Eraser mode cancelled. Your eraser is kept. 🧽');
+    }
     let isEraserActive = false;
     let gamesPlayedCounter = 0;
     let fitRadius = 1.8;
@@ -2079,7 +2100,7 @@
             mainCubeGroup.remove(group);
             arrowMeshMap.delete(arrowId);
             animatingArrows.delete(arrowId);
-            if (activeArrows.length === 0) setTimeout(handleLevelWin, 250);
+            maybeScheduleLevelWin();
           }
         }
         requestAnimationFrame(animateVaporize);
@@ -2163,10 +2184,7 @@
             mainCubeGroup.remove(group);
             arrowMeshMap.delete(arrowId);
             animatingArrows.delete(arrowId);
-
-            if (activeArrows.length === 0) {
-              setTimeout(handleLevelWin, 250);
-            }
+            maybeScheduleLevelWin();
           }
         }
         requestAnimationFrame(animateEscape);
@@ -2312,7 +2330,7 @@
         }
       });
       updateUI();
-      if (activeArrows.length === 0) setTimeout(handleLevelWin, 250);
+      maybeScheduleLevelWin();
     }
 
     // Modal Powerup Trigger Helper
@@ -2479,9 +2497,8 @@
       }
       arrowMeshMap.clear();
       animatingArrows.clear();
-      isEraserActive = false;
-      const eb = document.getElementById('eraser-active-banner');
-      if (eb) eb.classList.add('hidden');
+      levelWinScheduled = false;
+      cancelEraserMode(true);
 
       const today = dayKey();
       const daySeed = Number(today.replace(/-/g, ''));
@@ -3378,9 +3395,7 @@
       });
 
       document.getElementById('btn-cancel-eraser').addEventListener('click', () => {
-        isEraserActive = false;
-        document.getElementById('eraser-active-banner').classList.add('hidden');
-        showToast('Eraser mode cancelled.');
+        cancelEraserMode(false);
       });
 
       // 6. Level Jump Testing Controls (User Request: Jump between levels to test gameplay)
