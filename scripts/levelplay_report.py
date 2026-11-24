@@ -109,7 +109,7 @@ for key in ('adNetwork', 'network', 'adSource'):
 if net_rows: print('Sample network row:', json.dumps(net_rows[0]))
 nets = {}
 for r in net_rows or []:
-    n = r.get(net_key) or r.get('adNetwork') or r.get('network') or r.get('adSource') or '?'
+    n = r.get('networkName') or r.get(net_key) or r.get('adNetwork') or r.get('network') or r.get('adSource') or '?'
     v = nets.setdefault((app_of(r), str(n)), [0.0, 0.0]); v[0] += num(r.get('revenue')); v[1] += num(r.get('impressions'))
 
 def ecpm(rev, imp): return rev / imp * 1000 if imp else 0.0
