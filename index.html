@@ -158,7 +158,7 @@
         </div>
 
         <div class="text-xs uppercase font-extrabold tracking-widest text-indigo-700 mono-font mb-1">
-          Sector <span id="home-level-title-num">1</span>
+          Level <span id="home-level-title-num">1</span>
         </div>
         <h2 class="text-2xl font-black text-slate-900 fredoka mb-1">
           Arrow Cube 3D
@@ -768,7 +768,7 @@
 
         <div class="p-3 rounded-2xl bg-white border border-slate-200 flex items-center justify-between shadow-sm">
           <div>
-            <div class="text-xs font-bold text-slate-800">Clear a Multi-Cube Block</div>
+            <div class="text-xs font-bold text-slate-800">Reach Level 6</div>
             <div class="text-[10px] text-slate-500">Reward: +250 Coins</div>
           </div>
           <button id="btn-quest-2" class="px-3 py-1.5 rounded-xl bg-indigo-500 text-white font-bold text-xs active:scale-95 transition">Claim</button>
@@ -800,7 +800,7 @@
       <div class="flex items-center justify-between p-5 pb-3 border-b border-slate-200">
         <div>
           <h3 class="text-base font-bold text-slate-900 fredoka">🗺️ Level Map</h3>
-          <p class="text-[11px] text-slate-500"><span id="map-star-total">0</span> / 750 ★ · Replay levels for 3 stars</p>
+          <p class="text-[11px] text-slate-500"><span id="map-star-total">0</span> / 750 ★ · No hearts lost = 3 ★ · Replay to improve</p>
         </div>
         <button id="btn-close-map" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600">✕</button>
       </div>
@@ -827,10 +827,10 @@
         🎉
       </div>
 
-      <div class="text-[11px] uppercase font-bold tracking-widest text-sky-600 mono-font mb-0.5" id="win-subtitle">Sector Cleared</div>
+      <div class="text-[11px] uppercase font-bold tracking-widest text-sky-600 mono-font mb-0.5" id="win-subtitle">Level Cleared</div>
       <div id="win-stars" class="text-3xl tracking-widest text-amber-400 mb-1 leading-none">★★★</div>
       <h2 class="text-2xl font-black text-slate-900 mb-1 fredoka" id="win-title">Vectors Untangled!</h2>
-      <p class="text-xs text-slate-600 mb-3" id="win-story">All compound blocks liberated cleanly.</p>
+      <p class="text-xs text-slate-600 mb-3" id="win-story">Every arrow escaped.</p>
 
       <!-- Coins Reward Badge -->
       <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-100 border border-amber-300 text-amber-800 font-black text-xs mono-font mb-5">
@@ -2092,7 +2092,7 @@
         // COLLISION! (Requirement 7: Marked RED persistently matching screenshot!)
         triggerHaptic('error');
         playCollisionBuzz();
-        showToast('Blocked! Path collision marked in RED.');
+        showToast('Blocked! -1 ❤️ That arrow hit another one (shown in red).');
 
         arrow.isCollidedRed = true;
         group.traverse(child => {
@@ -2243,7 +2243,7 @@
       checkAndShowAd(() => {
         document.getElementById('win-subtitle').textContent = playMode === 'daily'
           ? `Daily Puzzle · 🔥 ${AppState.dailyStreak}-day streak`
-          : `Sector ${currentLevel} Complete`;
+          : `Level ${currentLevel} Complete`;
         document.getElementById('modal-level-win').classList.remove('hidden');
       });
     }
@@ -2283,7 +2283,7 @@
       const target = freeArrows[0];
       const group = arrowMeshMap.get(target.id);
       if (group) {
-        showToast('Radar Lock: Unblocked arrow glowing GREEN! 💡');
+        showToast('Hint: the green arrow has a clear path! 💡');
         playSound(880, 0.35, 'triangle', 0.25);
         group.traverse(child => {
           if (child.isMesh && child.material) {
@@ -2493,22 +2493,22 @@
       let diffBadgeClass = 'text-sky-300 border-sky-400/40 bg-purple-950/60';
 
       if (currentLevel === 250) {
-        diffBadgeText = 'APEX MASTER (450 👑)';
+        diffBadgeText = 'APEX MASTER 👑';
         diffBadgeClass = 'text-rose-200 border-rose-400/80 bg-rose-950/80 animate-pulse font-black';
       } else if (currentLevel % 50 === 0) {
         diffBadgeText = 'GRANDMASTER';
         diffBadgeClass = 'text-rose-300 border-rose-400/60 bg-purple-950/70 animate-pulse font-black';
       } else if (currentLevel === 25) {
-        diffBadgeText = 'SUPER HARD (135 ⚡)';
+        diffBadgeText = 'SUPER HARD ⚡';
         diffBadgeClass = 'text-rose-300 border-rose-400/50 bg-purple-950/60 animate-pulse font-black';
       } else if (currentLevel === 14) {
-        diffBadgeText = 'CIRCUIT MAZE (102 🎯)';
+        diffBadgeText = 'CIRCUIT MAZE 🎯';
         diffBadgeClass = 'text-emerald-300 border-emerald-400/60 bg-purple-950/60 font-black';
       } else if (currentLevel === 10) {
-        diffBadgeText = 'HARD (70)';
+        diffBadgeText = 'HARD';
         diffBadgeClass = 'text-amber-300 border-amber-400/40 bg-purple-950/60 font-black';
       } else if (currentLevel === 5) {
-        diffBadgeText = 'CHALLENGE (52 🔥)';
+        diffBadgeText = 'CHALLENGE 🔥';
         diffBadgeClass = 'text-amber-300 border-amber-400/40 bg-purple-950/60 font-black';
       } else if (currentLevel <= 3) {
         diffBadgeText = 'CASUAL';
@@ -2926,7 +2926,7 @@
         const p = document.getElementById('splash-progress');
         if (p) p.style.width = '100%';
         const s = document.getElementById('splash-status');
-        if (s) s.textContent = 'Ready! Entering Sector 1...';
+        if (s) s.textContent = 'Ready!';
       }, 400);
 
       // Auto dismiss after 1.2 seconds
@@ -3130,7 +3130,7 @@
           return;
         }
         if (AppState.maxUnlockedLevel <= 5) {
-          showToast('Unlock Level 6 (Multi-Cube Block) to complete this quest! 🧊');
+          showToast('Reach Level 6 to complete this quest! 🧊');
           return;
         }
         AppState.quest2Claimed = true;
