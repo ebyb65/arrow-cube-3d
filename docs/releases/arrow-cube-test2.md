@@ -15,11 +15,13 @@ Google refused production access on 23 Nov 2026: testers were not engaged and/or
 |---|---|---|
 | 23 Nov | 1.0.6 (7), status completed (Google review pending) | 45242169278 |
 | 24 Nov | 1.0.6 (7), status completed | 45374476945 |
+| 25 Nov | 1.0.6 (7), status completed | 45594791313 |
 
 ## Testers
 | Date | Opted-in testers | Source |
 |---|---|---|
 | 24 Nov | not shared yet (CEO shares the link once Google approves 1.0.6) | CEO message 23 Nov |
+| 25 Nov | unknown: no CEO reply yet on the 'share the tester link' approval | HQ approvals |
 
 ## Tester feedback received
 | Date | From | Feedback | Answered by |
@@ -34,8 +36,14 @@ Feedback channels: the in-game "Send feedback" button (from 1.0.7; needs a worki
 | 1.0.6 (7) | 23 Nov | Treasure chests, colour themes, own icon, level map with stars, daily puzzle with streaks | Baseline for the second test |
 
 ## Queued updates
-- 1.0.8 (9), build run 45335743275 (develop): Send feedback button (first 1.0.7 change) + Classic 2D mode. Blocked on the feedback address: the button still points to support@yebeegames.com, which has no inbox. Arjun has the change ready on arjun/feedback-gmail; after the CEO confirms the Gmail address the build becomes 1.0.9 (10) and Theo uploads it.
-- Good to include in the same update: ac-double-win (a level win counted twice when the last two arrows fly out together; double coins and an early interstitial).
+- 1.0.10 (11), build run https://github.com/ebyb65/arrow-cube-3d/actions/runs/45588603216 (develop, 25 Nov, green). Replaces the queued 1.0.7/1.0.8/1.0.9 builds. On top of 1.0.6 it adds:
+  - Send feedback button (home screen and Player Profile): a direct channel for tester feedback
+  - Classic 2D mode
+  - A level win counts once (fast final taps paid up to 6x coins and brought interstitials early)
+  - Eraser: Cancel gives the eraser back; tapping Eraser twice no longer uses a second one; bigger Cancel button
+  - Ad debug text off for players
+- Still blocked before upload: (1) the feedback address (button points to support@yebeegames.com, which has no inbox; CEO creating a Gmail, ac-feedback-addr), then Arjun rebuilds; (2) Lena's final re-check (ac-109-qa). Theo uploads to alpha right after both.
+- These are QA-driven fixes, not tester feedback yet. For the reapplication, at least one update should answer real tester feedback, so the tester link matters more than the next build.
 
 ## Production application draft
 To be written here around 8 Dec: who the testers are, how they were recruited, how they engaged, the feedback received, and what changed in response.
