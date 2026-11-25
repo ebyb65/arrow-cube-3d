@@ -1430,6 +1430,14 @@
     function showToast(text) {
       const t = document.getElementById('toast-message');
       document.getElementById('toast-text').textContent = text;
+      // While the Eraser banner is up, show the toast just below it so it never
+      // covers the banner's Cancel button (Lena QA 25 Nov).
+      const eb = document.getElementById('eraser-active-banner');
+      if (eb && !eb.classList.contains('hidden')) {
+        t.style.top = Math.round(eb.getBoundingClientRect().bottom + 8) + 'px';
+      } else {
+        t.style.top = '';
+      }
       t.classList.remove('opacity-0', '-translate-y-2');
       t.classList.add('opacity-100', 'translate-y-0');
       clearTimeout(window.toastTimer);
