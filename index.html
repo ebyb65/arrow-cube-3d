@@ -324,7 +324,7 @@
         <span class="text-lg">🧼</span>
         <span>Eraser Active: Tap any arrow to delete!</span>
       </div>
-      <button id="btn-cancel-eraser" class="px-2 py-1 rounded-xl bg-black/20 hover:bg-black/30 text-[10px] font-bold uppercase mono-font">Cancel</button>
+      <button id="btn-cancel-eraser" class="shrink-0 min-h-[40px] min-w-[72px] px-3 py-2 rounded-xl bg-black/20 hover:bg-black/30 text-xs font-bold uppercase mono-font">Cancel</button>
     </div>
 
     <!-- Interactive Center Warning Toast -->
@@ -883,9 +883,9 @@
     // Set to true to allow jumping between any levels (1 to 250) for testing gameplay.
     // Set to false when ready for production release to enforce sequential unlocking!
     const ENABLE_LEVEL_JUMP = false;
-    const AD_DEBUG = true; // closed testing: show why a video is unavailable. Set false for production.
+    const AD_DEBUG = false; // true shows players why a video is unavailable (debugging only; keep false in tester and production builds).
     const IAP_ENABLED = false; // Turn on only after real Google Play Billing is integrated
-    const APP_VERSION = '1.0.9'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
+    const APP_VERSION = '1.0.10'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
     const FEEDBACK_EMAIL = 'support@yebeegames.com'; // same contact as privacy_policy.html
 
     // "Send feedback": a plain mailto link, so the player sees and edits everything before sending.
@@ -3229,6 +3229,12 @@
             return;
           }
         } else if (type === 'eraser') {
+          // Eraser mode already on: never charge a second eraser or open the
+          // buy modal for it (ac-eraser-double).
+          if (isEraserActive) {
+            showToast('Eraser is already on: tap an arrow, or Cancel. 🧼');
+            return;
+          }
           if (AppState.erasers > 0) {
             AppState.erasers--;
             AppState.save();
