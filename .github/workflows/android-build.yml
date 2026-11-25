@@ -78,6 +78,28 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleDebug bundleRelease
 
+      # adq-check: Google flagged the installed-apps check in Ad Quality SDK < 9.11.0
+      # (Unity ticket 00942870). Fail the build if it is ever packaged again.
+      - name: Verify bundle contents (Ad Quality SDK not packaged)
+        run: |
+          set -e
+          AAB=$(ls android/app/build/outputs/bundle/release/*.aab | head -1)
+          rm -rf aab-check && mkdir aab-check && unzip -q "$AAB" -d aab-check
+          DEPS=aab-check/BUNDLE-METADATA/com.android.tools.build.libraries/dependencies.pb
+          echo "== Unity/LevelPlay libraries in bundle metadata =="
+          strings "$DEPS" | grep -E "unity3d|ironsource" | sort -u || true
+          if strings "$DEPS" | grep -qi "adquality"; then
+            echo "FAIL: adquality-sdk is still packaged"; exit 1
+          fi
+          if find aab-check | grep -qi adquality; then
+            echo "FAIL: Ad Quality files still packaged"; exit 1
+          fi
+          echo "PASS: Ad Quality SDK not packaged"
+          MAN=$(find android/app/build/intermediates -path "*release*" -name AndroidManifest.xml | grep -i merged | head -1)
+          echo "manifest: $MAN"
+          if grep -n "QUERY_ALL_PACKAGES" "$MAN"; then echo "WARNING: QUERY_ALL_PACKAGES present"; else echo "QUERY_ALL_PACKAGES: not present"; fi
+          rm -rf aab-check
+
       - name: Upload Debug APK (direct testing)
         uses: actions/upload-artifact@v4
         with:
