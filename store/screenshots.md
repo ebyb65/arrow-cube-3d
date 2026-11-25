@@ -1,16 +1,23 @@
-# Arrow Cube 3D: screenshot storyboard (draft)
+# Arrow Cube 3D: screenshot storyboard
 
-Zara, 23 Nov 2026. 7 portrait screenshots, 1080x1920, same frame style as Drop 2048 (our gradient, caption on top, game in a plain rounded frame) but in Arrow Cube's navy/teal colours.
-To produce from the release build with Playwright (after ac-debug-off, so no ad debug text shows).
+Zara, 23 Nov 2026 (storyboard); screenshots produced 25 Nov 2026 from develop 1.0.10 (code 11, AD_DEBUG off).
+7 portrait screenshots, 1080x1920, same frame style as Drop 2048 (caption on top, game in a plain rounded phone frame) in Arrow Cube's sky-blue to navy colours.
 
-| # | Caption (title / line 2) | What it shows |
-|---|---|---|
-| 1 | Tap. Slide. Clear. / A calm 3D logic puzzle | Mid-level cube at a 3/4 angle, one arrow mid-flight leaving the cube. |
-| 2 | Turn the cube / Every side hides a move | Same cube rotated to show another face; finger-drag hint not drawn (real UI only). |
-| 3 | Find the right order / Blocked arrows turn red | An arrow bumped back, highlighted red, the blocker visible. Teaches the rule. |
-| 4 | From small to stunning / Bigger shapes as you go | A large multi-cube level from later in the map. |
-| 5 | A new puzzle every day / Keep your streak going | Daily puzzle screen with streak counter. |
-| 6 | Treasure along the way / Chests, coins and helpers | Treasure chest opening modal. |
-| 7 | Make it yours / Unlock themes | Theme list with 2-3 themes previewed. |
+Files: `store/screenshots/*.png` (upload these, in order) and `store/screenshots/raw/*.png` (game only, no caption).
+Script: `npm run build && node store/make_screenshots.cjs` (Playwright, 360x640 at 3x). `ONLY=01,04 node ...` re-makes single shots.
+State: a demo save seeded in localStorage (level 48 reached, 2450 coins, 4-day streak, a few themes owned, tutorials seen). Everything on screen is the real game UI; nothing is drawn over it.
 
-Rules: no fake UI, no features that aren't in the release build, no prices or "packs" (IAP is off).
+| # | File | Caption (title / line 2) | What it shows |
+|---|---|---|---|
+| 1 | 01-tap-slide-clear | Tap. Slide. Clear. / A calm 3D logic puzzle | Level 12, one arrow flying off the cube. |
+| 2 | 02-turn-the-cube | Turn the cube / Every side hides a move | Level 20 turned to a corner view. |
+| 3 | 03-find-the-order | Find the right order / Blocked arrows turn red | Level 8 after tapping a blocked arrow: it's red, hearts 2/3, the real "Blocked!" message. |
+| 4 | 04-bigger-shapes | Bigger shapes / Puzzles grow as you play | Level 150, a three-cube shape. |
+| 5 | 05-daily-puzzle | Daily puzzle / Keep your streak going | Daily Puzzle & Quests with a 4-day streak. |
+| 6 | 06-treasure | Open chests / Coins and helpers as you go | Chest opened: +200 coins and 1 Eraser. |
+| 7 | 07-make-it-yours | Make it yours / Unlock themes | Level 22 in the Crystal theme. |
+
+Changes from the 23 Nov storyboard: captions 4-6 shortened to fit one line; shot 7 shows a theme in play instead of the store's theme list (the store also shows coin packs, which are off).
+
+Rules: no fake UI, no features that aren't in the release build, no prices or "packs" (IAP is off). Check before publishing: the release build must still match (re-run the script on the release commit if the UI changed).
+Foldable screenshots (required April 2027) are a separate item (foldable-shots).
