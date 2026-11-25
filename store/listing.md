@@ -55,7 +55,7 @@ Check before publishing (Lena/Theo): treasure chest contents, themes and 3-star 
 **Offline check (Zara, 24 Nov):** develop 1.0.8 `npm run build`, loaded in Chromium with every non-local request blocked: 0 outside requests, fonts and Three.js load from the bundle, 3D level 1 and Classic 2D level 1 both start with no errors. So "Plays offline" is true for play; ads simply don't load without a connection (nothing is gated on them). Worth one real airplane-mode check on a phone before publishing.
 
 ## Screenshots
-Storyboard in `store/screenshots.md`. Screenshots to be produced from the release build (next Zara shift).
+Storyboard in `store/screenshots.md`. 7 screenshots made 25 Nov from develop 1.0.10 (AD_DEBUG off): `store/screenshots/01-07*.png` (1080x1920, captioned), plain game frames in `store/screenshots/raw/`. Re-make with `npm run build && node store/make_screenshots.cjs`.
 
 ## Feature graphic
 Existing `play_store_feature_graphic_1024x500.png` stays unless the CEO wants a refresh. Idea for a refresh: deep navy background, our cube at 3/4 view on the right with two arrows mid-flight leaving trails, "ARROW CUBE 3D" left in Fredoka bold, white. Our own cube style and colours.
