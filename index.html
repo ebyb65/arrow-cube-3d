@@ -885,7 +885,7 @@
     const ENABLE_LEVEL_JUMP = false;
     const AD_DEBUG = false; // true shows players why a video is unavailable (debugging only; keep false in tester and production builds).
     const IAP_ENABLED = false; // Turn on only after real Google Play Billing is integrated
-    const APP_VERSION = '1.0.10'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
+    const APP_VERSION = '1.0.11'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
     const FEEDBACK_EMAIL = 'support@yebeegames.com'; // same contact as privacy_policy.html
 
     // "Send feedback": a plain mailto link, so the player sees and edits everything before sending.
@@ -1165,11 +1165,28 @@
     // A level is won exactly once: the win runs when the last arrow has left
     // AND no escape/erase animation is still flying (ac-double-win).
     let levelWinScheduled = false;
+    // Each loadLevel gets a new token; a win scheduled for an older level
+    // (or after the player left the game screen) is dropped (ac-win-race).
+    let levelLoadToken = 0;
+    let winPendingGearTapAt = 0;
     function maybeScheduleLevelWin() {
       if (levelWinScheduled) return;
       if (activeArrows.length !== 0 || animatingArrows.size !== 0) return;
       levelWinScheduled = true;
-      setTimeout(handleLevelWin, 250);
+      const token = levelLoadToken;
+      setTimeout(() => {
+        if (token !== levelLoadToken) return;
+        const sg = document.getElementById('screen-game');
+        if (sg && sg.classList.contains('hidden')) return;
+        handleLevelWin();
+      }, 250);
+    }
+    // True from the moment the last arrow is gone until the win card opens.
+    function isLevelWinPending() {
+      if (playMode !== 'level' && playMode !== 'daily') return false;
+      if (activeArrows.length !== 0 || initialCount === 0) return false;
+      const wm = document.getElementById('modal-level-win');
+      return !!(wm && wm.classList.contains('hidden'));
     }
     // Eraser cancelled (button or leaving the level) gives the eraser back
     // to the player's stock, however it was paid for (ac-eraser-cancel).
@@ -2506,6 +2523,8 @@
       arrowMeshMap.clear();
       animatingArrows.clear();
       levelWinScheduled = false;
+      levelLoadToken++;
+      winPendingGearTapAt = 0;
       cancelEraserMode(true);
 
       const today = dayKey();
@@ -2973,6 +2992,13 @@
 
       document.getElementById('btn-game-settings').addEventListener('click', () => {
         initAudio();
+        // Level just solved: wait for the win card (it has a Home button) so
+        // the solved level still counts. A second tap after 2 s always leaves.
+        if (isLevelWinPending()) {
+          const now = Date.now();
+          if (!winPendingGearTapAt) winPendingGearTapAt = now;
+          if (now - winPendingGearTapAt < 2000) return;
+        }
         const tutBox = document.getElementById('tutorial-tip');
         if (tutBox) tutBox.classList.add('hidden');
         document.getElementById('screen-game').classList.add('hidden');
