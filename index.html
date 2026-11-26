@@ -817,7 +817,10 @@
         <p id="tutorial-text" class="text-[11px] text-slate-600 leading-snug mt-0.5"></p>
       </div>
     </div>
-    <button id="btn-tutorial-ok" class="w-full mt-2 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 active:scale-95 transition text-xs font-extrabold text-white shadow-md">Got it</button>
+    <div class="flex gap-2 mt-2">
+      <button id="btn-tutorial-no" class="flex-1 min-h-[40px] py-2 rounded-xl bg-white border border-slate-300 active:scale-95 transition text-xs font-extrabold text-slate-600 hidden">Not now</button>
+      <button id="btn-tutorial-ok" class="flex-1 min-h-[40px] py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 active:scale-95 transition text-xs font-extrabold text-white shadow-md">Got it</button>
+    </div>
   </div>
 
   <!-- Modal: Level Completed / Victory -->
@@ -885,7 +888,7 @@
     const ENABLE_LEVEL_JUMP = false;
     const AD_DEBUG = false; // true shows players why a video is unavailable (debugging only; keep false in tester and production builds).
     const IAP_ENABLED = false; // Turn on only after real Google Play Billing is integrated
-    const APP_VERSION = '1.0.11'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
+    const APP_VERSION = '1.0.12'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
     const FEEDBACK_EMAIL = 'support@yebeegames.com'; // same contact as privacy_policy.html
 
     // "Send feedback": a plain mailto link, so the player sees and edits everything before sending.
@@ -1198,6 +1201,7 @@
       AppState.erasers++;
       AppState.save();
       AppState.syncUI();
+      hideTipCard('eraser');
       if (!silent) showToast('Eraser mode cancelled. Your eraser is kept. 🧽');
     }
     let isEraserActive = false;
@@ -2106,6 +2110,7 @@
       if (isEraserActive) {
         isEraserActive = false;
         document.getElementById('eraser-active-banner').classList.add('hidden');
+        hideTipCard('eraser');
         triggerHaptic('win');
         playMagicFanfare();
         showToast('Arrow erased successfully! 🧼');
@@ -2467,7 +2472,47 @@
       1: { icon: '👆', title: 'Tap an arrow to free it', text: 'Each arrow slides off the way it points. The glowing green one has a clear path. Tap it! If an arrow hits another one, you lose a heart.', glow: true },
       2: { icon: '🔄', title: 'Spin the cube', text: 'Drag anywhere to rotate the cube. Arrows on the other sides count too. Clear them all to win.' },
       3: { icon: '💡', title: 'Stuck? Use a hint', text: 'Tap the 💡 Hint button to light up a safe arrow. You can pay with coins or watch a short video.' },
+      26: { icon: '🧊', title: 'Two cubes now!', text: 'Spin to find arrows on every side.' },
     };
+    // One-time tip cards for power-ups (ac-intro-cards). Same box as the level
+    // tips; a key is marked seen as soon as its card is shown.
+    function tipSeen(key) {
+      try { return localStorage.getItem('arrow_cube_tut_' + key) === '1'; } catch (e) { return false; }
+    }
+    function markTipSeen(key) {
+      try { localStorage.setItem('arrow_cube_tut_' + key, '1'); } catch (e) {}
+    }
+    let tipKeyShown = null;
+    function hideTipCard(key) {
+      if (key && tipKeyShown !== key) return;
+      const box = document.getElementById('tutorial-tip');
+      if (box) box.classList.add('hidden');
+      tipKeyShown = null;
+    }
+    // opts: { okLabel, noLabel, onOk, onNo }; without noLabel it is a plain "Got it" card.
+    function showTipCard(key, tip, opts) {
+      opts = opts || {};
+      const box = document.getElementById('tutorial-tip');
+      if (!box) return false;
+      const ok = document.getElementById('btn-tutorial-ok');
+      const no = document.getElementById('btn-tutorial-no');
+      document.getElementById('tutorial-icon').textContent = tip.icon;
+      document.getElementById('tutorial-title').textContent = tip.title;
+      document.getElementById('tutorial-text').textContent = tip.text;
+      ok.textContent = opts.okLabel || 'Got it';
+      no.textContent = opts.noLabel || 'Not now';
+      no.classList.toggle('hidden', !opts.noLabel);
+      ok.onclick = () => { hideTipCard(); if (opts.onOk) opts.onOk(); };
+      no.onclick = () => { hideTipCard(); if (opts.onNo) opts.onNo(); };
+      tipKeyShown = key;
+      markTipSeen(key);
+      box.classList.remove('hidden');
+      return true;
+    }
+    function eraserTipFirstTime() {
+      if (tipSeen('eraser')) return;
+      showTipCard('eraser', { icon: '🧽', title: 'Eraser', text: 'Eraser: tap any arrow to remove it. Tap Cancel to keep it.' });
+    }
     function maybeShowTutorial(lvl) {
       const tip = TUTORIAL[lvl];
       const box = document.getElementById('tutorial-tip');
@@ -2477,18 +2522,27 @@
       try { seen = localStorage.getItem('arrow_cube_tut_' + lvl) === '1'; } catch (e) {}
       if (!tip || seen) return;
       if (document.getElementById('screen-game').classList.contains('hidden')) return;
-      document.getElementById('tutorial-icon').textContent = tip.icon;
-      document.getElementById('tutorial-title').textContent = tip.title;
-      document.getElementById('tutorial-text').textContent = tip.text;
+      tipKeyShown = null;
+      const loadToken = levelLoadToken;
       setTimeout(() => {
         if (document.getElementById('screen-game').classList.contains('hidden')) return;
+        if (loadToken !== levelLoadToken) return;
+        if (tipKeyShown) return; // a power-up card is up; the level tip shows next visit
+        document.getElementById('tutorial-icon').textContent = tip.icon;
+        document.getElementById('tutorial-title').textContent = tip.title;
+        document.getElementById('tutorial-text').textContent = tip.text;
+        const ok = document.getElementById('btn-tutorial-ok');
+        ok.textContent = 'Got it';
+        document.getElementById('btn-tutorial-no').classList.add('hidden');
+        ok.onclick = () => {
+          box.classList.add('hidden');
+          tipKeyShown = null;
+          try { localStorage.setItem('arrow_cube_tut_' + lvl, '1'); } catch (e) {}
+        };
+        tipKeyShown = 'level' + lvl;
         box.classList.remove('hidden');
         if (tip.glow) activateHint();
       }, 600);
-      document.getElementById('btn-tutorial-ok').onclick = () => {
-        box.classList.add('hidden');
-        try { localStorage.setItem('arrow_cube_tut_' + lvl, '1'); } catch (e) {}
-      };
     }
 
     // Load Level & Build Multi-Cube 3D Meshes
@@ -3276,9 +3330,23 @@
             isEraserActive = true;
             document.getElementById('eraser-active-banner').classList.remove('hidden');
             showToast('Eraser Mode Active: Tap an arrow to delete! 🧼');
+            eraserTipFirstTime();
             return;
           }
         } else if (type === 'wand') {
+          if (AppState.wands > 0 && !tipSeen('wand')) {
+            // First Wand use: say what it does before it fires (ac-intro-cards).
+            const lvlAtAsk = levelLoadToken;
+            showTipCard('wand', { icon: '🪄', title: 'Magic Wand', text: 'Magic Wand removes 3 blocking arrows. Use it?' }, {
+              okLabel: 'Use', noLabel: 'Not now',
+              onOk: () => {
+                if (lvlAtAsk !== levelLoadToken || AppState.wands <= 0) return;
+                if (document.getElementById('screen-game').classList.contains('hidden')) return;
+                useOrOpenPowerup('wand');
+              },
+            });
+            return;
+          }
           if (AppState.wands > 0) {
             AppState.wands--;
             AppState.save();
@@ -3415,6 +3483,7 @@
             isEraserActive = true;
             document.getElementById('eraser-active-banner').classList.remove('hidden');
             showToast('Eraser Mode Active: Tap an arrow to delete! 🧼');
+            eraserTipFirstTime();
           } else if (currentPowerupType === 'wand') activateMagicWand();
         } else {
           showToast('Not enough coins! Watch an ad or visit Store. 🪙');
@@ -3430,6 +3499,7 @@
             isEraserActive = true;
             document.getElementById('eraser-active-banner').classList.remove('hidden');
             showToast('Eraser Mode Active: Tap an arrow to delete! 🧼');
+            eraserTipFirstTime();
           } else if (currentPowerupType === 'wand') activateMagicWand();
         });
       });
