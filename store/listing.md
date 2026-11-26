@@ -47,10 +47,13 @@ WHAT'S INSIDE
 • No timer: think as long as you like
 • Plays offline, no Wi-Fi needed
 • Videos are always optional, for extra helpers or a second chance
+• No ads in the middle of a level: full-screen ads only appear after some wins, and the small banner sits below the puzzle, never over it
 
 Made by Yebee Games, a small independent studio. Tell us what you think from the Play Store page; we read every message.
 ```
 Check before publishing (Lena/Theo): treasure chest contents, themes and 3-star rating match the release build. Classic 2D line added 24 Nov (it is on develop since 1.0.8, so it ships with production); remove it if the production build is cut without it.
+
+**No-mid-level-ads line (Zara, 26 Nov):** added after Nora's Tap Away 3D teardown (docs/research/2026-11-26-tap-away-3d.md: 15 of 16 reviews complain about ads, mostly interruptions inside a level). Checked on develop 1.0.12: the only interstitial call is `checkAndShowAd()` in the level-win flow (from level 6, every 3rd win, never after a loss); rewarded videos only start from a button the player taps; the banner area is reserved at the bottom so it doesn't cover the cube (`src/ads.js`). Remove or reword this line if ad placement ever changes.
 
 **Offline check (Zara, 24 Nov):** develop 1.0.8 `npm run build`, loaded in Chromium with every non-local request blocked: 0 outside requests, fonts and Three.js load from the bundle, 3D level 1 and Classic 2D level 1 both start with no errors. So "Plays offline" is true for play; ads simply don't load without a connection (nothing is gated on them). Worth one real airplane-mode check on a phone before publishing.
 
