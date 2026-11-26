@@ -2511,7 +2511,7 @@
     }
     function eraserTipFirstTime() {
       if (tipSeen('eraser')) return;
-      showTipCard('eraser', { icon: '🧽', title: 'Eraser', text: 'Eraser: tap any arrow to remove it. Tap Cancel to keep it.' });
+      showTipCard('eraser', { icon: '🧼', title: 'Eraser', text: 'Tap any arrow to remove it. Tap Cancel to keep it.' });
     }
     function maybeShowTutorial(lvl) {
       const tip = TUTORIAL[lvl];
@@ -3329,7 +3329,6 @@
             AppState.syncUI();
             isEraserActive = true;
             document.getElementById('eraser-active-banner').classList.remove('hidden');
-            showToast('Eraser Mode Active: Tap an arrow to delete! 🧼');
             eraserTipFirstTime();
             return;
           }
@@ -3482,7 +3481,6 @@
           else if (currentPowerupType === 'eraser') {
             isEraserActive = true;
             document.getElementById('eraser-active-banner').classList.remove('hidden');
-            showToast('Eraser Mode Active: Tap an arrow to delete! 🧼');
             eraserTipFirstTime();
           } else if (currentPowerupType === 'wand') activateMagicWand();
         } else {
@@ -3498,7 +3496,6 @@
           else if (currentPowerupType === 'eraser') {
             isEraserActive = true;
             document.getElementById('eraser-active-banner').classList.remove('hidden');
-            showToast('Eraser Mode Active: Tap an arrow to delete! 🧼');
             eraserTipFirstTime();
           } else if (currentPowerupType === 'wand') activateMagicWand();
         });
