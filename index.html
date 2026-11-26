@@ -888,7 +888,7 @@
     const ENABLE_LEVEL_JUMP = false;
     const AD_DEBUG = false; // true shows players why a video is unavailable (debugging only; keep false in tester and production builds).
     const IAP_ENABLED = false; // Turn on only after real Google Play Billing is integrated
-    const APP_VERSION = '1.0.12'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
+    const APP_VERSION = '1.0.13'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
     const FEEDBACK_EMAIL = 'support@yebeegames.com'; // same contact as privacy_policy.html
 
     // "Send feedback": a plain mailto link, so the player sees and edits everything before sending.
@@ -2943,6 +2943,7 @@
         if (!group) return;
 
         if (a.isCollidedRed) {
+          group.visible = true;
           group.traverse(c => {
             if (c.isMesh && c.material && c.material.color) {
               c.material.color.setHex(0xef4444);
@@ -2958,6 +2959,11 @@
         const localNorm = new THREE.Vector3(...DIRECTIONS[f]);
         const worldNorm = localNorm.clone().applyQuaternion(mainCubeGroup.quaternion);
         const dot = worldNorm.dot(dirToCamera);
+
+        // See-through themes (Crystal): arrows on faces pointing away from the camera would show
+        // through the cube as faint ghost lines that look like front arrows. Hide them; they can't
+        // be tapped from this side anyway (taps need dot > 0.15) and reappear as the cube turns.
+        group.visible = !(theme().opacity < 1 && dot < -0.2);
 
         const isFacing = dot > 0.18;
         const targetColor = isFacing ? theme().arrow : theme().back;
