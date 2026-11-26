@@ -6,6 +6,7 @@ DIST = sys.argv[1]
 OUT = sys.argv[2]
 os.makedirs(OUT, exist_ok=True)
 URL = 'file://' + DIST + '/index.html'
+PKG_VER = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'package.json')))['version']
 results = []
 def rec(name, ok, info=''):
     results.append((name, ok, info)); print(('PASS' if ok else 'FAIL'), name, info, flush=True)
@@ -60,7 +61,7 @@ with sync_playwright() as p:
         page.screenshot(path=f'{OUT}/{tag}-01-home.png')
         # AD_DEBUG
         rec(f'{tag} AD_DEBUG off', page.evaluate('() => AD_DEBUG') is False)
-        ver = page.evaluate('() => APP_VERSION'); rec(f'{tag} version', ver == '1.0.10', ver)
+        ver = page.evaluate('() => APP_VERSION'); rec(f'{tag} version matches package.json', ver == PKG_VER, ver)
         fb = page.evaluate("() => document.getElementById('btn-home-feedback') && (document.getElementById('btn-home-feedback').getAttribute('href')||'')")
         email = page.evaluate('() => FEEDBACK_EMAIL')
         rec(f'{tag} feedback address (known open: ac-feedback-addr)', email != 'support@yebeegames.com', email)
