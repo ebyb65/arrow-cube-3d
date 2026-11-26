@@ -16,12 +16,14 @@ Google refused production access on 23 Nov 2026: testers were not engaged and/or
 | 23 Nov | 1.0.6 (7), status completed (Google review pending) | 45242169278 |
 | 24 Nov | 1.0.6 (7), status completed | 45374476945 |
 | 25 Nov | 1.0.6 (7), status completed | 45594791313 |
+| 26 Nov | 1.0.6 (7), status completed (Drop 2048 production still 1.1.0 (12)) | 45801039398 |
 
 ## Testers
 | Date | Opted-in testers | Source |
 |---|---|---|
 | 24 Nov | not shared yet (CEO shares the link once Google approves 1.0.6) | CEO message 23 Nov |
 | 25 Nov | unknown: no CEO reply yet on the 'share the tester link' approval | HQ approvals |
+| 26 Nov | still unknown: approval open, no CEO message or inbox mail about testers | HQ approvals, hq/inbox |
 
 ## Tester feedback received
 | Date | From | Feedback | Answered by |
@@ -36,13 +38,14 @@ Feedback channels: the in-game "Send feedback" button (from 1.0.7; needs a worki
 | 1.0.6 (7) | 23 Nov | Treasure chests, colour themes, own icon, level map with stars, daily puzzle with streaks | Baseline for the second test |
 
 ## Queued updates
-- 1.0.10 (11), build run https://github.com/ebyb65/arrow-cube-3d/actions/runs/45588603216 (develop, 25 Nov, green). Replaces the queued 1.0.7/1.0.8/1.0.9 builds. On top of 1.0.6 it adds:
+- 1.0.12 (13), build run https://github.com/ebyb65/arrow-cube-3d/actions/runs/45796419419 (develop, 26 Nov, green). Replaces the queued 1.0.7 to 1.0.11 builds. On top of 1.0.6 it adds:
   - Send feedback button (home screen and Player Profile): a direct channel for tester feedback
   - Classic 2D mode
-  - A level win counts once (fast final taps paid up to 6x coins and brought interstitials early)
+  - A level win counts once (fast final taps paid up to 6x coins and brought interstitials early); a win can no longer pop up after leaving the level
   - Eraser: Cancel gives the eraser back; tapping Eraser twice no longer uses a second one; bigger Cancel button
-  - Ad debug text off for players
-- Still blocked before upload: (1) the feedback address (button points to support@yebeegames.com, which has no inbox; CEO creating a Gmail, ac-feedback-addr), then Arjun rebuilds; (2) Lena's final re-check (ac-109-qa). Theo uploads to alpha right after both.
+  - One-time tip cards for Eraser, Wand (asks before it fires) and the first two-cube level (26)
+  - Ad debug text off for players; the build proves the Ad Quality SDK is absent
+- Still blocked before upload: the feedback address (button points to support@yebeegames.com, which has no inbox; CEO creating a Gmail, ac-feedback-addr), then Arjun merges arjun/feedback-gmail-2 and rebuilds, Lena re-checks the feedback button (5 min), Theo uploads to alpha.
 - These are QA-driven fixes, not tester feedback yet. For the reapplication, at least one update should answer real tester feedback, so the tester link matters more than the next build.
 
 ## Production application draft
