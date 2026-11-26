@@ -45,6 +45,7 @@ Feedback channels: the in-game "Send feedback" button (from 1.0.7; needs a worki
   - Eraser: Cancel gives the eraser back; tapping Eraser twice no longer uses a second one; bigger Cancel button
   - One-time tip cards for Eraser, Wand (asks before it fires) and the first two-cube level (26)
   - Ad debug text off for players; the build proves the Ad Quality SDK is absent
+  - Since run 45796419419, on develop for the next build (Lena, 26 Nov): Eraser shows one message instead of three; arrows on the dimmed side faces are readable in the Wood, Sunset and Crystal themes (Wood's were almost invisible)
 - Still blocked before upload: the feedback address (button points to support@yebeegames.com, which has no inbox; CEO creating a Gmail, ac-feedback-addr), then Arjun merges arjun/feedback-gmail-2 and rebuilds, Lena re-checks the feedback button (5 min), Theo uploads to alpha.
 - These are QA-driven fixes, not tester feedback yet. For the reapplication, at least one update should answer real tester feedback, so the tester link matters more than the next build.
 
