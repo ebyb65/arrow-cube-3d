@@ -9,8 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      VERSION_CODE: 15
-      VERSION_NAME: 1.0.14
+      VERSION_CODE: 16
+      VERSION_NAME: 1.0.15
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -98,6 +98,14 @@ jobs:
           MAN=$(find android/app/build/intermediates -path "*release*" -name AndroidManifest.xml | grep -i merged | head -1)
           echo "manifest: $MAN"
           if grep -n "QUERY_ALL_PACKAGES" "$MAN"; then echo "WARNING: QUERY_ALL_PACKAGES present"; else echo "QUERY_ALL_PACKAGES: not present"; fi
+          # age-api: the Play Age Signals plugin must be registered, or the game silently skips the age check
+          if grep -q "com.yebee.agesignals.PlayAgeSignalsPlugin" android/app/src/main/assets/capacitor.plugins.json; then
+            echo "PASS: PlayAgeSignals plugin registered"
+          else
+            echo "FAIL: PlayAgeSignals plugin missing from capacitor.plugins.json"; cat android/app/src/main/assets/capacitor.plugins.json; exit 1
+          fi
+          echo "== permissions in merged release manifest =="
+          grep -o 'uses-permission[^>]*android:name="[^"]*"' "$MAN" | sort -u || true
           rm -rf aab-check
 
       - name: Upload Debug APK (direct testing)
