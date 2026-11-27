@@ -85,7 +85,7 @@ jobs:
           AAR=$(find ~/.gradle -name "age-signals-*.aar" | head -1); echo "$AAR"
           mkdir -p /tmp/as && cd /tmp/as && unzip -q -o "$AAR" classes.jar && unzip -q -o classes.jar
           find . -name "*.class" | grep -v '\$' | sed 's#^./##; s#.class$##; s#/#.#g' | sort > list.txt; cat list.txt
-          for c in $(grep -E "AgeSignalsResult$|AgeSignalsVerificationStatus$|AgeSignalsErrorCode$|AgeSignalsException$|AgeSignalsRequest$" list.txt); do javap -cp classes.jar "$c"; done
+          for c in $(grep -E "model\.|AgeSignalsManager$|Access|Applicable|Result\$Builder|Request\$Builder" list.txt; echo 'com.google.android.play.agesignals.AgeSignalsResult$Builder' 'com.google.android.play.agesignals.AgeSignalsRequest$Builder'); do javap -constants -cp classes.jar "$c"; done
 
       # adq-check: Google flagged the installed-apps check in Ad Quality SDK < 9.11.0
       # (Unity ticket 00942870). Fail the build if it is ever packaged again.
