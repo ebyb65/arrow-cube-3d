@@ -31,17 +31,15 @@ FAKE = """
 """
 
 CASES = [
-  # name, Play answer, expected group, expect coppa+doNotSell
-  ('no signal (most regions)', {'ok': True, 'status': None, 'ageLower': None, 'ageUpper': None}, 'none', False),
-  ('verified adult', {'ok': True, 'status': 'VERIFIED', 'ageLower': None, 'ageUpper': None}, 'adult', False),
-  ('declared 18+', {'ok': True, 'status': 'DECLARED', 'ageLower': 18, 'ageUpper': None}, 'adult', False),
-  ('supervised 13-15', {'ok': True, 'status': 'SUPERVISED', 'ageLower': 13, 'ageUpper': 15}, 'minor', True),
-  ('supervised 0-12', {'ok': True, 'status': 'SUPERVISED', 'ageLower': 0, 'ageUpper': 12}, 'minor', True),
-  ('declared 16-17', {'ok': True, 'status': 'DECLARED', 'ageLower': 16, 'ageUpper': 17}, 'minor', True),
-  ('approval pending 13-15', {'ok': True, 'status': 'SUPERVISED_APPROVAL_PENDING', 'ageLower': 13, 'ageUpper': 15}, 'minor', True),
-  ('supervised, parent says 18+', {'ok': True, 'status': 'SUPERVISED', 'ageLower': 18, 'ageUpper': None}, 'adult', False),
-  ('unknown (applicable region)', {'ok': True, 'status': 'UNKNOWN', 'ageLower': None, 'ageUpper': None}, 'minor', True),
-  ('Play error', {'ok': False, 'error': 'AgeSignalsException: -3'}, 'none', False),
+  # name, Play 0.0.6 answer, expected group, expect coppa+doNotSell
+  ('no signal (most regions)', {'ok': True, 'ageLower': None, 'ageUpper': None, 'ageRangeSource': None}, 'none', False),
+  ('18 and over', {'ok': True, 'ageLower': 18, 'ageUpper': None, 'ageRangeSource': 1}, 'adult', False),
+  ('13-15', {'ok': True, 'ageLower': 13, 'ageUpper': 15, 'ageRangeSource': 2}, 'minor', True),
+  ('0-12', {'ok': True, 'ageLower': 0, 'ageUpper': 12, 'ageRangeSource': 3}, 'minor', True),
+  ('16-17', {'ok': True, 'ageLower': 16, 'ageUpper': 17, 'ageRangeSource': 1}, 'minor', True),
+  ('approval pending, 13-15', {'ok': True, 'ageLower': 13, 'ageUpper': 15, 'significantChangeStatus': 2}, 'minor', True),
+  ('open range from 16', {'ok': True, 'ageLower': 16, 'ageUpper': None}, 'minor', True),
+  ('Play error (network)', {'ok': False, 'error': 'AgeSignalsException: -3', 'errorCode': -3}, 'none', False),
   ('plugin throws', 'throw', 'none', False),
   ('plugin hangs (timeout)', 'hang', 'none', False),
   ('plugin missing (old build)', 'missing', 'none', False),
@@ -70,7 +68,7 @@ with sync_playwright() as p:
                   and (cons.get('coppa') is True) == child and (cons.get('ccpaDoNotSell') is True) == child
                   and (child or ('coppa' not in cons and 'ccpaDoNotSell' not in cons)))
             rec(f'{tag} {name}: group {group}, child flags {child}', ok, f"asked {st['age']}x consent={cons}")
-            if i == 3:  # a minor: the game still plays normally
+            if i == 2:  # a minor (13-15): the game still plays normally
                 page.click('#btn-start-game'); page.wait_for_timeout(1300)
                 if page.evaluate("() => { const e=document.getElementById('btn-tutorial-ok'); return !!e && e.offsetParent!==null; }"):
                     page.click('#btn-tutorial-ok'); page.wait_for_timeout(200)

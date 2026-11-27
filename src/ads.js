@@ -21,8 +21,8 @@
 
   // --- Play Age Signals (California AB 1043 / Brazil, Jan 2027) ---
   // On every launch, before ads start, ask Google Play for the player's age signal
-  // (plugins/play-age-signals). Under 18, or an age Play says it doesn't know in a region
-  // where it must, means child-directed, non-personalized ads (LevelPlay COPPA + "do not sell").
+  // (plugins/play-age-signals). An age range under 18 means child-directed, non-personalized ads
+  // (LevelPlay COPPA + "do not sell").
   // No signal (most regions) or an error: today's behaviour. Ads shown are the same either way.
   const AGE = { timeoutMs: 4000, retryMs: 1500 };
 
@@ -32,15 +32,14 @@
     return (c.Plugins && c.Plugins.PlayAgeSignals) || null;
   }
 
-  // 'minor' | 'adult' | 'none' (no signal / not available)
+  // 'minor' | 'adult' | 'none' (no signal / not available). Play 0.0.6 answers with an age range:
+  // ageUpper null with an ageLower means 18 or over; both null means Play has no age for this user.
   function ageGroup(r) {
-    if (!r || !r.ok || !r.status) return 'none';
-    if (r.status === 'VERIFIED') return 'adult';          // Google-verified adult
-    if (r.status === 'UNKNOWN') return 'minor';           // must know, doesn't: play safe
+    if (!r || !r.ok) return 'none';
     if (typeof r.ageUpper === 'number' && r.ageUpper < 18) return 'minor';
-    if (typeof r.ageLower === 'number' && r.ageLower >= 18) return 'adult';
-    if (typeof r.ageLower === 'number' && r.ageUpper == null) return 'adult'; // e.g. supervised, parent says 18+
-    return 'minor';   // a status with no usable range: play safe
+    if (typeof r.ageLower === 'number' && r.ageLower < 18 && typeof r.ageUpper !== 'number') return 'minor'; // open range from a child age: play safe
+    if (typeof r.ageLower === 'number') return 'adult';
+    return 'none';
   }
 
   async function askAgeOnce(p) {

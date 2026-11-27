@@ -5,22 +5,21 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.google.android.play.agesignals.AgeSignalsException;
 import com.google.android.play.agesignals.AgeSignalsManager;
 import com.google.android.play.agesignals.AgeSignalsManagerFactory;
 import com.google.android.play.agesignals.AgeSignalsRequest;
 import com.google.android.play.agesignals.AgeSignalsResult;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 
 /**
- * Asks Google Play for the player's age signal (Play Age Signals API), as California AB 1043 requires
+ * Asks Google Play for the player's age signal (Play Age Signals API 0.0.6), as California AB 1043 requires
  * from 1 Jan 2027. The game only uses it to decide whether ads must be child-directed / non-personalized;
  * nothing is stored or sent anywhere by this plugin.
  *
- * check() resolves { ok: true, status, ageLower, ageUpper } where status is the AgeSignalsVerificationStatus
- * name (VERIFIED, DECLARED, SUPERVISED, SUPERVISED_APPROVAL_PENDING, SUPERVISED_APPROVAL_DENIED, UNKNOWN) or
- * null when Play has no signal for this user, and the ages are null when Play gives none.
- * On an API error it resolves { ok: false, error } (never rejects), so the game keeps today's behaviour.
+ * check() resolves { ok: true, ageLower, ageUpper, ageRangeSource, significantChangeStatus } (each an int or
+ * null; both ages null = Play has no age for this user) or, on any API error, { ok: false, error, errorCode }.
+ * It never rejects, so the game keeps today's behaviour when Play can't answer.
+ * 0.0.6 dropped 0.0.3's userStatus(); the age range is the signal (ageUpper null = 18 or over).
  */
 @CapacitorPlugin(name = "PlayAgeSignals")
 public class PlayAgeSignalsPlugin extends Plugin {
@@ -38,56 +37,25 @@ public class PlayAgeSignalsPlugin extends Plugin {
         }
     }
 
+    private static Object num(Integer v) {
+        return v == null ? JSObject.NULL : (Object) v;
+    }
+
     private static JSObject toJs(AgeSignalsResult r) {
         JSObject o = new JSObject();
         o.put("ok", true);
-        if (r == null) {
-            o.put("status", JSObject.NULL);
-            o.put("ageLower", JSObject.NULL);
-            o.put("ageUpper", JSObject.NULL);
-            return o;
-        }
-        // Object: works whether the library returns an enum, an @IntDef int, Integer or null.
-        Object status = r.userStatus();
-        Object lower = r.ageLower();
-        Object upper = r.ageUpper();
-        String name = statusName(status);
-        o.put("status", name == null ? JSObject.NULL : name);
-        o.put("ageLower", lower instanceof Number ? (Object) ((Number) lower).intValue() : JSObject.NULL);
-        o.put("ageUpper", upper instanceof Number ? (Object) ((Number) upper).intValue() : JSObject.NULL);
+        o.put("ageLower", r == null ? JSObject.NULL : num(r.ageLower()));
+        o.put("ageUpper", r == null ? JSObject.NULL : num(r.ageUpper()));
+        o.put("ageRangeSource", r == null ? JSObject.NULL : num(r.ageRangeSource()));
+        o.put("significantChangeStatus", r == null ? JSObject.NULL : num(r.significantChangeStatus()));
         return o;
-    }
-
-    /** Enum -> its name; int constant -> the matching AgeSignalsVerificationStatus field name. */
-    private static String statusName(Object status) {
-        if (status == null) return null;
-        if (status instanceof Number) {
-            int v = ((Number) status).intValue();
-            for (String cls : new String[] {
-                "com.google.android.play.agesignals.model.AgeSignalsVerificationStatus",
-                "com.google.android.play.agesignals.AgeSignalsVerificationStatus"
-            }) {
-                try {
-                    for (Field f : Class.forName(cls).getFields()) {
-                        if (Modifier.isStatic(f.getModifiers()) && (f.getType() == int.class || f.getType() == Integer.class)) {
-                            Object fv = f.get(null);
-                            if (fv instanceof Number && ((Number) fv).intValue() == v) return f.getName();
-                        }
-                    }
-                } catch (Throwable ignored) {
-                    // try the next location
-                }
-            }
-            return "CODE_" + v;
-        }
-        return status.toString();
     }
 
     private static JSObject failure(Throwable e) {
         JSObject o = new JSObject();
         o.put("ok", false);
-        String msg = e == null ? "unknown" : (e.getClass().getSimpleName() + ": " + e.getMessage());
-        o.put("error", msg);
+        o.put("error", e == null ? "unknown" : (e.getClass().getSimpleName() + ": " + e.getMessage()));
+        if (e instanceof AgeSignalsException) o.put("errorCode", ((AgeSignalsException) e).getErrorCode());
         return o;
     }
 }
