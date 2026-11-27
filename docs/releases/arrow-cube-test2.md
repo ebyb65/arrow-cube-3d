@@ -17,6 +17,7 @@ Google refused production access on 23 Nov 2026: testers were not engaged and/or
 | 24 Nov | 1.0.6 (7), status completed | 45374476945 |
 | 25 Nov | 1.0.6 (7), status completed | 45594791313 |
 | 26 Nov | 1.0.6 (7), status completed (Drop 2048 production still 1.1.0 (12)) | 45801039398 |
+| 27 Nov | 1.0.6 (7), status completed (Drop 2048 production still 1.1.0 (12)) | 45981820031 |
 
 ## Testers
 | Date | Opted-in testers | Source |
@@ -24,6 +25,7 @@ Google refused production access on 23 Nov 2026: testers were not engaged and/or
 | 24 Nov | not shared yet (CEO shares the link once Google approves 1.0.6) | CEO message 23 Nov |
 | 25 Nov | unknown: no CEO reply yet on the 'share the tester link' approval | HQ approvals |
 | 26 Nov | still unknown: approval open, no CEO message or inbox mail about testers | HQ approvals, hq/inbox |
+| 27 Nov | still unknown: approval open since 23 Nov, no CEO message or inbox mail about testers. The 14-day clock has most likely not started | HQ approvals, msgs, hq/inbox |
 
 ## Tester feedback received
 | Date | From | Feedback | Answered by |
@@ -38,14 +40,15 @@ Feedback channels: the in-game "Send feedback" button (from 1.0.7; needs a worki
 | 1.0.6 (7) | 23 Nov | Treasure chests, colour themes, own icon, level map with stars, daily puzzle with streaks | Baseline for the second test |
 
 ## Queued updates
-- 1.0.12 (13), build run https://github.com/ebyb65/arrow-cube-3d/actions/runs/45796419419 (develop, 26 Nov, green). Replaces the queued 1.0.7 to 1.0.11 builds. On top of 1.0.6 it adds:
+- 1.0.14 (15), build run https://github.com/ebyb65/arrow-cube-3d/actions/runs/45978217013 (develop 0a39cf0, 27 Nov, green). Replaces the queued 1.0.7 to 1.0.13 builds. On top of 1.0.6 it adds:
   - Send feedback button (home screen and Player Profile): a direct channel for tester feedback
   - Classic 2D mode
   - A level win counts once (fast final taps paid up to 6x coins and brought interstitials early); a win can no longer pop up after leaving the level
-  - Eraser: Cancel gives the eraser back; tapping Eraser twice no longer uses a second one; bigger Cancel button
+  - Eraser: Cancel gives the eraser back; tapping Eraser twice no longer uses a second one; bigger Cancel button; one message instead of three
   - One-time tip cards for Eraser, Wand (asks before it fires) and the first two-cube level (26)
+  - Arrows on the dimmed side faces readable in the Wood, Sunset and Crystal themes; no faint far-side arrows through the Crystal cube (1.0.13)
+  - Hint: the hinted arrow stays bright green and is always on a face you can see; the cube turns to it if needed (1.0.14)
   - Ad debug text off for players; the build proves the Ad Quality SDK is absent
-  - Since run 45796419419, on develop for the next build (Lena, 26 Nov): Eraser shows one message instead of three; arrows on the dimmed side faces are readable in the Wood, Sunset and Crystal themes (Wood's were almost invisible)
 - Still blocked before upload: the feedback address (button points to support@yebeegames.com, which has no inbox; CEO creating a Gmail, ac-feedback-addr), then Arjun merges arjun/feedback-gmail-2 and rebuilds, Lena re-checks the feedback button (5 min), Theo uploads to alpha.
 - These are QA-driven fixes, not tester feedback yet. For the reapplication, at least one update should answer real tester feedback, so the tester link matters more than the next build.
 
