@@ -888,7 +888,7 @@
     const ENABLE_LEVEL_JUMP = false;
     const AD_DEBUG = false; // true shows players why a video is unavailable (debugging only; keep false in tester and production builds).
     const IAP_ENABLED = false; // Turn on only after real Google Play Billing is integrated
-    const APP_VERSION = '1.0.13'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
+    const APP_VERSION = '1.0.14'; // keep in step with VERSION_NAME in .github/workflows/android-build.yml
     const FEEDBACK_EMAIL = 'support@yebeegames.com'; // same contact as privacy_policy.html
 
     // "Send feedback": a plain mailto link, so the player sees and edits everything before sending.
@@ -1165,6 +1165,10 @@
     let activeArrows = [];
     let initialCount = 0;
     let animatingArrows = new Set();
+    // The arrow a Hint (or level 1's tutorial) points at: kept green every frame until it leaves
+    // or the level changes (ac-hint-visible). hintTurn eases the cube round when it faces away.
+    let hintedArrowId = null;
+    let hintTurn = null;
     // A level is won exactly once: the win runs when the last arrow has left
     // AND no escape/erase animation is still flying (ac-double-win).
     let levelWinScheduled = false;
@@ -2323,23 +2327,40 @@
 
     // POWERUP ACTIVATIONS (Requirements 5 & 6)
     function activateHint() {
-      const freeArrows = activeArrows.filter(a => !checkIsArrowBlocked(a));
+      const freeArrows = activeArrows.filter(a => !checkIsArrowBlocked(a) && arrowMeshMap.has(a.id));
       if (freeArrows.length === 0) {
         showToast('No free arrow on this face. Rotate to inspect other blocks!');
         return;
       }
-      const target = freeArrows[0];
-      const group = arrowMeshMap.get(target.id);
-      if (group) {
-        showToast('Hint: the green arrow has a clear path! 💡');
-        playSound(880, 0.35, 'triangle', 0.25);
-        group.traverse(child => {
-          if (child.isMesh && child.material) {
-            child.material.color.setHex(0x10b981);
-            if (child.material.emissive) child.material.emissive.setHex(0x064e3b);
-          }
-        });
+      // Pick the free arrow that faces the player most directly, so the hint is on a face they can see
+      const dirToCamera = new THREE.Vector3().subVectors(camera.position, mainCubeGroup.position).normalize();
+      const worldNormal = a => new THREE.Vector3(...DIRECTIONS[a.specs[0].f]).applyQuaternion(mainCubeGroup.quaternion);
+      let target = null, best = -Infinity;
+      freeArrows.forEach(a => {
+        const d = worldNormal(a).dot(dirToCamera);
+        if (d > best) { best = d; target = a; }
+      });
+      hintedArrowId = target.id;
+      // None of the free arrows is in view: turn the cube so the hinted face points at the player
+      if (best <= 0.18) {
+        rotVelX = 0;
+        rotVelY = 0;
+        const from = mainCubeGroup.quaternion.clone();
+        const to = new THREE.Quaternion().setFromUnitVectors(worldNormal(target), dirToCamera).multiply(from);
+        hintTurn = { from, to, start: performance.now(), ms: 600 };
       }
+      updateArrowOrientationColors(); // paint it green now, not on the next frame
+      showToast('Hint: the green arrow has a clear path! 💡');
+      playSound(880, 0.35, 'triangle', 0.25);
+    }
+
+    function stepHintTurn() {
+      if (!hintTurn) return;
+      if (isPointerDown || activePointers.size > 0) { hintTurn = null; return; } // the player took over
+      const k = Math.min(1, (performance.now() - hintTurn.start) / hintTurn.ms);
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      mainCubeGroup.quaternion.slerpQuaternions(hintTurn.from, hintTurn.to, e);
+      if (k >= 1) hintTurn = null;
     }
 
     function activateMagicWand() {
@@ -2742,6 +2763,8 @@
 
       rotVelX = 0;
       rotVelY = 0;
+      hintedArrowId = null;
+      hintTurn = null;
       mainCubeGroup.quaternion.set(0, 0, 0, 1);
       applyRotation(0.38, 0.52);
       updateUI();
@@ -2966,12 +2989,17 @@
         group.visible = !(theme().opacity < 1 && dot < -0.2);
 
         const isFacing = dot > 0.18;
-        const targetColor = isFacing ? theme().arrow : theme().back;
-        const targetOpacity = isFacing ? 1.0 : 0.38;
+        const isHint = a.id === hintedArrowId;
+        // The hinted arrow stays bright green (full strength when facing the player)
+        const targetColor = isHint ? 0x10b981 : (isFacing ? theme().arrow : theme().back);
+        const targetOpacity = (isFacing || isHint) ? 1.0 : 0.38;
+        const targetEmissive = isHint ? 0x047857 : 0x000000;
+        if (isHint && dot > -0.2) group.visible = true;
 
         group.traverse(c => {
           if (c.isMesh && c.material && c.material.color) {
             c.material.color.setHex(targetColor);
+            if (c.material.emissive) c.material.emissive.setHex(targetEmissive);
             c.material.transparent = true;
             c.material.opacity = targetOpacity;
           }
@@ -2990,6 +3018,7 @@
         }
       }
 
+      stepHintTurn();
       updateArrowOrientationColors();
 
       renderer.render(scene, camera);
