@@ -19,9 +19,57 @@
     return (c.Plugins && c.Plugins.LevelPlay) || null;
   }
 
+  // --- Play Age Signals (California AB 1043 / Brazil, Jan 2027) ---
+  // On every launch, before ads start, ask Google Play for the player's age signal
+  // (plugins/play-age-signals). Under 18, or an age Play says it doesn't know in a region
+  // where it must, means child-directed, non-personalized ads (LevelPlay COPPA + "do not sell").
+  // No signal (most regions) or an error: today's behaviour. Ads shown are the same either way.
+  const AGE = { timeoutMs: 4000, retryMs: 1500 };
+
+  function agePlugin() {
+    const c = window.Capacitor;
+    if (!c || !c.isNativePlatform || !c.isNativePlatform()) return null;
+    return (c.Plugins && c.Plugins.PlayAgeSignals) || null;
+  }
+
+  // 'minor' | 'adult' | 'none' (no signal / not available)
+  function ageGroup(r) {
+    if (!r || !r.ok || !r.status) return 'none';
+    if (r.status === 'VERIFIED') return 'adult';          // Google-verified adult
+    if (r.status === 'UNKNOWN') return 'minor';           // must know, doesn't: play safe
+    if (typeof r.ageUpper === 'number' && r.ageUpper < 18) return 'minor';
+    if (typeof r.ageLower === 'number' && r.ageLower >= 18) return 'adult';
+    if (typeof r.ageLower === 'number' && r.ageUpper == null) return 'adult'; // e.g. supervised, parent says 18+
+    return 'minor';   // a status with no usable range: play safe
+  }
+
+  async function askAgeOnce(p) {
+    try {
+      return await Promise.race([
+        p.check(),
+        new Promise(r => setTimeout(() => r({ ok: false, error: 'timeout' }), AGE.timeoutMs)),
+      ]);
+    } catch (e) {
+      return { ok: false, error: e && e.message ? e.message : String(e) };
+    }
+  }
+
+  async function checkAge() {
+    const p = agePlugin();
+    if (!p) return { group: 'none', result: { ok: false, error: 'no plugin' } };
+    let r = await askAgeOnce(p);
+    if (!r || (!r.ok && r.error !== 'timeout')) {      // transient Play errors: one retry
+      await new Promise(res => setTimeout(res, AGE.retryMs));
+      r = await askAgeOnce(p);
+    }
+    return { group: ageGroup(r), result: r };
+  }
+
   const Ads = {
     initialized: false,
     initPromise: null,
+    ageGroup: 'none',     // from Play Age Signals: minor | adult | none
+    ageResult: null,
     pending: {},
     busy: false,
     lastError: '',
@@ -54,7 +102,13 @@
           await p.addListener('bannerLoadFailed', e => this.onBannerFailed(e));
           await p.addListener('bannerDisplayFailed', e => this.onBannerFailed(e));
           // No consent manager yet: do not signal consent to personalized ads.
-          await p.initialize({ appKey: CONFIG.appKey, consent: { gdprConsent: false } });
+          const consent = { gdprConsent: false };
+          const age = await checkAge();
+          this.ageGroup = age.group;
+          this.ageResult = age.result;
+          if (age.group === 'minor') { consent.coppa = true; consent.ccpaDoNotSell = true; }
+          if (age.result && !age.result.ok && age.result.error !== 'no plugin') this.note('Age signal unavailable: ' + age.result.error);
+          await p.initialize({ appKey: CONFIG.appKey, consent });
           this.initialized = true;
           this.loadAd('rewarded');
           this.loadAd('interstitial');
@@ -215,6 +269,7 @@
     },
   });
 
+  Ads._ageGroup = ageGroup;   // for tests
   window.Ads = Ads;
   document.addEventListener('DOMContentLoaded', () => setTimeout(() => Ads.init(), 800));
 })();
