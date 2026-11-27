@@ -78,6 +78,15 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleDebug bundleRelease
 
+      - name: TEMP inspect Play Age Signals API
+        if: always()
+        run: |
+          set -x
+          AAR=$(find ~/.gradle -name "age-signals-*.aar" | head -1); echo "$AAR"
+          mkdir -p /tmp/as && cd /tmp/as && unzip -q -o "$AAR" classes.jar && unzip -q -o classes.jar
+          find . -name "*.class" | grep -v '\$' | sed 's#^./##; s#.class$##; s#/#.#g' | sort > list.txt; cat list.txt
+          for c in $(grep -E "AgeSignalsResult$|AgeSignalsVerificationStatus$|AgeSignalsErrorCode$|AgeSignalsException$|AgeSignalsRequest$" list.txt); do javap -cp classes.jar "$c"; done
+
       # adq-check: Google flagged the installed-apps check in Ad Quality SDK < 9.11.0
       # (Unity ticket 00942870). Fail the build if it is ever packaged again.
       - name: Verify bundle contents (Ad Quality SDK not packaged)
