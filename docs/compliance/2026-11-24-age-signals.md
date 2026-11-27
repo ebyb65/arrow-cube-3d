@@ -19,3 +19,12 @@ Both games show ads through Unity LevelPlay and have no accounts or purchases.
 ## Sources
 - Google Play email "Updates to the Play Age Signals API (U.S. and Brazil)", 19 Nov 2026 (hq/inbox)
 - Kelley Drye, FAQ on California's Digital Age Assurance Act (21 Oct 2025)
+
+## Implementation in Arrow Cube (Arjun, 27 Nov 2026, develop 1.0.15 code 16, run 46061511396)
+- Local Capacitor plugin `plugins/play-age-signals` (Play Age Signals library `com.google.android.play:age-signals:0.0.6`, the version Google's docs list as current). `check()` calls `checkAgeSignals()` on every launch and never fails the game.
+- 0.0.6 differs from the 0.0.3 docs: there is no `userStatus()`. The result is `ageLower`, `ageUpper`, `ageRangeSource` (TIER_A..D), `significantChangeStatus` (APPROVED/PENDING/DECLINED), `installId`, `significantChangeApprovalDate` (read from the library itself in CI).
+- `src/ads.js` asks before LevelPlay starts (4 s timeout, one retry on a Play error). `ageUpper` under 18 (or an open range starting under 18) = minor: LevelPlay gets `coppa: true` and `ccpaDoNotSell: true` through `LevelPlayPrivacySettings` (capacitor-levelplay 0.3.0 already uses the new PrivacySettings API, not the deprecated `setConsent`). No age range, an error or a timeout: today's behaviour (`gdprConsent: false` only). The same ads show either way; only personalization changes.
+- The age itself is not stored or sent anywhere; LevelPlay only receives the child / do-not-sell flags.
+- Not used: 0.0.6 also has `getApplicableAgeFeatures()` (MANDATORY_SHARING) and `requestAgeSignalsAccess(activity)` (a Google screen asking the user to share; result SHARED / NOT_SHARED / VERIFICATION_REQUIRED). Open question for Theo: does California or Brazil expect apps to call `requestAgeSignalsAccess` when Play says sharing is mandatory? If so, it is a small follow-up (one more plugin method).
+- Test: `qa/age_signals.py` fakes the native bridge and checks the flags for each answer (47/47 at 390x844 and 360x740). The build fails if the plugin is not registered.
+- Drop 2048: same plugin and ads change still to do (after 1.2.0 ships; its build creates the Android project differently).
